@@ -1,22 +1,22 @@
 #!/bin/bash
 if [ $# -lt 2 ]
 then
-  echo "Usage: `basename $0` align.bam elements.bed [output.srcs] [samtools] [bedtools]"
-  exit
+    echo "Usage: `basename $0` align.bam elements.bed [output.srcs] [samtools] [bedtools]"
+    exit
 fi
 plcheck ()
 {
-        for iter in $@; do
-                if [ ! -r $iter ]; then
-                        echo "ERROR: $iter not found! Aborting..."
-                        exit 0
-                else
-                        if [ ! -s $iter ]; then
-                                echo "ERROR: $iter is empty! Aborting..."
-                                exit 0
-                        fi
-                fi
-        done
+    for iter in $@; do
+        if [ ! -r $iter ]; then
+            echo "ERROR: $iter not found! Aborting..."
+            exit 0
+        else
+            if [ ! -s $iter ]; then
+                echo "ERROR: $iter is empty! Aborting..."
+                exit 0
+            fi
+        fi
+    done
 }
 plcheck $1
 plcheck $2
