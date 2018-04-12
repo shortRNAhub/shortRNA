@@ -25,7 +25,7 @@ osrcs=${3:-$tmpo}
 samtools=${4:-samtools}
 bedtools=${5:-bedtools}
 
-$samtools view $1 | paste - <($samtools view $1 | cut -f 6 | sed -E 's/.*([0-9][0-9])M.*/\1/') | awk -F "\t" '{if($3!="*"){ print $3"\t"$4"\t"($4+$NF-1)"\t"$10"\t"$6"\t"$NF }}' | $bedtools sort -i - | $bedtools intersect -wao -f 0.5 -a - -b $2 | awk -F "\t" '{
+$samtools view $1 | paste - <($samtools view $1 | cut -f 6 | egrep -n -o '([0-9]+)M' | sed 's/M//g' | awk -F":" 'BEGIN { ln=0 } {if($1==ln){ s+=$2 }else{ if(ln!=0){ print s }; ln=$1; s=$2 } } END { print s }') |  awk -F "\t" '{if($3!="*"){ print $3"\t"$4"\t"($4+$NF-1)"\t"$10"\t"$6"\t"$NF }}' | $bedtools sort -i - | $bedtools intersect -wao -f 0.5 -a - -b $2 | awk -F "\t" '{
  if($7=="."){ 
     print $4"\t"$5"\t"$1":"$2"\tNA\tNA\tNA\tNA\tNA\t"$6;
  }else{
