@@ -30,52 +30,66 @@ runDEA <- function(o, formula=NULL, groups=NULL, method="edgeR", types=NULL, nor
     if(is.null(res$info$DEA.call$method)) res$info$DEA.call$method <- "edgeR"
     if(is.null(res$info$DEA.call$formula)) res$info$DEA.call$formula <- NA
     
-    res$seqLevel$miRNA <- .deaWrapper(method, getSeqCounts(o, type="miRNA", status="unique", formatCase=T), calcNormFactors.smallRNAexp(o, normalizeOnType="miRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
-    res$seqLevel$tRNA <- .deaWrapper(method, getSeqCounts(o, type="tRNA", status="unique", formatCase=T), calcNormFactors.smallRNAexp(o, normalizeOnType="tRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
-    res$seqLevel$tRNA$name <- o@sources[toupper(row.names(res$seqLevel$tRNA)),"src_name"]
-    res$seqLevel$primary_piRNA <- NULL
-    if("primary_piRNA" %in% row.names(o@composition$raw$all)){
-        res$seqLevel$primary_piRNA <- .deaWrapper(method, getSeqCounts(o, type="primary_piRNA", status="unique", formatCase=T), calcNormFactors.smallRNAexp(o, normalizeOnType="primary_piRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
-        res$seqLevel$primary_piRNA$name <- o@sources[toupper(row.names(res$seqLevel$primary_piRNA)),"src_name"]
-    }
-    res$seqLevel$allKnownUnique <- .deaWrapper(method, getSeqCounts(o, type=types, status="unique", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
-    res$seqLevel$allKnownUnique$name <- o@sources[toupper(row.names(res$seqLevel$allKnownUnique)),"src_name"]
-    res$seqLevel$ambiguous <- .deaWrapper(method, getSeqCounts(o, type=types, status="ambiguous", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
-    res$seqLevel$ambiguous$name <- o@sources[toupper(row.names(res$seqLevel$ambiguous)),"src_name"]
-    res$seqLevel$unknown <- .deaWrapper(method, getSeqCounts(o, status="unknown", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
-    
+        
     if(o@norm$method=="cqn"){
         if(is.null(o@norm$agglmoffset)){
             message("Calculating aggregated glm offset...")
             o@norm$agglmoffset <- getAggOffset(o, o@norm$glm.offset)
         }
-    }
-    res$aggregated$miRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type="miRNA", ambiguous=FALSE), o, ...), calcNormFactors.smallRNAexp(o, normalizeOnType="miRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
-    res$aggregated$tRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type="tRNA", ambiguous=FALSE), o, ...), calcNormFactors.smallRNAexp(o, normalizeOnType="tRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
-    res$aggregated$primary_piRNA <- NULL
-    res$aggregated$piRNA_clusters <- NULL
-    if("primary_piRNA" %in% row.names(o@composition$raw$all)){
-        a <- getSeqCounts(o, type="primary_piRNA")
-        if(nrow(a)>1){
-            ag <- aggregate(a,by=list(feature=o@sources[row.names(a),"src_name"]),FUN=sum)
-            row.names(ag) <- ag[,1]; ag[,1] <- NULL
-            res$aggregated$primary_piRNA <- .deaWrapper(method, ag, calcNormFactors.smallRNAexp(o, normalizeOnType="primary_piRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
-            ag <- aggregate(a,by=list(feature=sapply(o@sources[row.names(a),"src_name"],FUN=function(x){ x <- strsplit(x,"-",fixed=T)[[1]]; paste(x[-length(x)],collapse="-") })),FUN=sum)
-            row.names(ag) <- ag[,1]; ag[,1] <- NULL
-            res$aggregated$piRNA_clusters <- .deaWrapper(method, ag, calcNormFactors.smallRNAexp(o, normalizeOnType="primary_piRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
-            
+    }    
+    
+    if(normalizeByType){
+        message("normalizeByType=T; only miRNA and tRNA fragments will be tested.")
+        
+        res$seqLevel$miRNA <- .deaWrapper(method, getSeqCounts(o, type="miRNA", status="unique", formatCase=T), calcNormFactors.smallRNAexp(o, normalizeOnType="miRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
+        res$seqLevel$tRNA <- .deaWrapper(method, getSeqCounts(o, type="tRNA", status="unique", formatCase=T), calcNormFactors.smallRNAexp(o, normalizeOnType="tRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
+        res$seqLevel$tRNA$name <- o@sources[toupper(row.names(res$seqLevel$tRNA)),"src_name"]
+        res$aggregated$miRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type="miRNA", ambiguous=FALSE), o, ...), calcNormFactors.smallRNAexp(o, normalizeOnType="miRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
+        res$aggregated$tRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type="tRNA", ambiguous=FALSE), o, ...), calcNormFactors.smallRNAexp(o, normalizeOnType="tRNA"), filterFun, formula, groups, forceGLM, coef, replicates)        
+    }else{
+        res$seqLevel$miRNA <- .deaWrapper(method, getSeqCounts(o, type="miRNA", status="unique", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
+        res$seqLevel$tRNA <- .deaWrapper(method, getSeqCounts(o, type="tRNA", status="unique", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
+        res$seqLevel$tRNA$name <- o@sources[toupper(row.names(res$seqLevel$tRNA)),"src_name"]
+        res$seqLevel$primary_piRNA <- NULL
+        if("primary_piRNA" %in% row.names(o@composition$raw$all)){
+            res$seqLevel$primary_piRNA <- .deaWrapper(method, getSeqCounts(o, type="primary_piRNA", status="unique", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
+            if(!is.null(res$seqLevel$primary_piRNA)) res$seqLevel$primary_piRNA$name <- o@sources[toupper(row.names(res$seqLevel$primary_piRNA)),"src_name"]
         }
-    }
-    res$aggregated$allUnique <- .deaWrapper(method, getAggCounts(o, type=types, ambiguous=FALSE), o, filterFun, formula, groups, forceGLM, coef, replicates)
-    e <- getAggCounts(o, type=types, ambiguous=TRUE)
-    e <- e[setdiff(row.names(e),row.names(res$aggregated$allUnique)),]
-    res$aggregated$ambiguous <- try(.deaWrapper(method, e, o, filterFun, formula, groups, forceGLM, coef, replicates), silent=T)
+        res$seqLevel$allKnownUnique <- .deaWrapper(method, getSeqCounts(o, type=types, status="unique", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
+        res$seqLevel$allKnownUnique$name <- o@sources[toupper(row.names(res$seqLevel$allKnownUnique)),"src_name"]
+        res$seqLevel$ambiguous <- .deaWrapper(method, getSeqCounts(o, type=types, status="ambiguous", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
+        res$seqLevel$ambiguous$name <- o@sources[toupper(row.names(res$seqLevel$ambiguous)),"src_name"]
+        res$seqLevel$unknown <- .deaWrapper(method, getSeqCounts(o, status="unknown", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
 
+        res$aggregated$miRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type="miRNA", ambiguous=FALSE), o, ...), o, filterFun, formula, groups, forceGLM, coef, replicates)
+        res$aggregated$tRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type="tRNA", ambiguous=FALSE), o, ...), o, filterFun, formula, groups, forceGLM, coef, replicates)
+        res$aggregated$primary_piRNA <- NULL
+        res$aggregated$piRNA_clusters <- NULL
+
+        if("primary_piRNA" %in% row.names(o@composition$raw$all)){
+            a <- getSeqCounts(o, type="primary_piRNA")
+            if(nrow(a)>1){
+                ag <- aggregate(a,by=list(feature=o@sources[row.names(a),"src_name"]),FUN=sum)
+                row.names(ag) <- ag[,1]; ag[,1] <- NULL
+                res$aggregated$primary_piRNA <- .deaWrapper(method, ag,o, filterFun, formula, groups, forceGLM, coef, replicates)
+                ag <- aggregate(a,by=list(feature=sapply(o@sources[row.names(a),"src_name"],FUN=function(x){ x <- strsplit(x,"-",fixed=T)[[1]]; paste(x[-length(x)],collapse="-") })),FUN=sum)
+                row.names(ag) <- ag[,1]; ag[,1] <- NULL
+                res$aggregated$piRNA_clusters <- .deaWrapper(method, ag, o, filterFun, formula, groups, forceGLM, coef, replicates)
+                
+            }
+        }
+        res$aggregated$allUnique <- .deaWrapper(method, getAggCounts(o, type=types, ambiguous=FALSE), o, filterFun, formula, groups, forceGLM, coef, replicates)
+        e <- getAggCounts(o, type=types, ambiguous=TRUE)
+        e <- e[setdiff(row.names(e),row.names(res$aggregated$allUnique)),]
+        res$aggregated$ambiguous <- try(.deaWrapper(method, e, o, filterFun, formula, groups, forceGLM, coef, replicates), silent=T)
+
+    }
     return(res)
 }
 
 .deaWrapper <- function(method, e, o, filterFun, formula=NULL,groups=NULL,forceGLM=FALSE, coef=NULL, replicates=NULL){
-    e <- e[which(apply(e,1,FUN=filterFun)),]
+    e <- e[which(apply(e,1,FUN=filterFun)),,drop=F]
+    if(nrow(e)==0) return(NULL)
     return(switch(method, 
         edgeR=.edgeRwrapper(e, o, formula, groups, forceGLM, coef),
         voom=.voomWrapper(e, o, formula, groups, coef, replicates),
@@ -124,7 +138,6 @@ runDEA <- function(o, formula=NULL, groups=NULL, method="edgeR", types=NULL, nor
             message(paste("Coefficient tested:",coef))
         }
         dds <- estimateDisp(dds, mm)
- #       dds <- estimateGLMRobustDisp(dds, mm)
         return(as.data.frame(topTags(glmLRT(glmFit(dds,mm),coef=coef),nrow(e))))
     }
 }
