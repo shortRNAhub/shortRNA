@@ -10,5 +10,9 @@
 for i in `find . -name "README.md"`
 do
     doctoc --github --notitle $i
-    sed -i '1i<a href="https://zenhub.com"><img src="https://raw.githubusercontent.com/ZenHubIO/support/master/zenhub-badge.png"></a>' $i
+    if grep -qFi "zenhub" $i; then
+	next;
+    else
+	sed -i '1i<a href="https://zenhub.com"><img src="https://raw.githubusercontent.com/ZenHubIO/support/master/zenhub-badge.png"></a>' $i
+    fi
 done
