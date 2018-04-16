@@ -10,4 +10,5 @@
 for i in `find . -name "README.md"`
 do
     doctoc --github --notitle $i
+    sed -i '1i<a href="https://zenhub.com"><img src="https://raw.githubusercontent.com/ZenHubIO/support/master/zenhub-badge.png"></a>' $i
 done
