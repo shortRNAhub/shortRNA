@@ -1,49 +1,31 @@
-
-#' plotTranscriptCoverage
+#' plotFeatureCoverage
 #'
-#' Plots the coverage across a transcript
+#' Plots the coverage across a transcript/feature
 #'
-#' @param tx A transcript or regular expression
-#' @param srcs The original srcs table (or path to it)
-#' @param readcounts The read counts for original srcs table (or path to it)
+#' @param o An object of class smallRNAexp
+#' @param feature The name of the feature
+#' @param exact Logical; whether the feature name should be interpretated as exact (default TRUE), otherwise as a regular expression.
 #' @param includeAmbiguous Logical; whether to include ambiguous sequences (default TRUE; plotted a different color)
+#' @param logCounts Logical; whether to log-transform read counts for plotting (defualt FALSE) color)
 #'
 #' @export
-plotTranscriptCoverage <- function(tx,srcs,readcounts=NULL,includeAmbiguous=TRUE){
-    if(is.character(srcs)) srcs <- read.delim(srcs,header=F)
-    v2 <- srcs[intersect(grep(tx,srcs[,7]),which(as.character(srcs[,1]) %in% row.names(vals))),c(1,4)]
-    if(!(nrow(v2)>0)) stop("Feature not found")
-    v2 <- v2[!duplicated(v2),]
-    # optional
-    v2 <- v2[!duplicated(v2[,1]),]
-    m <- merge(vals,v2,by.x="row.names",by.y="V1")
-    colnames(m)[9] <- "pos_in_feature"
-    if(!is.null(readcounts)) layout(matrix(1:2,nrow=2))
-    plotCoverage(m,NULL,tx,includeAmbiguous=includeAmbiguous)
-    if(!is.null(readcounts)) plotCoverage(m,readcounts,tx,includeAmbiguous=includeAmbiguous)
-}
-
-plotCoverage <- function(m, readcounts=NULL, includeAmbiguous=TRUE, main=""){
-    if(!is.null(readcounts)){
-        if(is.matrix(readcounts) | is.data.frame(readcounts)){
-            readcounts <- rowMeans(readcounts)
-        }
+plotFeatureCoverage <- function(o, feature, exact=TRUE, includeAmbiguous=TRUE, logCounts=FALSE, main=""){
+    us <- getFeatureSeqs(o,feature,exact,allowAmbiguous=F)
+    as <- setdiff(getFeatureSeqs(o,feature,exact,allowAmbiguous=T),us)
+    u <- rowSums(o@seqcounts[us,,drop=F])
+    a <- rowSums(o@seqcounts[as,,drop=F])
+    if(logCounts){
+        u <- log(u+1)
+        a <- log(a+1)
     }
-    pmax <- max(m$pos_in_feature+m$length-1)
-    u <- rep(0,pmax)
-    a <- rep(0,pmax)
-    for(i in 1:nrow(m)){
-        nbr <-ifelse(is.null(readcounts),1,readcounts[as.character(m[i,1])])
-        x <- c(rep(0, m[i,"pos_in_feature"]-1), rep(1,m[i,"length"]))
-        if(m[i,"status"]=="unique"){ u[1:length(x)] <- u[1:length(x)]+(x*nbr); }else{ a[1:length(x)] <- a[1:length(x)]+(x*nbr) }
-    }
+    pmax <- max(o@sources[us,"pos_in_feature"]+o@sources[us,"length"]-1)
     if(includeAmbiguous){
-        plot(u+a,type="l",lwd=2,pch=20, xlab="Position across transcript (nt)", ylab=ifelse(!is.null(readcounts),"Coverage","Unique sequences"),main=main)
+        plot(u+a,type="l",lwd=2,pch=20, xlab="Position across transcript (nt)", ylab=ifelse(logCounts, "log(total read count +1)", "total read count"),main=main)
         polygon(c(1,1:length(u),length(u)), c(0,u+a,0),col="red")
         polygon(c(1,1:length(u),length(u)), c(0,u,0),col="blue")
         legend("topright",fill=c("blue","red"),legend=c("Uniquely assigned","Ambiguous"))
     }else{
-        plot(u,type="l",lwd=2,pch=20, xlab="Position across transcript (nt)", ylab=ifelse(!is.null(readcounts),"Coverage","Unique sequences"),main=main)
+        plot(u,type="l",lwd=2,pch=20, xlab="Position across transcript (nt)", ylab=ifelse(logCounts, "log(total read count +1)", "total read count"),main=main)
         polygon(c(1,1:length(u),length(u)), c(0,u,0),col="blue")    
     }
 }

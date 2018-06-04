@@ -36,10 +36,8 @@ setClass(
   sources$src_name <- as.character(sources$src_name)
   sources$overlap <- suppressWarnings(as.integer(as.numeric(as.character(sources$overlap))))
   sources$length <- suppressWarnings(as.integer(as.numeric(as.character(sources$length))))
-  if("pos_in_feature" %in% colnames(sources)){
-    sources$pos_in_feature <- suppressWarnings(as.integer(as.numeric(as.character(sources$pos_in_feature))))
-    sources$feature_length <- suppressWarnings(as.integer(as.numeric(as.character(sources$feature_length))))
-  }
+  if("pos_in_feature" %in% colnames(sources))   sources$pos_in_feature <- suppressWarnings(as.integer(as.numeric(as.character(sources$pos_in_feature))))
+  if("feature_length" %in% colnames(sources))   sources$feature_length <- suppressWarnings(as.integer(as.numeric(as.character(sources$feature_length))))
   return(sources)
 }
 
@@ -77,14 +75,14 @@ setMethod("initialize", "smallRNAexp", function(.Object, ...) {
         }
         stop(a[[1]])
       }
-      return(a[-4:-5])
+      return(a[-5])
     }))
-    colnames(sources) <- c("sequence", "location", "cigar", "src_name", "src_type", "overlap", "length", "status")
+    colnames(sources) <- c("sequence", "location", "cigar", "pos_in_feature", "src_name", "src_type", "overlap", "length", "status")
   }else{
     fns <- c("assignRead", ".disambiguateOverlappingFeatures", ".disambiguate_miRNAs", ".disambiguate_tRNA", "defaultAssignRules")
     sources <- foreach(s=unique(sr$sequence) , .export=fns, .combine=rbind) %dopar% {
-      res <- as.data.frame(assignRead(sr[which(sr$sequence==s),,drop=F],o@rules)[-4:-5])
-      names(res) <- c("sequence", "location", "cigar", "src_name", "src_type", "overlap", "length", "status")
+      res <- as.data.frame(assignRead(sr[which(sr$sequence==s),,drop=F],o@rules)[-5])
+      names(res) <- c("sequence", "location", "cigar", "pos_in_feature", "src_name", "src_type", "overlap", "length", "status")
       res
     }
     stopCluster(par)
