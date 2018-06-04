@@ -4,10 +4,16 @@
 \alias{checkPiRNA}
 \title{checkPiRNA}
 \usage{
-checkPiRNA(seqs, type = "primary", size = 25:35)
+checkPiRNA(seqs, type = "primary", allowRevComp = FALSE, size = 26:32)
 }
 \arguments{
 \item{seqs}{A character vector of sequences}
+
+\item{type}{Type of sequence signature to check for. Either "primary" (default), "seconday" or "any".}
+
+\item{allowRevComp}{Logical; whether to allow a sequence to match the signature with its reverse complement.}
+
+\item{size}{Integer vector indicating the possible sizes (default 26:32).}
 }
 \value{
 A logical vector

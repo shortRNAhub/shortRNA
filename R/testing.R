@@ -137,7 +137,7 @@ runDEA <- function(o, formula=NULL, groups=NULL, method="edgeR", types=NULL, nor
             coef <- colnames(mm)[ncol(mm)]
             message(paste("Coefficient tested:",coef))
         }
-        dds <- estimateDisp(dds, mm)
+        dds <- estimateDisp(dds, mm, robust=T)
         return(as.data.frame(topTags(glmLRT(glmFit(dds,mm),coef=coef),nrow(e))))
     }
 }
@@ -251,7 +251,7 @@ writeDEA <- function(res, file="DEA.xlsx", fdr.threshold=NULL){
         for(j in names(res[[i]])){
             if(!is.null(res[[i]][[j]])){
                 e <- res[[i]][[j]]
-                if(is.null(fdr.threshold)){
+                if(!is.null(fdr.threshold)){
                         e[which(e[,ff]<fdr.threshold),]
                 }
                 message(paste("Creating sheet:", paste(i,j,sep="_")))

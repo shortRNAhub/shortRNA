@@ -4,12 +4,14 @@
 \alias{volcano}
 \title{volcano}
 \usage{
-volcano(res, writeTop = 0)
+volcano(res, writeTop = 0, useUncorrected = FALSE)
 }
 \arguments{
 \item{res}{The results data.frame}
 
 \item{writeTop}{Number of top features to write on the plot (default 0).}
+
+\item{useUncorrected}{Logical; whether to use uncorrected p-value instead of FDR (default FALSE).}
 }
 \description{
 Plots a volcano plot from a DEA result data.frame

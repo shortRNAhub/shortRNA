@@ -5,8 +5,8 @@
 \title{runDEA}
 \usage{
 runDEA(o, formula = NULL, groups = NULL, method = "edgeR", types = NULL,
-  replicates = NULL, forceGLM = FALSE, coef = NULL,
-  filterFun = function(x) {     sum(x > 10) > 2 })
+  normalizeByType = FALSE, replicates = NULL, forceGLM = FALSE,
+  coef = NULL, filterFun = function(x) {     sum(x > 20) > 2 }, ...)
 }
 \arguments{
 \item{o}{An object of class smallRNAexp}
@@ -19,11 +19,15 @@ runDEA(o, formula = NULL, groups = NULL, method = "edgeR", types = NULL,
 
 \item{types}{The types of RNA to test (default all). A separate analysis will anyway be performed for miRNAs and piRNAs, but this parameter dictates the RNAs that are included in the global analyses.}
 
+\item{normalizeByType}{Logical; whether each RNA type should be analyzed on its own (default FALSE). If TRUE, the default normalization method is used.}
+
 \item{replicates}{An optional vector indicating (technical or 'incomplete') replicates (ignored unless method="voom")}
 
 \item{forceGLM}{Whether to force using GLM even when doing a simple comparison between two groups.}
 
 \item{coef}{Coefficient to be tested (defaults to the last one of the formula).}
+
+\item{...}{Further arguments passed to the removeCorrelatedFeatures function.}
 }
 \value{
 A list containing the DEA results on different sets of features.

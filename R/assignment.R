@@ -12,6 +12,7 @@ assignRead <- function(sources, rules=defaultAssignRules()){
     sources$src_name <- gsub("mmu-miR-","mmu-mir-",as.character(sources$src_name),fixed=T)
     src_len <- sources$length[1]
     seq <- as.character(sources$sequence[1])
+    if(!all(is.na(sources$location))) sources <- sources[which(!is.na(sources$location)),,drop=F]
     if(nrow(sources)==1){
         location <- sources$location
         src_name <- ifelse(sources$src_name=="unknown",NA_character_,sources$src_name)
@@ -29,7 +30,7 @@ assignRead <- function(sources, rules=defaultAssignRules()){
                 ro <- assignRead(sources[which(sources$location==unique(sources$location)[i]),,drop=F])
                 for(j in 1:ncol(res))   res[i,j] <- ro[[j]]
             }
-            #sources <- .recastSources(res)
+            sources <- .recastSources(res)
             sources <- res
         }
         if(any(is.na(sources$location)) | length(unique(sources$location))>1){
@@ -70,6 +71,7 @@ assignRead <- function(sources, rules=defaultAssignRules()){
         }
     }
     if(!is.na(src_type) && src_type=="piRNA_precursor" && rules$primary_piRNA(seq)) src_type <- "primary_piRNA"
+    if(!is.na(src_type) && src_type=="miRNA" && !.check_miRNA(sources,rules$miRNA))  src_type <- "ambiguous"
     if(is.na(src_name)){
         if(location=="unknown" | is.na(location)){
             status <- "unmapped"
@@ -117,6 +119,13 @@ assignRead <- function(sources, rules=defaultAssignRules()){
     w <- which(is.na(nn))
     if(length(w)>0) nn[w] <- sources$location[w]
     return(list(.getAmbiName(nn),.nmax(sources$overlap),src_type,.agCigar(sources$cigar),NA_integer_,NA_integer_))
+}
+
+.check_miRNA <- function(x, rules){
+    if(nrow(x)>1) x <- x[1,,drop=F]
+    if("size" %in% names(rules) && !(x[["length"]] %in% rules$size)) return(FALSE)
+    if("minOverlap" %in% names(rules) && x[["overlap"]]<rules$minOverlap) return(FALSE)
+    return(TRUE)
 }
 
 .getAmbiName <- function(nn, maxN=9){
