@@ -8,25 +8,25 @@ samtools=samtools
 
 if [ $# -lt 3 ]
 then
-  echo "Usage: `basename $0` outputdir genome_fasta piRNA_precursors.gtf [gtRNAdbFile] [features.gtf.gz]"
-  echo "Other sources files can be edited at the top of the script..."
-  exit
+    echo "Usage: `basename $0` outputdir genome_fasta piRNA_precursors.gtf [gtRNAdbFile] [features.gtf.gz]"
+    echo "Other sources files can be edited at the top of the script..."
+    exit
 fi
 
 
 plcheck ()
 {
-        for iter in $@; do
-                if [ ! -r $iter ]; then
-                        echo "ERROR: $iter not found! Aborting..."
-                        exit 0
-                else
-                        if [ ! -s $iter ]; then
-                                echo "ERROR: $iter is empty! Aborting..."
-                                exit 0
-                        fi
-                fi
-        done
+    for iter in $@; do
+        if [ ! -r $iter ]; then
+            echo "ERROR: $iter not found! Aborting..."
+            exit 0
+        else
+            if [ ! -s $iter ]; then
+                echo "ERROR: $iter is empty! Aborting..."
+                exit 0
+            fi
+        fi
+    done
 }
 
 mkdir -p $1
@@ -279,4 +279,3 @@ elements.bed
 
 The other files in the folder won't be needed anymore, but were left for conveniance.
 "
-
