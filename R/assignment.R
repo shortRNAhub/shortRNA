@@ -73,7 +73,6 @@ assignRead <- function(sources, rules=defaultAssignRules()){
     if(!is.na(src_type) && src_type=="piRNA_precursor" && rules$primary_piRNA(seq)) src_type <- "primary_piRNA"
     if(!is.na(src_type) && src_type=="miRNA" && !.check_miRNA(sources,rules$miRNA)){
         src_type <- "ambiguous"
-        status <- "ambiguous"
     }
     if(is.na(src_name)){
         if(location=="unknown" | is.na(location)){
@@ -82,7 +81,7 @@ assignRead <- function(sources, rules=defaultAssignRules()){
             status <- "unknown"
         }
     }else{
-        if(src_name=="ambiguous" | length(strsplit(as.character(src_name),";",fixed=T)[[1]])>1){
+        if(src_name=="ambiguous" | src_type=="ambiguous" | length(strsplit(as.character(src_name),";",fixed=T)[[1]])>1){
             status <- "ambiguous"
         }else{
             status <- "unique"
