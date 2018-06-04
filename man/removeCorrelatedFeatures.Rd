@@ -10,7 +10,7 @@ removeCorrelatedFeatures(counts, o, cort = 0.6, cvt = 0.1, minmc = 5,
 \arguments{
 \item{counts}{A count matrix from which to remove correlated subfeatures.}
 
-\item{o}{An object of class smallRNAexp}
+\item{o}{An object of class shortRNAexp}
 
 \item{cort}{Max feature correlation (default 0.6) for splitting}
 
@@ -24,5 +24,5 @@ removeCorrelatedFeatures(counts, o, cort = 0.6, cvt = 0.1, minmc = 5,
 A filtered version of `counts`
 }
 \description{
-Writes the results of a differential expression analysis on a smallRNAexp object in an excel file.
+Writes the results of a differential expression analysis on a shortRNAexp object in an excel file.
 }

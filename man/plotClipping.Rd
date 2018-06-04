@@ -7,7 +7,7 @@
 plotClipping(o)
 }
 \arguments{
-\item{o}{An object of class smallRNAexp}
+\item{o}{An object of class shortRNAexp}
 }
 \description{
 Plots the distribution of number of bases clipped.

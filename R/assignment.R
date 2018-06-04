@@ -2,7 +2,7 @@
 #'
 #' Assigns read to one or more of possible sources.
 #'
-#' @param sources A data.frame of possible sources for the read (i.e., a subset of the `sources` slot of a smallRNAexp object).
+#' @param sources A data.frame of possible sources for the read (i.e., a subset of the `sources` slot of a shortRNAexp object).
 #' @param rules A list of assignment rules; defaults to `defaultAssignRules()`.
 #'
 #' @return A vector including the following variables: seq, location, cigar, pos_in_feature, feature_length, src name, src type, overlap length, src length, assignment status
@@ -71,7 +71,10 @@ assignRead <- function(sources, rules=defaultAssignRules()){
         }
     }
     if(!is.na(src_type) && src_type=="piRNA_precursor" && rules$primary_piRNA(seq)) src_type <- "primary_piRNA"
-    if(!is.na(src_type) && src_type=="miRNA" && !.check_miRNA(sources,rules$miRNA))  src_type <- "ambiguous"
+    if(!is.na(src_type) && src_type=="miRNA" && !.check_miRNA(sources,rules$miRNA)){
+        src_type <- "ambiguous"
+        status <- "ambiguous"
+    }
     if(is.na(src_name)){
         if(location=="unknown" | is.na(location)){
             status <- "unmapped"
@@ -227,10 +230,10 @@ assignRead <- function(sources, rules=defaultAssignRules()){
 #'
 #' Aggregates individual sequences into features
 #'
-#' @param o An object of class smallRNAexp.
+#' @param o An object of class shortRNAexp.
 #' @param quiet Logical; indicates whether to suppresses messages (default FALSE).
 #'
-#' @return An updated object of class smallRNAexp.
+#' @return An updated object of class shortRNAexp.
 #'
 #' @export
 aggregateSequences <- function(o, quiet=FALSE){
@@ -244,7 +247,7 @@ aggregateSequences <- function(o, quiet=FALSE){
 }
 
 .aggUnambiguous <- function(o){
-    if(!is(o, "smallRNAexp")) stop("`o` should be an object of class `smallRNAexp`.")
+    if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
     m <- o@seqcounts
     sources <- o@sources
     l1 <- .doag(m, sources, which(sources$status=="unique"))
@@ -393,17 +396,17 @@ defaultAssignRules <- function(){
 #'
 #' Returns the potential sources (before assignment) of a sequence of interest.
 #'
-#' @param o An object of class smallRNAexp.
+#' @param o An object of class shortRNAexp.
 #' @param seq A character vector including the sequence(s) of interest.
-#' @param srcsFile The path to the seqs.srcs file. This is needed only if the smallRNAexp object was created with keepAllSrcs=FALSE.
+#' @param srcsFile The path to the seqs.srcs file. This is needed only if the shortRNAexp object was created with keepAllSrcs=FALSE.
 #' 
 #' @return A data.frame.
 #'
 #' @export
 getPotentialSources <- function(o, seq, srcsFile=NULL){
-    if(!is(o, "smallRNAexp")) stop("`o` should be an object of class `smallRNAexp`.")
+    if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
     if(is.null(o@allsrcs) | nrow(o@allsrcs)==0){
-        if(is.null(srcsFile)) stop("The smallRNAexp object was created with keepAllSrcs=FALSE, so that only the final assigned sources were saved.")
+        if(is.null(srcsFile)) stop("The shortRNAexp object was created with keepAllSrcs=FALSE, so that only the final assigned sources were saved.")
         library(data.table)
         sr <- as.data.frame(fread(paste0('grep -w "^',seq,'" ',srcsFile)))
         if(nrow(sr)>0){
@@ -418,7 +421,7 @@ getPotentialSources <- function(o, seq, srcsFile=NULL){
 #'
 #' Returns the tRNA fragment type from a sources data.frame
 #'
-#' @param o An object of class smallRNAexp.
+#' @param o An object of class shortRNAexp.
 #' @param seq A character vector including the sequence(s) of interest.
 #' 
 #' @return A data.frame.

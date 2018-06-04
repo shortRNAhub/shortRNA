@@ -7,7 +7,7 @@
 plotGC(o, aggregateSamples = FALSE, ...)
 }
 \arguments{
-\item{o}{An object of class smallRNAexp}
+\item{o}{An object of class shortRNAexp}
 
 \item{aggregateSamples}{Logical; whether to aggregated samples instead of plotting them individually (default).}
 

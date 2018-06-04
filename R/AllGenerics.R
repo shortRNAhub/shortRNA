@@ -1,5 +1,5 @@
 setClass(
-  "smallRNAexp",
+  "shortRNAexp",
   slots = representation(
     seqcounts =           "matrix",
     description =         "character",
@@ -41,7 +41,7 @@ setClass(
   return(sources)
 }
 
-setMethod("initialize", "smallRNAexp", function(.Object, ...) {
+setMethod("initialize", "shortRNAexp", function(.Object, ...) {
   o <- callNextMethod(.Object, ...)
   validObject(o)
   
@@ -107,14 +107,14 @@ Aggregating sequences into features:")
 })
 
 setGeneric("phenoData", function(object, ...){ standardGeneric("phenoData", ...) })
-setMethod("phenoData","smallRNAexp", function(object){ object@phenoData })
+setMethod("phenoData","shortRNAexp", function(object){ object@phenoData })
 
-setMethod("show", "smallRNAexp", function(object){
-  message(paste0("A `smallRNAexp` object of ",nrow(object@seqcounts)," small RNA sequences (",sum(object@sources$status=="unique")," of which can be uniquely assigned) across ",ncol(object@seqcounts)," samples."))
+setMethod("show", "shortRNAexp", function(object){
+  message(paste0("A `shortRNAexp` object of ",nrow(object@seqcounts)," small RNA sequences (",sum(object@sources$status=="unique")," of which can be uniquely assigned) across ",ncol(object@seqcounts)," samples."))
 })
 
 
-setMethod("[","smallRNAexp", function(x, i){
+setMethod("[","shortRNAexp", function(x, i){
   x@phenoData <- x@phenoData[i,,drop=F]
   x@seqcounts <- x@seqcounts[,i,drop=F]
   x@agcounts <- x@agcounts[,i,drop=F]
@@ -134,11 +134,11 @@ setMethod("[","smallRNAexp", function(x, i){
   return(x)
 })
 
-setMethod("names","smallRNAexp", function(x){
+setMethod("names","shortRNAexp", function(x){
   colnames(x@seqcounts)
 })
 
-setMethod("names<-","smallRNAexp", function(x, value){
+setMethod("names<-","shortRNAexp", function(x, value){
   if(length(value) != length(unique(value))) stop("Some names are in duplicate!")
   if(length(value) != ncol(x@seqcounts)) stop("The number of names given does not match the number of samples.")
   row.names(x@phenoData) <- value

@@ -1,18 +1,18 @@
-#' calcNormFactors.smallRNAexp
+#' calcNormFactors.shortRNAexp
 #'
-#' Calculates the normalization factors for a smallRNAexp dataset.
+#' Calculates the normalization factors for a shortRNAexp dataset.
 #'
-#' @param object An object of class smallRNAexp
+#' @param object An object of class shortRNAexp
 #' @param method Normalization method (any accepted by edgeR). Defaults to "TMM".
 #' @param normalizeOnType Types of sequences (e.g. miRNA, tRNA, etc.) to consider for calculating normalization factors (default all).
 #' @param normalizeOnStatus Sequence statuses to consider for calculating normalization factors (default all mapped)
 #' @param ... Further arguments passed on to edgeR's generic calcNormFactors.
 #'
-#' @return The smallRNAexp object with updated norm.factors and lib.sizes slots.
+#' @return The shortRNAexp object with updated norm.factors and lib.sizes slots.
 #'
 #' @export
-calcNormFactors.smallRNAexp <- function(object, method="TMM", normalizeOnType=NULL, normalizeOnStatus=c("unknown","ambiguous","unique"), ...){
-    if(!is(object, "smallRNAexp")) stop("`object` should be an object of class `smallRNAexp`.")
+calcNormFactors.shortRNAexp <- function(object, method="TMM", normalizeOnType=NULL, normalizeOnStatus=c("unknown","ambiguous","unique"), ...){
+    if(!is(object, "shortRNAexp")) stop("`object` should be an object of class `shortRNAexp`.")
     library(edgeR)
     ss <- getSeqsByType(object, normalizeOnType, normalizeOnStatus)
     if(length(ss)==0) stop("No sequence matched the request!")
@@ -62,14 +62,14 @@ calcNormFactors.smallRNAexp <- function(object, method="TMM", normalizeOnType=NU
 #'
 #' Aggregates offsets for cqn normalization using weighted means
 #'
-#' @param o An object of class smallRNAexp
+#' @param o An object of class shortRNAexp
 #' @param offset The offset matrix to aggregate
 #'
 #' @return A numeric matrix.
 #'
 #' @export
 getAggOffset <- function(o, offset){
-    if(!is(o, "smallRNAexp")) stop("`o` should be an object of class `smallRNAexp`.")
+    if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
     o1 <- t(sapply(row.names(o@agcounts), ag=o@agdef, offset=offset, FUN=function(x, ag, offset){
         s <- strsplit(as.character(ag[x,"sequences"]),";",fixed=T)[[1]]
         offset <- offset[s,,drop=F]
@@ -109,7 +109,7 @@ getAggOffset <- function(o, offset){
 #' Normlalizes a count matrix using the given norm.factors
 #'
 #' @param counts A numeric count matrix (with samples as columns)
-#' @param normParams A list of normalization parameters (e.g. the slot `norm` of a `smallRNAexp` object).
+#' @param normParams A list of normalization parameters (e.g. the slot `norm` of a `shortRNAexp` object).
 #'
 #' @return A normalized matrix.
 #'

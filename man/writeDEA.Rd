@@ -14,5 +14,5 @@ writeDEA(res, file = "DEA.xlsx", fdr.threshold = NULL)
 \item{fdr.threshold}{Either NULL (default) or a numeric value between 0 and 1 indicating the maximum FDR value for a feature to be included in the file.}
 }
 \description{
-Writes the results of a differential expression analysis on a smallRNAexp object in an excel file.
+Writes the results of a differential expression analysis on a shortRNAexp object in an excel file.
 }

@@ -7,7 +7,7 @@
 assignRead(sources, rules = defaultAssignRules())
 }
 \arguments{
-\item{sources}{A data.frame of possible sources for the read (i.e., a subset of the `sources` slot of a smallRNAexp object).}
+\item{sources}{A data.frame of possible sources for the read (i.e., a subset of the `sources` slot of a shortRNAexp object).}
 
 \item{rules}{A list of assignment rules; defaults to `defaultAssignRules()`.}
 }

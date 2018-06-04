@@ -7,7 +7,7 @@
 getAggOffset(o, offset)
 }
 \arguments{
-\item{o}{An object of class smallRNAexp}
+\item{o}{An object of class shortRNAexp}
 
 \item{offset}{The offset matrix to aggregate}
 }

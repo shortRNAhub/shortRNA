@@ -10,7 +10,7 @@ plotSizeAbundance(o, type = NULL, status = c("unknown", "ambiguous",
   plotLegend = NULL, ...)
 }
 \arguments{
-\item{o}{An object of class smallRNAexp}
+\item{o}{An object of class shortRNAexp}
 
 \item{type}{Types of sequences to be fetched (e.g. miRNA, tRNA, etc.), fetches all by default.}
 

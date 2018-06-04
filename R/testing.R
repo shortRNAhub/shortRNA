@@ -1,8 +1,8 @@
 #' runDEA
 #'
-#' Performs differential expression analysis (DEA) on a smallRNAexp object. This is a wrapper around common RNAseq DEA packages.
+#' Performs differential expression analysis (DEA) on a shortRNAexp object. This is a wrapper around common RNAseq DEA packages.
 #'
-#' @param o An object of class smallRNAexp
+#' @param o An object of class shortRNAexp
 #' @param formula The formula to test. Either this or `groups` should be given.
 #' @param groups Either NULL (if `formula` is given), or the name of a column in phenoData, or a vector of length equal to the number of samples.
 #' @param method DEA method, either "edgeR", "voom", or "DESeq2".
@@ -17,7 +17,7 @@
 #'
 #' @export
 runDEA <- function(o, formula=NULL, groups=NULL, method="edgeR", types=NULL, normalizeByType=FALSE, replicates=NULL, forceGLM=FALSE, coef=NULL, filterFun=function(x){ sum(x>20)>2 }, ...){
-    if(!is(o, "smallRNAexp")) stop("`o` should be an object of class `smallRNAexp`.")    
+    if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")    
     if(any(is.na(o@norm$norm.factors)))  stop("Run `calcNormFactors` first.")
     method <- match.arg(method, c("voom","edgeR","DESeq2"))
     if(method %in% c("voom","edgeR")) library(edgeR)
@@ -41,11 +41,11 @@ runDEA <- function(o, formula=NULL, groups=NULL, method="edgeR", types=NULL, nor
     if(normalizeByType){
         message("normalizeByType=T; only miRNA and tRNA fragments will be tested.")
         
-        res$seqLevel$miRNA <- .deaWrapper(method, getSeqCounts(o, type="miRNA", status="unique", formatCase=T), calcNormFactors.smallRNAexp(o, normalizeOnType="miRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
-        res$seqLevel$tRNA <- .deaWrapper(method, getSeqCounts(o, type="tRNA", status="unique", formatCase=T), calcNormFactors.smallRNAexp(o, normalizeOnType="tRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
+        res$seqLevel$miRNA <- .deaWrapper(method, getSeqCounts(o, type="miRNA", status="unique", formatCase=T), calcNormFactors.shortRNAexp(o, normalizeOnType="miRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
+        res$seqLevel$tRNA <- .deaWrapper(method, getSeqCounts(o, type="tRNA", status="unique", formatCase=T), calcNormFactors.shortRNAexp(o, normalizeOnType="tRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
         res$seqLevel$tRNA$name <- o@sources[toupper(row.names(res$seqLevel$tRNA)),"src_name"]
-        res$aggregated$miRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type="miRNA", ambiguous=FALSE), o, ...), calcNormFactors.smallRNAexp(o, normalizeOnType="miRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
-        res$aggregated$tRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type="tRNA", ambiguous=FALSE), o, ...), calcNormFactors.smallRNAexp(o, normalizeOnType="tRNA"), filterFun, formula, groups, forceGLM, coef, replicates)        
+        res$aggregated$miRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type="miRNA", ambiguous=FALSE), o, ...), calcNormFactors.shortRNAexp(o, normalizeOnType="miRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
+        res$aggregated$tRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type="tRNA", ambiguous=FALSE), o, ...), calcNormFactors.shortRNAexp(o, normalizeOnType="tRNA"), filterFun, formula, groups, forceGLM, coef, replicates)        
     }else{
         res$seqLevel$miRNA <- .deaWrapper(method, getSeqCounts(o, type="miRNA", status="unique", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
         res$seqLevel$tRNA <- .deaWrapper(method, getSeqCounts(o, type="tRNA", status="unique", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
@@ -99,7 +99,7 @@ runDEA <- function(o, formula=NULL, groups=NULL, method="edgeR", types=NULL, nor
 }
 
 .edgeRwrapper <- function(e,o,formula=NULL,groups=NULL,forceGLM=FALSE, coef=NULL){
-    if(!is(o, "smallRNAexp")) stop("`o` should be an object of class `smallRNAexp`.")    
+    if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")    
     if(any(is.na(o@norm$norm.factors)))  stop("Run `calcNormFactors` first.")
     if( (!is.null(formula) & !is.null(groups)) 
         | (is.null(formula) & is.null(groups)) ) stop("Exactly one of `formula` or `groups` must be given.")
@@ -143,7 +143,7 @@ runDEA <- function(o, formula=NULL, groups=NULL, method="edgeR", types=NULL, nor
 }
 
 .deseq2wrapper <- function(e,o,formula=NULL,groups=NULL,coef=NULL){
-    if(!is(o, "smallRNAexp")) stop("`o` should be an object of class `smallRNAexp`.")    
+    if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")    
     if(any(is.na(o@norm$norm.factors)))  stop("Run `calcNormFactors` first.")
     if( (!is.null(formula) & !is.null(groups)) 
         | (is.null(formula) & is.null(groups)) ) stop("Exactly one of `formula` or `groups` must be given.")
@@ -171,7 +171,7 @@ runDEA <- function(o, formula=NULL, groups=NULL, method="edgeR", types=NULL, nor
 
 
 .voomWrapper <- function(e,o,formula=NULL,groups=NULL, coef=NULL, replicates=NULL){
-    if(!is(o, "smallRNAexp")) stop("`o` should be an object of class `smallRNAexp`.")    
+    if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")    
     if(any(is.na(o@norm$norm.factors)))  stop("Run `calcNormFactors` first.")
     if( (!is.null(formula) & !is.null(groups)) 
         | (is.null(formula) & is.null(groups)) ) stop("Exactly one of `formula` or `groups` must be given.")
@@ -232,7 +232,7 @@ runDEA <- function(o, formula=NULL, groups=NULL, method="edgeR", types=NULL, nor
 
 #' writeDEA
 #'
-#' Writes the results of a differential expression analysis on a smallRNAexp object in an excel file.
+#' Writes the results of a differential expression analysis on a shortRNAexp object in an excel file.
 #'
 #' @param res A list such as produced by the `runDEA` function.
 #' @param file Path to the file where to save the results. Defaults to DEA.xlsx in the working directory.
@@ -278,10 +278,10 @@ writeDEA <- function(res, file="DEA.xlsx", fdr.threshold=NULL){
 
 #' removeCorrelatedFeatures
 #'
-#' Writes the results of a differential expression analysis on a smallRNAexp object in an excel file.
+#' Writes the results of a differential expression analysis on a shortRNAexp object in an excel file.
 #'
 #' @param counts A count matrix from which to remove correlated subfeatures.
-#' @param o An object of class smallRNAexp
+#' @param o An object of class shortRNAexp
 #' @param cort Max feature correlation (default 0.6) for splitting
 #' @param cvt Max coefficient of variation (default 0.1) for splitting
 #' @param minmc Min mean count (default 5) for splitting

@@ -7,7 +7,7 @@
 tRFtype(srcs, rules = defaultAssignRules())
 }
 \arguments{
-\item{o}{An object of class smallRNAexp.}
+\item{o}{An object of class shortRNAexp.}
 
 \item{seq}{A character vector including the sequence(s) of interest.}
 }

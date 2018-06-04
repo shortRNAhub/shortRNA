@@ -7,12 +7,12 @@
 aggregateSequences(o, quiet = FALSE)
 }
 \arguments{
-\item{o}{An object of class smallRNAexp.}
+\item{o}{An object of class shortRNAexp.}
 
 \item{quiet}{Logical; indicates whether to suppresses messages (default FALSE).}
 }
 \value{
-An updated object of class smallRNAexp.
+An updated object of class shortRNAexp.
 }
 \description{
 Aggregates individual sequences into features

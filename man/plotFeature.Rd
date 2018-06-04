@@ -12,7 +12,7 @@ plotFeature(o, feature = NULL, sequences = NULL, exact = TRUE,
   ...)
 }
 \arguments{
-\item{o}{An object of class smallRNAexp}
+\item{o}{An object of class shortRNAexp}
 
 \item{feature}{The name of the feature (e.g. gene name) or, if !`exact`), a regular expression to be evaluated against all feature names. One and only one of `sequences` and `feature` should be given.}
 

@@ -9,7 +9,7 @@ runDEA(o, formula = NULL, groups = NULL, method = "edgeR", types = NULL,
   coef = NULL, filterFun = function(x) {     sum(x > 20) > 2 }, ...)
 }
 \arguments{
-\item{o}{An object of class smallRNAexp}
+\item{o}{An object of class shortRNAexp}
 
 \item{formula}{The formula to test. Either this or `groups` should be given.}
 
@@ -33,5 +33,5 @@ runDEA(o, formula = NULL, groups = NULL, method = "edgeR", types = NULL,
 A list containing the DEA results on different sets of features.
 }
 \description{
-Performs differential expression analysis (DEA) on a smallRNAexp object. This is a wrapper around common RNAseq DEA packages.
+Performs differential expression analysis (DEA) on a shortRNAexp object. This is a wrapper around common RNAseq DEA packages.
 }

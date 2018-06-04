@@ -9,7 +9,7 @@ normalizeCounts(counts, normParams)
 \arguments{
 \item{counts}{A numeric count matrix (with samples as columns)}
 
-\item{normParams}{A list of normalization parameters (e.g. the slot `norm` of a `smallRNAexp` object).}
+\item{normParams}{A list of normalization parameters (e.g. the slot `norm` of a `shortRNAexp` object).}
 }
 \value{
 A normalized matrix.

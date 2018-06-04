@@ -10,7 +10,7 @@
 #'
 #' @export
 collapseFastq <- function(files, minLength=15, maxLength=49, shell="bash"){
-    p <- paste0(path.package("smallRNA"),"/collapse.sh")
+    p <- paste0(path.package("shortRNA"),"/collapse.sh")
     f2 <- sapply(files, FUN=function(x){ paste0(gsub("\\.fastq$","",gsub("\\.gz$","",x)),".seqcounts") })
     cmds <- paste(shell,p,files,f2,minLength,maxLength)
     for(f in cmds){
@@ -30,12 +30,12 @@ collapseFastq <- function(files, minLength=15, maxLength=49, shell="bash"){
 #'
 #' @export
 collapsed2countMatrix <- function(seqcounts.files, output.file, shell="bash"){
-    cmd <- paste0(shell," ",path.package("smallRNA"),"/collapsed2countMatrix.sh ",paste(seqcounts.files,collapse=" ")," > ",output.file)
+    cmd <- paste0(shell," ",path.package("shortRNA"),"/collapsed2countMatrix.sh ",paste(seqcounts.files,collapse=" ")," > ",output.file)
     print(cmd)
     system(cmd)
 }
 
-#' smallRNAexp_align
+#' shortRNAexp_align
 #'
 #' A wrapper for the 2-steps alignment method.
 #'
@@ -50,7 +50,7 @@ collapsed2countMatrix <- function(seqcounts.files, output.file, shell="bash"){
 #' @param nthreads Number of threads for alignment (default 4).
 #'
 #' @export
-smallRNAexp_align <- function(fasta, outputfile, bowtie1index, starindex, bowtie1="bowtie", star="STAR", samtools="samtools", m=1000, nthreads=4){
+shortRNAexp_align <- function(fasta, outputfile, bowtie1index, starindex, bowtie1="bowtie", star="STAR", samtools="samtools", m=1000, nthreads=4){
     cmd <- paste0(bowtie1,' -p ',nthreads,' -v 0 -S -a --best --strata -m ',m,' -f --un ',outputfile,'.unmapped.fasta ',bowtie1index,' ',fasta,' | ',samtools,' view -bh > ', outputfile, '.unsorted.bam')
     print(cmd)
     system(cmd)
@@ -68,7 +68,7 @@ rm ',outputfile,'.align1.bam; rm -R ',td,'
     system(cmd)
 }
 
-#' smallRNAexp_parseBam
+#' shortRNAexp_parseBam
 #'
 #' Extracts reads' possible sources from an alignment file.
 #'
@@ -80,13 +80,13 @@ rm ',outputfile,'.align1.bam; rm -R ',td,'
 #' @param bedtools Executable for bedtools (default 'bedtools').
 #'
 #' @export
-smallRNAexp_parseBam <- function(bam, elements, outputfile=NULL, shell="bash", samtools="samtools", bedtools="bedtools"){
+shortRNAexp_parseBam <- function(bam, elements, outputfile=NULL, shell="bash", samtools="samtools", bedtools="bedtools"){
     if(is.null(outputfile)){
         f <- tempfile("srcs")
     }else{
         f <- outputfile
     }
-    p <- paste0(path.package("smallRNA"),"/parseBam.sh")
+    p <- paste0(path.package("shortRNA"),"/parseBam.sh")
     cmd <- paste0(shell,p,bam,elements,f,samtools,bedtools)
     system(cmd)
     if(is.null(outputfile)){

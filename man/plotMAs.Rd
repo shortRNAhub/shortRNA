@@ -9,7 +9,7 @@ plotMAs(o, normalized = TRUE, type = NULL, status = c("unknown",
   ...)
 }
 \arguments{
-\item{o}{An object of class smallRNAexp}
+\item{o}{An object of class shortRNAexp}
 
 \item{normalized}{Logical; whether normalized counts should be used (default TRUE)}
 

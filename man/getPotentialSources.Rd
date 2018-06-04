@@ -7,11 +7,11 @@
 getPotentialSources(o, seq, srcsFile = NULL)
 }
 \arguments{
-\item{o}{An object of class smallRNAexp.}
+\item{o}{An object of class shortRNAexp.}
 
 \item{seq}{A character vector including the sequence(s) of interest.}
 
-\item{srcsFile}{The path to the seqs.srcs file. This is needed only if the smallRNAexp object was created with keepAllSrcs=FALSE.}
+\item{srcsFile}{The path to the seqs.srcs file. This is needed only if the shortRNAexp object was created with keepAllSrcs=FALSE.}
 }
 \value{
 A data.frame.

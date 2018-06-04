@@ -8,7 +8,7 @@ plotComposition(o, exclude = NULL, include = NULL, normalized = FALSE,
   abridged = TRUE, scale = TRUE, ...)
 }
 \arguments{
-\item{o}{An object of class smallRNAexp}
+\item{o}{An object of class shortRNAexp}
 
 \item{exclude}{Character vector of RNA classes to exclude (by default, excludes only ambiguous and unknown). Trumps `include`.}
 
@@ -26,5 +26,5 @@ plotComposition(o, exclude = NULL, include = NULL, normalized = FALSE,
 Nothing, but plots multiple frames.
 }
 \description{
-Plots the relative abundance of different types of RNAs populating a smallRNAexp dataset.
+Plots the relative abundance of different types of RNAs populating a shortRNAexp dataset.
 }

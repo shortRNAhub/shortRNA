@@ -2,7 +2,7 @@
 #'
 #' Plots the coverage across a transcript/feature
 #'
-#' @param o An object of class smallRNAexp
+#' @param o An object of class shortRNAexp
 #' @param feature The name of the feature
 #' @param exact Logical; whether the feature name should be interpretated as exact (default TRUE), otherwise as a regular expression.
 #' @param includeAmbiguous Logical; whether to include ambiguous sequences (default TRUE; plotted a different color)
@@ -36,7 +36,7 @@ plotFeatureCoverage <- function(o, feature, exact=TRUE, includeAmbiguous=TRUE, l
 #'
 #' Plots MAs relative to the mean
 #'
-#' @param o An object of class smallRNAexp
+#' @param o An object of class shortRNAexp
 #' @param normalized Logical; whether normalized counts should be used (default TRUE)
 #' @param type Types of sequences to be fetched (e.g. miRNA, tRNA, etc.), fetches all by default.
 #' @param status Character vector of seq statuses to be selected (any combination of "unmapped","unknown","ambiguous", and "unique"). Fetches all mapped by default.
@@ -48,7 +48,7 @@ plotFeatureCoverage <- function(o, feature, exact=TRUE, includeAmbiguous=TRUE, l
 #'
 #' @export
 plotMAs <- function(o, normalized=TRUE, type=NULL, status=c("unknown","ambiguous","unique"), absfc=FALSE, samples=NULL, average=FALSE, ...){
-    if(!is(o, "smallRNAexp")) stop("`o` should be an object of class `smallRNAexp`.")
+    if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
     if(!is.null(samples) & !all(samples %in% 1:ncol(o@seqcounts))) stop("`samples` should be either NULL or an integer vector indicating which sample(s) to compare.")
     m <- getSeqCounts(o, type=type, status=status, normalized=normalized)
     rm <- rowMeans(m)
@@ -88,9 +88,9 @@ plotMAs <- function(o, normalized=TRUE, type=NULL, status=c("unknown","ambiguous
 
 #' plotComposition
 #'
-#' Plots the relative abundance of different types of RNAs populating a smallRNAexp dataset.
+#' Plots the relative abundance of different types of RNAs populating a shortRNAexp dataset.
 #'
-#' @param o An object of class smallRNAexp
+#' @param o An object of class shortRNAexp
 #' @param exclude Character vector of RNA classes to exclude (by default, excludes only ambiguous and unknown). Trumps `include`.
 #' @param include Character vector of RNA classes to include (by default, all except those specified in `exclude`).
 #' @param normalized Logical; whether to use normalized abundances (default FALSE).
@@ -102,7 +102,7 @@ plotMAs <- function(o, normalized=TRUE, type=NULL, status=c("unknown","ambiguous
 #'
 #' @export
 plotComposition <- function(o, exclude=NULL, include=NULL, normalized=FALSE, abridged=TRUE, scale=TRUE, ...){
-    if(!is(o, "smallRNAexp")) stop("`o` should be an object of class `smallRNAexp`.")
+    if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
     if(abridged){
         af <- row.names(o@composition$raw$abridged)
     }else{
@@ -155,7 +155,7 @@ plotComposition <- function(o, exclude=NULL, include=NULL, normalized=FALSE, abr
 #'
 #' Plots the read counts of sequences associated to a given feature (or potentially feature(s) if regular expressions are used), or the aggregated counts if `aggregated`=TRUE.
 #'
-#' @param o An object of class smallRNAexp
+#' @param o An object of class shortRNAexp
 #' @param feature The name of the feature (e.g. gene name) or, if !`exact`), a regular expression to be evaluated against all feature names. One and only one of `sequences` and `feature` should be given.
 #' @param sequences A character vector of the sequences to plot. One and only one of `sequences` and `feature` should be given.
 #' @param exact Logical; indicates whether `feature` should be interpreted as an exact name (default) rather than a regular expression.
@@ -175,7 +175,7 @@ plotComposition <- function(o, exclude=NULL, include=NULL, normalized=FALSE, abr
 #'
 #' @export
 plotFeature <- function(o, feature=NULL, sequences=NULL, exact=TRUE, normalized=TRUE, aggregated=FALSE, plotType="barplot", proportion=FALSE, plotLegend=TRUE, dolog=plotType!="barplot", main=feature, ylab=NULL, allowAmbiguous=FALSE, alignSeqs=!aggregated, barplotLayout=matrix(c(1,2,2),nrow=1), ...){
-    if(!is(o, "smallRNAexp")) stop("`o` should be an object of class `smallRNAexp`.")
+    if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
     if(is.null(feature) & is.null(sequences) | (!is.null(feature) & !is.null(sequences))) stop("Exactly one of `feature` or `sequences` must be given.")
     if(!is.null(sequences) & aggregated){
         aggregated <- FALSE
@@ -287,14 +287,14 @@ plotType <- function(o, types, aggregated=FALSE, ambiguous=FALSE, scaleFeatures=
 #'
 #' Plots different measures of abundance according to sequence length across samples. This essentially calls `plotSizeAbundance` several times on different aggregations.
 #'
-#' @param o An object of class smallRNAexp
+#' @param o An object of class shortRNAexp
 #' @param type Types of sequences to be fetched (e.g. miRNA, tRNA, etc.), fetches all by default.
 #' @param status Character vector of seq statuses to be selected (any combination of "unmapped","unknown","ambiguous", and "unique"). Defaults to all mapped sequences.
 #' @param trim Logical; whether to trim the 5\% most extreme values on each side before calculating mean (default TRUE).
 #'
 #' @export
 checkSizeSelection <- function(o, type=NULL, status=c("unknown","ambiguous","unique"), trim=TRUE, onlyDetectedInAll=TRUE){
-    if(!is(o, "smallRNAexp")) stop("`o` should be an object of class `smallRNAexp`.")
+    if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
     layout(matrix(1:4,nrow=2))
     plotSizeAbundance(o, type, status, normalized=F, dolog10=F, bty="n", main="sum of raw counts", plotLegend=TRUE)
     plotSizeAbundance(o, type, status, normalized=T, dolog10=F, bty="n", main="sum of normalized counts")
@@ -308,7 +308,7 @@ checkSizeSelection <- function(o, type=NULL, status=c("unknown","ambiguous","uni
 #'
 #' Plots the abundance according to sequence length across samples
 #'
-#' @param o An object of class smallRNAexp
+#' @param o An object of class shortRNAexp
 #' @param type Types of sequences to be fetched (e.g. miRNA, tRNA, etc.), fetches all by default.
 #' @param status Character vector of seq statuses to be selected (any combination of "unmapped","unknown","ambiguous", and "unique"). Defaults to all mapped sequences.
 #' @param normalized Logical; whether to return the normalized counts (default FALSE)
@@ -321,7 +321,7 @@ checkSizeSelection <- function(o, type=NULL, status=c("unknown","ambiguous","uni
 #'
 #' @export
 plotSizeAbundance <- function(o, type=NULL, status=c("unknown","ambiguous","unique"), normalized=TRUE, plotLengthFrequencies=TRUE, onlyDetectedInAll=FALSE, dolog10=FALSE, agFun=sum, plotLegend=NULL, ...){
-    if(!is(o, "smallRNAexp")) stop("`o` should be an object of class `smallRNAexp`.")
+    if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
     m <- getSeqCounts(o, type, status, normalized)
     if(onlyDetectedInAll)   m <- m[which(apply(m,1,FUN=function(x){ all(x>0)})),]
     sl <- sapply(row.names(m),nchar)
@@ -474,13 +474,13 @@ volcano <- function(res, writeTop=0, useUncorrected=FALSE){
 #'
 #' Plots the expression across different GC proportions.
 #'
-#' @param o An object of class smallRNAexp
+#' @param o An object of class shortRNAexp
 #' @param aggregateSamples Logical; whether to aggregated samples instead of plotting them individually (default).
 #' @param ... Any filtering argument passed to the getSeqCounts function.
 #'
 #' @export
 plotGC <- function(o, aggregateSamples=FALSE, ...){
-    if(!is(o, "smallRNAexp")) stop("`o` should be an object of class `smallRNAexp`.")
+    if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
     m <- getSeqCounts(o, ...)
     gc <- .gcContents(row.names(m))
     if(aggregateSamples) return(LSD::heatscatter(gc, log10(rowSums(m)/sum(rowSums(m))), xlab="GC content", ylab="Log10 read proportion"))
@@ -510,11 +510,11 @@ msaWrapper <- function(seqs){
 #'
 #' Plots the distribution of number of bases clipped.
 #'
-#' @param o An object of class smallRNAexp
+#' @param o An object of class shortRNAexp
 #'
 #' @export
 plotClipping <- function(o){
-    if(!is(o, "smallRNAexp")) stop("`o` should be an object of class `smallRNAexp`.")
+    if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
     layout(matrix(1:2,nrow=1))
     sc <- sapply(o@sources$cigar, FUN=function(x){
         x <- .splitCigar(x)
@@ -549,11 +549,11 @@ plotClipping <- function(o){
 #'
 #' Plots alignment statistics
 #'
-#' @param o An object of class smallRNAexp
+#' @param o An object of class shortRNAexp
 #'
 #' @export
 plotAlignStats <- function(o){
-    if(!is(o, "smallRNAexp")) stop("`o` should be an object of class `smallRNAexp`.")
+    if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
     if(is.null(nrow(o@alignStats$uniqueSeqs)) || nrow(o@alignStats$uniqueSeqs)==1){
         m <- cbind(o@alignStats$uniqueSeqs,o@alignStats$reads)
         colnames(m)[1] <- "unique\nseqs"
