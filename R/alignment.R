@@ -51,19 +51,14 @@ collapsed2countMatrix <- function(seqcounts.files, output.file, shell="bash"){
 #'
 #' @export
 shortRNAexp_align <- function(fasta, outputfile, bowtie1index, starindex, bowtie1="bowtie", star="STAR", samtools="samtools", m=1000, nthreads=4){
-    cmd <- paste0(bowtie1,' -p ',nthreads,' -v 0 -S -a --best --strata -m ',m,' -f --un ',outputfile,'.unmapped.fasta ',bowtie1index,' ',fasta,' | ',samtools,' view -bh > ', outputfile, '.unsorted.bam')
+    of2=gsub(".bam","",outputfile,fixed=T)
+    cmd <- paste0(bowtie1,' -p ',nthreads,' -v 0 -S -a --best --strata -m ',m,' -f --un ',of2,'.unmapped.fasta ',bowtie1index,' ',fasta,' | ',samtools,' view -bh > ', of2, '.unsorted.bam && \
+    ', samtools,' sort -@ ', nthreads,' -m 2G ', of2,'.unsorted.bam > ', of2,'.perfectMatch.bam && \ 
+    rm ',of2,'.unsorted.bam')
     print(cmd)
     system(cmd)
-    td <- tempdir()
-    cmd <- paste0(samtools,' sort -T ',td,' -@ ', nthreads,' -m 2G ', outputfile,'.unsorted.bam > ', outputfile,'.align1.bam; rm ',outputfile,'.unsorted.bam')
-    print(cmd)
-    system(cmd)
-    cmd <- paste0(star, ' --genomeDir ', starindex, ' --runThreadN ', nthreads, ' --readFilesIn ',outputfile,'.unmapped.fasta --alignIntronMax 1 --outFilterMultimapNmax ',m,' --outSAMattributes NH HI NM --outSAMtype BAM SortedByCoordinate --outFileNamePrefix ',td,'/align2 --outSAMprimaryFlag AllBestScore')
-    print(cmd)
-    system(cmd)
-    cmd <- paste0(samtools, ' merge -f ', outputfile,' ', outputfile,'.align1.bam ', td,'align2*bam
-rm ',outputfile,'.align1.bam; rm -R ',td,'
-',samtools, ' index ', outputfile)
+    cmd <- paste0(star, ' --genomeDir ', starindex, ' --runThreadN ', nthreads, ' --readFilesIn ',of2,'.unmapped.fasta --alignIntronMax 1 --outFilterMultimapNmax ',m,' --outSAMattributes NH HI NM --outSAMtype BAM SortedByCoordinate --outFileNamePrefix ',of2,'.imperfect --outSAMprimaryFlag AllBestScore && \
+    ',samtools, ' merge -f ', outputfile,' ', of2,'.perfectMatch.bam ',of2,'.imperfect*bam && ',samtools, ' index ', outputfile)
     print(cmd)
     system(cmd)
 }
