@@ -1,14 +1,16 @@
 Package: shortRNA
 Type: Package
-Title: short RNA-seq analysis
-Version: 0.1
-Date: 2017-07-05
-Author: Pierre-Luc Germain
+Title: Short RNA-seq analysis
+Version: 0.3
+Date: 2018-06-14
+Authors@R: as.person(c(
+    "Pierre-Luc Germain <germain@hifo.uzh.ch> [aut, cre]", 
+    "Deepak Tanwar <deepak.tanwar@hest.ethz.ch> [aut]"
+  ))
 Maintainer: <germain@hifo.uzh.ch>
 Description: Analysis of short RNA seq data
 License: GPL
 RoxygenNote: 6.0.1
 VignetteBuilder: rmarkdown, knitr
-Imports: limma, edgeR, pheatmap, LSD, psych, Biostrings, corrplot
-Suggests: GTscripts
+Imports: Biostrings, tools, rtracklayer, GenomicRanges, Repitools, Rsamtools, limma, edgeR, pheatmap, LSD, psych, corrplot
 LazyData: true
