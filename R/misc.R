@@ -3,7 +3,7 @@
   if(!is.null(ncores)){
     if(ncores == 1)	return(NULL)
   }
-  if(tryCatch(require("doParallel", character.only = TRUE), error = function(e) FALSE)){
+  if(tryCatch(library("doParallel", character.only = TRUE), error = function(e) FALSE)){
     library(doParallel)
     if(is.null(ncores))	ncores <- min(detectCores()-1, maxCores)
     if(ncores > 1){
@@ -44,6 +44,14 @@ autoLayout <- function(nb, byrow = FALSE){
   })
 }
 
+
+# finds the longest common substring
+LCS <- function(x){
+    a <- sapply(as.character(x), split="", fixed=T, FUN=strsplit)
+    a <- sapply(a,mm=min(sapply(a,length)),FUN=function(x,mm){ x[1:mm] })
+    w <- which(!apply(a,1,FUN=function(x){ length(unique(x))==1 }))[1]
+    paste(a[1:w,1],collapse="")
+}
 
 
 #' capitalizeRead

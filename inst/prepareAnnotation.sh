@@ -245,7 +245,7 @@ awk '{if( $3=="transcript" || $3=="exon" ) print $0}' $piRNA | sed 's/ //g' | se
 
 plcheck tmpelements.bed
 
-cat tmpelements.bed *artificialLocations.bed | sortBed -i - | uniq > elements.bed
+cat tmpelements.bed *artificialLocations.bed *genomicLocations.bed | sortBed -i - | uniq > elements.bed
 
 plcheck elements.bed
 
