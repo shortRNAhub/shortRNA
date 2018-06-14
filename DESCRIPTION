@@ -12,5 +12,5 @@ Description: Analysis of short RNA seq data
 License: GPL
 RoxygenNote: 6.0.1
 VignetteBuilder: rmarkdown, knitr
-Imports: Biostrings, tools, rtracklayer, GenomicRanges, Repitools, Rsamtools, limma, edgeR, pheatmap, LSD, psych, corrplot
+Imports: Biostrings, tools, rtracklayer, GenomicRanges, GenomicAlignments, Rsamtools, limma, edgeR, pheatmap, LSD, psych, corrplot
 LazyData: true
