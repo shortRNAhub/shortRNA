@@ -67,7 +67,7 @@ prepareAnnotation <- function(filelist){
     mirs <- suppressWarnings(c(mirbase.gtf,mirs))
     
     # tRNAs
-    trnas <- .preparetRNAsequences(filelist$gtRNAdb.fa)
+    trnas <- .preparetRNAsequences(filelist$gtRNAdb.fa, filelist$gtRNAdb.bed)
     writeXStringSet(trnas,"tRNAs.modified.fa", format="fasta")
     le <- length(trnas)
     mn <- sapply(names(trnas), FUN=function(x){ x <- strsplit(x," ",fixed=T)[[1]][[1]]; x <- strsplit(x,"_",fixed=T)[[1]]; x[length(x)] })
@@ -145,9 +145,27 @@ prepareAnnotation <- function(filelist){
     c(fa,a)
 }
 
-.preparetRNAsequences <- function(cDNA){
+.preparetRNAsequences <- function(cDNA, bed=NULL){
     library(Biostrings)
     if(is.character(cDNA)) cDNA <- readDNAStringSet(cDNA)
+    if(is.null(bed)){
+        message("No tRNA bed file provided - assuming that the fasta is stranded and spliced.")
+    }else{
+        # a bed file is provided, so we will splice the sequences and invert if on negative strand
+        if(is.character(bed)) bed <- import.bed(bed)
+        names(cDNA) <- sapply(names(cDNA), FUN=function(x){ x <- strsplit(x," ",fixed=T)[[1]][[1]]; x <- strsplit(x,"_",fixed=T)[[1]]; x[length(x)] })
+        names(bed) <- bed$name
+        bed <- bed[names(cDNA),]
+        # splicing
+        for(i in which(sapply(bed$blocks,length)>1)){
+            cDNA[[i]] <- paste(apply(as.data.frame(bed$blocks[[i]]),1,fa=as.character(cDNA[[i]]),FUN=function(x,fa){ substr(fa,x[[1]],x[[2]])}),collapse="")
+        }
+        # inverting sequence
+        for(i in which(strand(bed)=="-")){
+            cDNA[[i]] <- reverse(cDNA[[i]])
+        }
+    }
+    # we add the CCA tail
     x <- xscat(cDNA,"CCA")
     names(x) <- names(cDNA)
     x
