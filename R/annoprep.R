@@ -158,10 +158,10 @@ prepareAnnotation <- function(filelist){
         bed <- bed[names(cDNA),]
         # splicing
         for(i in which(sapply(bed$blocks,length)>1)){
-            cDNA[[i]] <- paste(apply(as.data.frame(bed$blocks[[i]]),1,fa=as.character(cDNA[[i]]),FUN=function(x,fa){ substr(fa,x[[1]],x[[2]])}),collapse="")
+            cDNA[[i]] <- DNAString(paste(apply(as.data.frame(bed$blocks[[i]]),1,fa=as.character(cDNA[[i]]),FUN=function(x,fa){ substr(fa,x[[1]],x[[2]])}),collapse=""))
         }
         # inverting sequence
-        for(i in which(strand(bed)=="-")){
+        for(i in which(as.character(strand(bed))=="-")){
             cDNA[[i]] <- reverse(cDNA[[i]])
         }
     }

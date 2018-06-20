@@ -43,22 +43,22 @@ runDEA <- function(o, formula=NULL, groups=NULL, method="edgeR", types=NULL, nor
         
         res$seqLevel$miRNA <- .deaWrapper(method, getSeqCounts(o, type="miRNA", status="unique", formatCase=T), calcNormFactors.shortRNAexp(o, normalizeOnType="miRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
         res$seqLevel$tRNA <- .deaWrapper(method, getSeqCounts(o, type="tRNA", status="unique", formatCase=T), calcNormFactors.shortRNAexp(o, normalizeOnType="tRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
-        res$seqLevel$tRNA$name <- o@sources[toupper(row.names(res$seqLevel$tRNA)),"src_name"]
+        res$seqLevel$tRNA$name <- o@sources[toupper(row.names(res$seqLevel$tRNA)),"gene_id"]
         res$aggregated$miRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type="miRNA", ambiguous=FALSE), o, ...), calcNormFactors.shortRNAexp(o, normalizeOnType="miRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
         res$aggregated$tRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type="tRNA", ambiguous=FALSE), o, ...), calcNormFactors.shortRNAexp(o, normalizeOnType="tRNA"), filterFun, formula, groups, forceGLM, coef, replicates)        
     }else{
         res$seqLevel$miRNA <- .deaWrapper(method, getSeqCounts(o, type="miRNA", status="unique", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
         res$seqLevel$tRNA <- .deaWrapper(method, getSeqCounts(o, type="tRNA", status="unique", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
-        res$seqLevel$tRNA$name <- o@sources[toupper(row.names(res$seqLevel$tRNA)),"src_name"]
+        res$seqLevel$tRNA$name <- o@sources[toupper(row.names(res$seqLevel$tRNA)),"gene_id"]
         res$seqLevel$primary_piRNA <- NULL
         if("primary_piRNA" %in% row.names(o@composition$raw$all)){
             res$seqLevel$primary_piRNA <- .deaWrapper(method, getSeqCounts(o, type="primary_piRNA", status="unique", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
-            if(!is.null(res$seqLevel$primary_piRNA)) res$seqLevel$primary_piRNA$name <- o@sources[toupper(row.names(res$seqLevel$primary_piRNA)),"src_name"]
+            if(!is.null(res$seqLevel$primary_piRNA)) res$seqLevel$primary_piRNA$name <- o@sources[toupper(row.names(res$seqLevel$primary_piRNA)),"gene_id"]
         }
         res$seqLevel$allKnownUnique <- .deaWrapper(method, getSeqCounts(o, type=types, status="unique", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
-        res$seqLevel$allKnownUnique$name <- o@sources[toupper(row.names(res$seqLevel$allKnownUnique)),"src_name"]
+        res$seqLevel$allKnownUnique$name <- o@sources[toupper(row.names(res$seqLevel$allKnownUnique)),"gene_id"]
         res$seqLevel$ambiguous <- .deaWrapper(method, getSeqCounts(o, type=types, status="ambiguous", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
-        res$seqLevel$ambiguous$name <- o@sources[toupper(row.names(res$seqLevel$ambiguous)),"src_name"]
+        res$seqLevel$ambiguous$name <- o@sources[toupper(row.names(res$seqLevel$ambiguous)),"gene_id"]
         res$seqLevel$unknown <- .deaWrapper(method, getSeqCounts(o, status="unknown", formatCase=T), o, filterFun, formula, groups, forceGLM, coef, replicates)
 
         res$aggregated$miRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type="miRNA", ambiguous=FALSE), o, ...), o, filterFun, formula, groups, forceGLM, coef, replicates)
@@ -69,10 +69,10 @@ runDEA <- function(o, formula=NULL, groups=NULL, method="edgeR", types=NULL, nor
         if("primary_piRNA" %in% row.names(o@composition$raw$all)){
             a <- getSeqCounts(o, type="primary_piRNA")
             if(nrow(a)>1){
-                ag <- aggregate(a,by=list(feature=o@sources[row.names(a),"src_name"]),FUN=sum)
+                ag <- aggregate(a,by=list(feature=o@sources[row.names(a),"gene_id"]),FUN=sum)
                 row.names(ag) <- ag[,1]; ag[,1] <- NULL
                 res$aggregated$primary_piRNA <- .deaWrapper(method, ag,o, filterFun, formula, groups, forceGLM, coef, replicates)
-                ag <- aggregate(a,by=list(feature=sapply(o@sources[row.names(a),"src_name"],FUN=function(x){ x <- strsplit(x,"-",fixed=T)[[1]]; paste(x[-length(x)],collapse="-") })),FUN=sum)
+                ag <- aggregate(a,by=list(feature=sapply(o@sources[row.names(a),"gene_id"],FUN=function(x){ x <- strsplit(x,"-",fixed=T)[[1]]; paste(x[-length(x)],collapse="-") })),FUN=sum)
                 row.names(ag) <- ag[,1]; ag[,1] <- NULL
                 res$aggregated$piRNA_clusters <- .deaWrapper(method, ag, o, filterFun, formula, groups, forceGLM, coef, replicates)
                 

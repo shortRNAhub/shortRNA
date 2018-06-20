@@ -54,6 +54,6 @@ findoverlaps.bam.featureAnnotation <- function(bamFile, featureAnnotation, overl
   names(r) <- c("seq", "cigar", "chrPos", "strandRead", "strandFeature", "posInFeature", 
                "overlap", "percentOverlap", "transcript_id", "gene_id",
                "transcript_type")
-  r <- r[order(r[,"seqRead"]),]
+  r <- r[order(r[,"seq"]),]
   return(r)
 }

@@ -4,18 +4,18 @@
 \alias{shortRNAexp}
 \title{shortRNAexp}
 \usage{
-shortRNAexp(seqcounts, sources, phenoData, features2meta = NULL,
+shortRNAexp(seqcounts, alignments, annotation, phenoData = NULL,
   description = NA_character_, rules = defaultAssignRules(),
   keepAllSrcs = TRUE)
 }
 \arguments{
 \item{seqcounts}{Either a numeric matrix (with samples as columns and short sequences as rows) or the path to such a file.}
 
-\item{sources}{Either a data.frame or sequence sources or the path to such a file.}
+\item{alignments}{An alignment file (on the custom genome created along with the `annotation`) for each unique sequence, in BAM format.}
+
+\item{annotation}{A feature annotation object of type `GRanges`, as created by the `prepareAnnotation` function.}
 
 \item{phenoData}{Either a data.frame of phenotypic data (with samples as rows and features as columns) or the path to such a file.}
-
-\item{features2meta}{Optional data.frame or file for establishing equivalences between features (should inclue two columns, in order: original_gene_name, replacement_name).}
 
 \item{description}{Character vector describing the experiment/dataset.}
 

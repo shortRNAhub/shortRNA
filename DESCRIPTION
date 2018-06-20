@@ -1,7 +1,7 @@
 Package: shortRNA
 Type: Package
 Title: Short RNA-seq analysis
-Version: 0.3
+Version: 0.4
 Date: 2018-06-14
 Authors@R: as.person(c(
     "Pierre-Luc Germain <germain@hifo.uzh.ch> [aut, cre]", 

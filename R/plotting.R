@@ -18,7 +18,7 @@ plotFeatureCoverage <- function(o, feature, exact=TRUE, includeAmbiguous=TRUE, l
         u <- log(u+1)
         a <- log(a+1)
     }
-    pmax <- max(o@sources[us,"pos_in_feature"]+o@sources[us,"length"]-1)
+    pmax <- max(o@sources[us,"posInFeature"]+o@sources[us,"length"]-1)
     if(includeAmbiguous){
         plot(u+a,type="l",lwd=2,pch=20, xlab="Position across transcript (nt)", ylab=ifelse(logCounts, "log(total read count +1)", "total read count"),main=main)
         polygon(c(1,1:length(u),length(u)), c(0,u+a,0),col="red")
@@ -289,11 +289,11 @@ plotType <- function(o, types, aggregated=FALSE, ambiguous=FALSE, scaleFeatures=
 #'
 #' @param o An object of class shortRNAexp
 #' @param type Types of sequences to be fetched (e.g. miRNA, tRNA, etc.), fetches all by default.
-#' @param status Character vector of seq statuses to be selected (any combination of "unmapped","unknown","ambiguous", and "unique"). Defaults to all mapped sequences.
+#' @param status Character vector of seq statuses to be selected (any combination of "unmapped","invalid","unknown","ambiguous", and "unique"). Defaults to all mapped sequences.
 #' @param trim Logical; whether to trim the 5\% most extreme values on each side before calculating mean (default TRUE).
 #'
 #' @export
-checkSizeSelection <- function(o, type=NULL, status=c("unknown","ambiguous","unique"), trim=TRUE, onlyDetectedInAll=TRUE){
+checkSizeSelection <- function(o, type=NULL, status=c("unknown","invalid","ambiguous","unique"), trim=TRUE, onlyDetectedInAll=TRUE){
     if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
     layout(matrix(1:4,nrow=2))
     plotSizeAbundance(o, type, status, normalized=F, dolog10=F, bty="n", main="sum of raw counts", plotLegend=TRUE)

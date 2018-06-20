@@ -19,5 +19,5 @@ mergeshortRNADatasets(o1, o2, by = "feature", ...)
 An object of class shortRNAexp.
 }
 \description{
-Merges two shortRNAexp objects.
+Merges two shortRNAexp objects. NEEDS TO BE RE-WRITTEN!!!
 }
