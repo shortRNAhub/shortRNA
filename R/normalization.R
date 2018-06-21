@@ -86,7 +86,7 @@ getAggOffset <- function(o, offset){
         return(m)
     }))
     o2 <- t(sapply(row.names(o@agcounts_ambiguous), o=o, offset=offset, FUN=function(x, o, offset){
-        s <- row.names(o@sources)[which(o@sources$src_name==x)]
+        s <- row.names(o@sources)[which(o@sources$gene_id==x)]
         offset <- offset[s,,drop=F]
         w <- o@seqcounts[s,,drop=F]
         m <- rep(0,ncol(offset))

@@ -12,8 +12,8 @@ assignRead(sources, rules = defaultAssignRules())
 \item{rules}{A list of assignment rules; defaults to `defaultAssignRules()`.}
 }
 \value{
-A vector including the following variables: seq, location, cigar, pos_in_feature, feature_length, src name, src type, overlap length, src length, assignment status
+A vector including the following variables: seq, cigar, chrPos, strandRead, strandFeature, posInFeature, overlap, percentOverlap, transcript_id, gene_id, transcript_type, status
 }
 \description{
-Assigns read to one or more of possible sources.
+Assigns one read to one or more of possible sources.
 }
