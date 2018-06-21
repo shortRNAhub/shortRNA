@@ -50,7 +50,7 @@ findoverlaps.bam.featureAnnotation <- function(bamFile, featureAnnotation, overl
   
   
   # Non overlapping reads
-  nonOverlapRead <- data.frame(suppressWarnings(bam[!(bam %over% featureAnnotation)]), stringsAsFactors = F)
+  nonOverlapRead <- data.frame(bam[-overlap@from,], stringsAsFactors = F)
   colnames(nonOverlapRead) <- paste0(colnames(nonOverlapRead), "Read")
   colsAddition <- colnames(m)[!colnames(m) %in% colnames(nonOverlapRead)]
   newCols <- data.frame(matrix(nrow = nrow(nonOverlapRead), ncol = length(colsAddition)), stringsAsFactors = F)
