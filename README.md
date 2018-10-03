@@ -7,5 +7,7 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+![](logo/logo.png)
+
 # short RNA project
 This is a project for the development of short RNA analysis R package. It was initiated by Pierre-Luc in 2017.
