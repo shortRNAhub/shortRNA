@@ -1,4 +1,6 @@
-<a href="https://zenhub.com"><img src="https://raw.githubusercontent.com/ZenHubIO/support/master/zenhub-badge.png"></a>
+
+![](logo/logo.png)
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
@@ -7,7 +9,7 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-![](logo/logo.png =20x20)
+![](logo/logo.png)
 
 # short RNA project
 This is a project for the development of short RNA analysis R package. It was initiated by Pierre-Luc in 2017.
