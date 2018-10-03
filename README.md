@@ -1,6 +1,4 @@
-![](logo/logo.png)
-
-<img src="logo/logo.png" width="200" height="200" />
+<img src="logo/logo.png" width="150" height="200" />
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
