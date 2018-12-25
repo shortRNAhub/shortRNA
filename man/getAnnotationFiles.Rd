@@ -4,14 +4,16 @@
 \alias{getAnnotationFiles}
 \title{getAnnotationFiles}
 \usage{
-getAnnotationFiles(org = "mm10")
+getAnnotationFiles(org = "mm10", destination = getwd())
 }
 \arguments{
-\item{org}{An organism assembly to use. Currently supported are: mm10.}
+\item{org}{An organism assembly to use. Currently supported are: mm10, hg38.}
+
+\item{destination}{The destination folder for the files (defaults to current working directory)}
 }
 \value{
 A list.
 }
 \description{
-Download (and untar) the files necessary to build a short RNA annotation, and returns a named list indicating the different feature files.
+Download (and untar) the files necessary to build a short RNA annotation, and returns a named list indicating the different feature files. Is called by `prepareAnnotation`.
 }

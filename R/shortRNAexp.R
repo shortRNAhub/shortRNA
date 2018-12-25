@@ -3,36 +3,59 @@
 #' Creates a shortRNAexp object
 #'
 #' @param seqcounts Either a numeric matrix (with samples as columns and short sequences as rows) or the path to such a file.
-#' @param sources Either a data.frame or sequence sources or the path to such a file.
+#' @param alignments An alignment file (on the custom genome created along with the `annotation`) for each unique sequence, in BAM format.
+#' @param annotation A feature annotation object of type `GRanges`, as created by the `prepareAnnotation` function.
 #' @param phenoData Either a data.frame of phenotypic data (with samples as rows and features as columns) or the path to such a file.
-#' @param features2meta Optional data.frame or file for establishing equivalences between features (should inclue two columns, in order: original_gene_name, replacement_name).
 #' @param description Character vector describing the experiment/dataset.
 #' @param rules Assignment rules (see `?defaultAssignRules`).
 #' @param keepAllSrcs Logical; whether to keep information on all sequences' potential sources (before assignment).
+#' @param do.aggregate Logical; whether to run aggregation by feature name and type (default TRUE).
 #'
 #' @return a shortRNAexp object.
 #'
 #' @export
-shortRNAexp <- function(seqcounts, sources, phenoData, features2meta=NULL, description=NA_character_, rules=defaultAssignRules(), keepAllSrcs=TRUE){
+shortRNAexp <- function(seqcounts, alignments, annotation, phenoData=NULL, description=NA_character_, rules=defaultAssignRules(), keepAllSrcs=TRUE, do.aggregate=TRUE){
     if(is.character(seqcounts)) seqcounts <- read.delim(seqcounts, header=T,row.names=1)
-    if(is.character(sources)) sources <- read.delim(sources, header=F, stringsAsFactors=F)
     if(is.null(phenoData)){
         phenoData <- data.frame(row.names=colnames(seqcounts))
     }else{
         if(is.character(phenoData)) phenoData <- read.delim(phenoData, header=T, row.names=1, stringsAsFactors=F)
-        if(!is.null(features2meta)){
-            if(is.character(features2meta)) features2meta <- read.delim(features2meta, header=F, stringsAsFactors=F)
-            sr2 <- sources[which(as.character(sources[,7]) %in% as.character(features2meta[,1])),]
-            sr2$meta <- sapply(sr2[,7], f2m=features2meta, FUN=function(x,f2m){ paste(sort(unique(f2m[which(f2m[,1]==x),2])),collapse="; ") })
-            # we readjust the multimappers
-            sources[row.names(sr2),7] <- sr2$meta
-            sources <- sources[!duplicated(sources),]
-        }
     }
-    colnames(sources) <- c("sequence","cigar","location", "pos_in_feature", "feature_length", "src_id", "src_name", "src_type", "overlap")
-    message("Processed input files, now creating shortRNAexp object...")
+    
+    message("
+        Finding overlaps between alignments and the annotation...
+    ")
+    
+    srcs <- findoverlaps.bam.featureAnnotation(alignments, annotation, overlapBy=rules$overlapBy)
+    srcs <- srcs[which(srcs$seq %in% row.names(seqcounts)),]
+    srcs$transcript_type <- as.character(srcs$transcript_type)
+    
+    message("
+        Assigning reads to features...
+    ")
+    sources <- assignReads(srcs, rules)
+
+    message("
+        Building the shortRNAexp object...
+    ")
     o <- new("shortRNAexp", seqcounts=as.matrix(seqcounts), description=description, sources=sources, phenoData=phenoData, rules=rules)
-    if(keepAllSrcs) o@allsrcs <- sources
+    if(!is.null(attr(annotation,"info"))) o@annotationInfo <- attr(annotation,"info")
+     
+    o@alignStats <- .getAlignStats(o, srcs)
+    
+    if(keepAllSrcs) o@allsrcs <- srcs
+    rm(srcs)
+
+    if(do.aggregate){
+      message("
+          Aggregating counts by features...
+      ")
+    
+      o <- aggregateSequences(o)
+    
+      o@composition$raw <- estimateComposition(o)
+    }
+    
     return(o)
 }
 
@@ -60,7 +83,7 @@ estimateComposition <- function(o, m=NULL, abridgedTypes=NULL){
     if(is.null(m)) m <- o@seqcounts
     
     m <- m[intersect(row.names(m),row.names(o@sources)),]
-    tm <- aggregate(m,by=list(type=o@sources[row.names(m),"src_type"]),na.rm=T,FUN=sum)
+    tm <- aggregate(m,by=list(type=o@sources[row.names(m),"transcript_type"]),na.rm=T,FUN=sum)
     row.names(tm) <- tm[,1]; tm[,1] <- NULL
     
     if(is.null(abridgedTypes))  abridgedTypes <- .getDefaultAbridgedTypes(row.names(tm))
@@ -109,7 +132,7 @@ getComposition <- function(o, abridged=FALSE, exclude=c("unknown","ambiguous"), 
 #' Retrieves component variables explaining the variation in RNA type composition.
 #'
 #' @param o An object of class shortRNAexp
-#' @param summarytype The type of dimensionality reduction to use. Either "pca" (reporting the first two principal components), "mds" (using a single variable), or "polar" polar coordinates of the first 2 principal components. Default is "mds".
+#' @param summarytype The type of dimensionality reduction to use. Either "pca" (reporting the first two principal components) or "mds" (using a single variable). Default is "mds".
 #' @param ... Any argument passed to the `getComposition` function.
 #'
 #' @return A matrix with the composition varible(s).
@@ -117,11 +140,10 @@ getComposition <- function(o, abridged=FALSE, exclude=c("unknown","ambiguous"), 
 #' @export
 getCompositionComponent <- function(o, summarytype="MDS", ...){
     cc <- getComposition(o, ...)
-    summarytype <- match.arg(tolower(summarytype), c("pca","mds","polar"))
+    summarytype <- match.arg(tolower(summarytype), c("pca","mds"))
     a <- as.matrix(switch(tolower(summarytype),
         mds=cmdscale(dist(t(cc)),1),
-        pca=prcomp(t(cc))$x[,1:2],
-        polar=psych::polar(prcomp(t(cc))$x[,1:2],sort=F)[,2],
+        pca=prcomp(t(cc))$x[,1:2]
         ))
     colnames(a) <- paste0("compositionV",1:ncol(a))
     a/max(abs(a))
@@ -134,7 +156,7 @@ getCompositionComponent <- function(o, summarytype="MDS", ...){
 #'
 #' @param o An object of class shortRNAexp
 #' @param type Types of sequences to be fetched (e.g. miRNA, tRNA, etc.), fetches all by default.
-#' @param status Character vector of seq statuses to be selected (any combination of "unmapped","unknown","ambiguous", and "unique"). Fetches all by default.
+#' @param status Character vector of seq statuses to be selected (any combination of "unmapped","invalid","unknown","ambiguous", and "unique"). Fetches all by default.
 #'
 #' @return A character vector of sequences.
 #'
@@ -142,11 +164,11 @@ getCompositionComponent <- function(o, summarytype="MDS", ...){
 getSeqsByType <- function(o, type=NULL, status=NULL){
     if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
     type <- .parseTypes(o, type)
-    if(!is.null(status)) status <- match.arg(status, c("unmapped","unknown","ambiguous","unique"), several.ok=TRUE)
+    if(!is.null(status)) status <- match.arg(status, c("unmapped","invalid","unknown","ambiguous","unique"), several.ok=TRUE)
     if(is.null(type) & is.null(status)) return(row.names(o@sources))
-    if(!is.null(type) & !is.null(status)) return(row.names(o@sources)[which(o@sources$status %in% status & o@sources$src_type %in% type)])
+    if(!is.null(type) & !is.null(status)) return(row.names(o@sources)[which(o@sources$status %in% status & o@sources$transcript_type %in% type)])
     if(is.null(type)) return(row.names(o@sources)[which(o@sources$status %in% status)])
-    return(row.names(o@sources)[which(o@sources$src_type %in% type)])
+    return(row.names(o@sources)[which(o@sources$transcript_type %in% type)])
 }
 
 .parseTypes <- function(o, type){
@@ -171,14 +193,14 @@ tRNAtype <- function(){ c("tRNA_3p_fragment","tRNA_5p_fragment","tRNA_3p_half","
 #'
 #' @param o An object of class shortRNAexp
 #' @param type Types of sequences to be fetched (e.g. miRNA, tRNA, etc.), fetches all by default.
-#' @param status Character vector of seq statuses to be selected (any combination of "unmapped","unknown","ambiguous", and "unique"). Defaults to all mapped sequences.
+#' @param status Character vector of seq statuses to be selected (any combination of "unmapped","invalid", "unknown", "ambiguous", and "unique"). Defaults to all mapped sequences.
 #' @param normalized Logical; whether to return the normalized counts (default FALSE).
 #' @param formatCase Logical; whether to format sequences' case on the basis of clipping (default FALSE).
 #'
 #' @return A count matrix.
 #'
 #' @export
-getSeqCounts <- function(o, type=NULL, status=c("unknown","ambiguous","unique"), normalized=FALSE, formatCase=FALSE){
+getSeqCounts <- function(o, type=NULL, status=c("unknown","invalid","ambiguous","unique"), normalized=FALSE, formatCase=FALSE){
     if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
     m <- o@seqcounts[getSeqsByType(o, type, status),,drop=FALSE]
     if(formatCase) row.names(m) <- apply(cbind(row.names(m),o@sources[row.names(m),"cigar"]), 1, FUN=function(x){ capitalizeRead(x[1],x[2]) })
@@ -204,12 +226,14 @@ getSeqCounts <- function(o, type=NULL, status=c("unknown","ambiguous","unique"),
 getFeatureSeqs <- function(o, feature, exact=TRUE, allowAmbiguous=FALSE, ignore.case=TRUE){
     if(!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
     if(exact){
-        s <- row.names(o@sources)[which(o@sources$src_name==feature)]
+        w <- which(o@sources$transcript_id==feature || o@sources$gene_id==feature)
+        s <- row.names(o@sources)[w]
     }else{
+        w <- union(grep(feature, o@sources$transcript_id, ignore.case=ignore.case),grep(feature, o@sources$gene_id, ignore.case=ignore.case))
         if(allowAmbiguous){
-            s <- row.names(o@sources)[grep(feature, o@sources$src_name, ignore.case=ignore.case)]
+            s <- row.names(o@sources)[w]
         }else{
-            s <- row.names(o@sources)[intersect(grep(feature, o@sources$src_name, ignore.case=ignore.case),which(o@sources$status=="unique"))]
+            s <- row.names(o@sources)[intersect(w,which(o@sources$status=="unique"))]
         }
     }
     return(s)
@@ -275,17 +299,18 @@ getAggCounts <- function(o, type=NULL, ambiguous=is.null(type), normalized=FALSE
 # computes per-sequence and per-read alignment stats; o is object, sr is seqs.srcs
 .getAlignStats <- function(o, sr){
     sr <- sr[which(!is.na(sr$cigar)),]
-    sr <- sr[which(sr$sequence %in% row.names(o@seqcounts)),]
-    unmapped <- setdiff(row.names(o@seqcounts),sr$sequence)
-    uniq <- row.names(o@sources)[which(o@sources$status=="unique" | o@sources$location != "ambiguous")]
-    ambi <- setdiff(row.names(o@sources), c(unmapped, uniq))
-    sr <- sr[order(sr$sequence, sr$overlap, decreasing=T),1:2]
-    sr <- sr[!duplicated(sr$sequence),]
-    sr <- sr[which(sr$sequence %in% uniq),]
-    pmap <- sr$sequence[grep("S",sr$cigar,invert=T)]
-    scmap <- sr$sequence[grep("S",sr$cigar)]
-    res <- list(uniqueSeqs=c(unmapped=length(unmapped), uniqueFullMatch=length(pmap), uniqueSoftClipped=length(scmap), ambiguous=length(ambi)))
-    res$reads <- rbind( colSums(o@seqcounts[unmapped,]), colSums(o@seqcounts[pmap,]), colSums(o@seqcounts[scmap,]), colSums(o@seqcounts[ambi,]) )
+    sr <- sr[which(sr$seq %in% row.names(o@seqcounts)),]
+    unmapped <- setdiff(row.names(o@seqcounts),sr$seq)
+    uniq <- row.names(o@sources)[which(o@sources$status=="unique")]
+    unknown <- row.names(o@sources)[which(o@sources$status=="unknown")]
+    ambi <- row.names(o@sources)[which(o@sources$status=="ambiguous" & o@sources$chrPos=="ambiguous")]
+    sr <- sr[order(sr$seq, sr$overlap, decreasing=T),1:2]
+    sr <- sr[!duplicated(sr$seq),]
+    sr <- sr[which(sr$seq %in% uniq),]
+    pmap <- sr$seq[grep("S",sr$cigar,invert=T)]
+    scmap <- sr$seq[grep("S",sr$cigar)]
+    res <- list(uniqueSeqs=c(unmapped=length(unmapped), uniqueFullMatch=length(pmap), uniqueSoftClipped=length(scmap), ambiguous=length(ambi), unknown=length(unknown)))
+    res$reads <- rbind( colSums(o@seqcounts[unmapped,]), colSums(o@seqcounts[pmap,]), colSums(o@seqcounts[scmap,]), colSums(o@seqcounts[ambi,]), colSums(o@seqcounts[unknown,]) )
     row.names(res$reads) <- names(res$uniqueSeqs)
     return(res)
 }
@@ -317,7 +342,7 @@ getAggCounts <- function(o, type=NULL, ambiguous=is.null(type), normalized=FALSE
 
 #' mergeshortRNADatasets
 #'
-#' Merges two shortRNAexp objects.
+#' Merges two shortRNAexp objects. NEEDS TO BE RE-WRITTEN!!!
 #'
 #' @param o1 An object of class shortRNAexp.
 #' @param o2 An object of class shortRNAexp.

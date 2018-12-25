@@ -4,14 +4,12 @@
 \alias{getPotentialSources}
 \title{getPotentialSources}
 \usage{
-getPotentialSources(o, seq, srcsFile = NULL)
+getPotentialSources(o, seq)
 }
 \arguments{
 \item{o}{An object of class shortRNAexp.}
 
 \item{seq}{A character vector including the sequence(s) of interest.}
-
-\item{srcsFile}{The path to the seqs.srcs file. This is needed only if the shortRNAexp object was created with keepAllSrcs=FALSE.}
 }
 \value{
 A data.frame.

@@ -3,7 +3,7 @@
   if(!is.null(ncores)){
     if(ncores == 1)	return(NULL)
   }
-  if(tryCatch(library("doParallel", character.only = TRUE), error = function(e) FALSE)){
+  if(tryCatch(require("doParallel", character.only = TRUE), error = function(e) FALSE)){
     library(doParallel)
     if(is.null(ncores))	ncores <- min(detectCores()-1, maxCores)
     if(ncores > 1){
