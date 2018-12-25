@@ -9,11 +9,12 @@
 #' @param description Character vector describing the experiment/dataset.
 #' @param rules Assignment rules (see `?defaultAssignRules`).
 #' @param keepAllSrcs Logical; whether to keep information on all sequences' potential sources (before assignment).
+#' @param do.aggregate Logical; whether to run aggregation by feature name and type (default TRUE).
 #'
 #' @return a shortRNAexp object.
 #'
 #' @export
-shortRNAexp <- function(seqcounts, alignments, annotation, phenoData=NULL, description=NA_character_, rules=defaultAssignRules(), keepAllSrcs=TRUE){
+shortRNAexp <- function(seqcounts, alignments, annotation, phenoData=NULL, description=NA_character_, rules=defaultAssignRules(), keepAllSrcs=TRUE, do.aggregate=TRUE){
     if(is.character(seqcounts)) seqcounts <- read.delim(seqcounts, header=T,row.names=1)
     if(is.null(phenoData)){
         phenoData <- data.frame(row.names=colnames(seqcounts))
@@ -45,13 +46,15 @@ shortRNAexp <- function(seqcounts, alignments, annotation, phenoData=NULL, descr
     if(keepAllSrcs) o@allsrcs <- srcs
     rm(srcs)
 
-    message("
-        Aggregating counts by features...
-    ")
+    if(do.aggregate){
+      message("
+          Aggregating counts by features...
+      ")
     
-    o <- aggregateSequences(o)
+      o <- aggregateSequences(o)
     
-    o@composition$raw <- estimateComposition(o)
+      o@composition$raw <- estimateComposition(o)
+    }
     
     return(o)
 }

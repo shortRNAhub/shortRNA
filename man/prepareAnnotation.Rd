@@ -4,13 +4,16 @@
 \alias{prepareAnnotation}
 \title{prepareAnnotation}
 \usage{
-prepareAnnotation(species = NULL, filelist = NULL, destination = getwd(),
-  description = "")
+prepareAnnotation(species = NULL, filelist = NULL,
+  destination = getwd(), description = "", includeIsomirs = TRUE)
 }
 \arguments{
-\item{species}{The species for automatic fetching and creation of the annotation. See `?getAnnotationFiles` for the supported species/assemblies.}
+\item{species}{The species for automatic fetching and creation of the annotation. 
+See `?getAnnotationFiles` for the supported species/assemblies.}
 
-\item{filelist}{A list of named feature files, as produced by 'getAnnotationFiles', indicating the necessary files. The following slots are required: 'features.gtf','features.gtf','mirbase.gtf','gtRNAdb.fa','gtRNAdb.bed','tRNA.gtf'; the 'pi_precursors' is optional.}
+\item{filelist}{A list of named feature files, as produced by 'getAnnotationFiles', indicating the necessary files. 
+The following slots are required: 
+'features.gtf','features.gtf','mirbase.gtf','gtRNAdb.fa','gtRNAdb.bed','tRNA.gtf'; the 'pi_precursors' is optional.}
 
 \item{destination}{The destination folder for the files (defaults to current working directory)}
 
@@ -20,5 +23,6 @@ prepareAnnotation(species = NULL, filelist = NULL, destination = getwd(),
 A GRanges object, and produces modified fasta files.
 }
 \description{
-Prepares an annotation GRanges and modified miRNA/tRNA sequences for a given organism. Either `filelist` or `species` should be provided.
+Prepares an annotation GRanges and modified miRNA/tRNA sequences for a given organism. 
+Either `filelist` or `species` should be provided.
 }

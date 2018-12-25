@@ -4,8 +4,8 @@
 \alias{getSeqCounts}
 \title{getSeqCounts}
 \usage{
-getSeqCounts(o, type = NULL, status = c("unknown", "invalid", "ambiguous",
-  "unique"), normalized = FALSE, formatCase = FALSE)
+getSeqCounts(o, type = NULL, status = c("unknown", "invalid",
+  "ambiguous", "unique"), normalized = FALSE, formatCase = FALSE)
 }
 \arguments{
 \item{o}{An object of class shortRNAexp}

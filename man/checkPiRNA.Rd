@@ -4,7 +4,8 @@
 \alias{checkPiRNA}
 \title{checkPiRNA}
 \usage{
-checkPiRNA(seqs, type = "primary", allowRevComp = FALSE, size = 26:32)
+checkPiRNA(seqs, type = "primary", allowRevComp = FALSE,
+  size = 26:32)
 }
 \arguments{
 \item{seqs}{A character vector of sequences}

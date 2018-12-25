@@ -9,7 +9,7 @@
 #' @return A data.frame of assigned sources.
 #'
 #' @export
-assignReads <- function(sources, rules=defaultAssignRules(), nthreads=NULL){
+assignReads <- function(sources, rules=defaultAssignRules(), trees=list(), nthreads=NULL){
   library(data.table)
   if(!is(sources, "data.table")) sources <- data.table(sources,stringsAsFactors=F)
 
@@ -19,14 +19,14 @@ assignReads <- function(sources, rules=defaultAssignRules(), nthreads=NULL){
   nn <- c(nn, "length", "validType", "status")
   
   sources$length <- sapply(sources$seq, FUN=nchar)
-  
+  print(head(sources))
   # we check which feature types are valid with the overlaping reads
   sources$validType <- sapply(split(sources,1:nrow(sources),drop=F),rules=rules,FUN=.validateFeatureType)
   # in the case of primary piRNA, invalid still gets assigned to the precursor
   sources[which(sources$validType & sources$transcript_type=="piRNA_precursor"),"transcript_type"] <- "primary_piRNA"
   sources[which(!sources$validType & sources$transcript_type=="piRNA_precursor"),"validType"] <- TRUE
   
-  DEBUG <- FALSE
+  DEBUG <- TRUE
   
   if(DEBUG){
     par <- NULL
@@ -36,18 +36,18 @@ assignReads <- function(sources, rules=defaultAssignRules(), nthreads=NULL){
   
   if(is.null(par)){
     sources <- as.data.frame(rbindlist(lapply(split(sources,sources$seq,drop=F), rules=rules, DEBUG=DEBUG, FUN=function(sources,rules,DEBUG){ 
-      a <- try(assignRead(sources,rules),silent=T)
-      if(is(a,"try-error")){
-        if(DEBUG){
-          print("Error trying to assign:")
-          print(sources)
+      a <- tryCatch(assignRead(sources,rules),
+        error = function(e){
+          if(DEBUG){
+            print("ERROR trying to assign:")
+            print(sources)
+          }
+          stop(e)
         }
-        stop(a[[1]])
-      }
-      return(a)
+      )
     })))
     colnames(sources) <- nn
-    
+  
   }else{
     fns <- c("assignRead", ".validateFeatureType", ".aggSources", ".agCigar", ".disambiguate_miRNAs", ".disambiguate_tRNA", "defaultAssignRules")
     sources <- foreach(x=split(sources,sources$seq,drop=F), .export=fns) %dopar% {
@@ -144,7 +144,12 @@ assignRead <- function(sources, rules=defaultAssignRules()){
     }
     
     # if there are still multiple locations, we consider location ambiguous:
-    if(length(unique(sources$chrPos))>1) sources$chrPos <- "ambiguous"
+    if(length(unique(sources$chrPos))>1){
+      # we eliminate locations on pseudo-chromosomes when there is a 'real'
+      # location for the same feature
+      # TO DO
+      sources$chrPos <- "ambiguous"
+    }
     sources <- sources[!duplicated(sources),]
   
     # we check if the sequence could be a secondary piRNA
@@ -186,7 +191,7 @@ assignRead <- function(sources, rules=defaultAssignRules()){
     }
 
     # if all overlaps are of the same type, we check if we can find a common meta-feature
-    if(all(sources$transcript_type == "miRNA")) return(.disambiguate_miRNAs(sources))
+    if(all(sources$transcript_type %in% c("miRNA", "miRNA_hairpin"))) return(.disambiguate_miRNAs(sources))
     if(all(sources$transcript_type %in% c("pseudo_tRNA","tRNA")))   return(.disambiguate_tRNA(sources, rules))    
     
     # if all the overlaps point to the same feature, we're done:

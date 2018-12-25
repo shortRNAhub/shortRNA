@@ -9,17 +9,17 @@
 #'
 #' @export
 getAnnotationFiles <- function(org="mm10", destination=getwd()){
+    if(!dir.exists(destination)) dir.create(destination)
+    suppressPackageStartupMessages(library(Biostrings))
     if(org=="mm10"){
         ff <- list( c("ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M17/gencode.vM17.tRNAs.gtf.gz",file.path(destination,"gencode.tRNAs.gtf.gz")),
-                    c("ftp://ftp.sanger.ac.uk/pub/gencode/Gencode_mouse/release_M14/gencode.vM14.chr_patch_hapl_scaff.annotation.gtf.gz",file.path(destination,"gencode.features.gtf.gz")),
-                    c("ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M17/gencode.vM17.tRNAs.gtf.gz",file.path(destination,"gencode.tRNAs.gtf.gz")),
+                    c("ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M19/gencode.vM19.chr_patch_hapl_scaff.annotation.gtf.gz",file.path(destination,"gencode.features.gtf.gz")),
                     c("ftp://mirbase.org/pub/mirbase/CURRENT/mature.fa.gz", file.path(destination,"mirbase.fa.gz")),
                     c("ftp://mirbase.org/pub/mirbase/CURRENT/genomes/mmu.gff3",file.path(destination,"mirbase.gtf")),
                     c("http://gtrnadb.ucsc.edu/genomes/eukaryota/Mmusc10/mm10-tRNAs.tar.gz",file.path(destination,"gtRNAdb.tar.gz"))
                 )
         srcs <- sapply(ff,FUN=function(x){ download.file(x[[1]],ifelse(length(x)>1,x[[2]],NULL)); return(x[[1]]) })
-        untar(file.path(destination,"gtRNAdb.tar.gz"))
-        library(Biostrings)
+        untar(file.path(destination,"gtRNAdb.tar.gz"), exdir=destination)
         fa <- readRNAStringSet(file.path(destination,"mirbase.fa.gz"),"fasta")
         fa <- fa[grep("^mmu-",names(fa))]
         writeXStringSet(fa,file.path(destination,"mm10.mature.miRNAs.fa"), format="fasta")
@@ -34,6 +34,50 @@ getAnnotationFiles <- function(org="mm10", destination=getwd()){
                     equivalences=NA_character_,
                     srcs=srcs)
                 )
+    }
+    if(org=="rn6"){
+      library(rtracklayer)
+      ff <- list( c("ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M17/gencode.vM17.tRNAs.gtf.gz",file.path(destination,"gencode.tRNAs.gtf.gz")),
+                  c("ftp://ftp.ensembl.org/pub/release-94/gtf/rattus_norvegicus/Rattus_norvegicus.Rnor_6.0.94.gtf.gz",file.path(destination,"features.gtf.gz")),
+                  c("ftp://mirbase.org/pub/mirbase/CURRENT/mature.fa.gz", file.path(destination,"mirbase.fa.gz")),
+                  c("ftp://mirbase.org/pub/mirbase/CURRENT/genomes/rno.gff3",file.path(destination,"mirbase.gtf")),
+                  c("http://gtrnadb.ucsc.edu/genomes/eukaryota/Rnorv5/rn5-tRNAs.tar.gz",file.path(destination,"rn5.gtRNAdb.tar.gz")),
+                  c("http://hgdownload.soe.ucsc.edu/goldenPath/rn5/liftOver/rn5ToRn6.over.chain.gz", file.path(destination, "rn5ToRn6.chain.gz"))
+              )
+      srcs <- sapply(ff,FUN=function(x){ download.file(x[[1]],ifelse(length(x)>1,x[[2]],NULL)); return(x[[1]]) })
+      library(R.utils)
+      untar(file.path(destination,"rn5.gtRNAdb.tar.gz"), exdir=destination)
+      gunzip(file.path(destination, "rn5ToRn6.chain.gz"))
+      chain <- import.chain(file.path(destination, "rn5ToRn6.chain"))
+      b <- import.bed("rn5-tRNAs.bed")
+      b <- unlist(liftOver(b, chain))
+      b <- b[which(width(b)==width(b$thick)),]
+      b$thick <- b@ranges
+      export.bed(b, file.path(destination, "rn6.gtRNAdb.bed"))
+      b2 <- bed2gtf(b)
+      b2$gene_id <- strsplit(b2$transcript_id,"-",fixed=T)[[1]][[2]]
+      b2$gene_name <- paste0("tRNA_",b$gene_id)
+      b2$transcript_type <- "tRNA"
+      export.gff(b2, file.path(destination,"rn6.tRNA.gtf"))
+      
+      fa <- readDNAStringSet(file.path(destination,"rn5-tRNAs.fa"),"fasta")
+      names(fa) <- sapply(names(fa), FUN=function(x){ strsplit(gsub("Rattus_norvegicus_","",x), " ",fixed=T)[[1]][[1]]})
+      fa <- fa[which(names(fa) %in% as.character(b$name))]
+      writeXStringSet(fa,file.path(destination,"rn6-tRNAs.fa"), format="fasta")
+      
+      fa <- readRNAStringSet(file.path(destination,"mirbase.fa.gz"),"fasta")
+      fa <- fa[grep("^rno-",names(fa))]
+      writeXStringSet(fa,file.path(destination,"rno.mature.miRNAs.fa"), format="fasta")
+      unlink(file.path(destination,"mature.miRNA.fa.gz"))
+      unlink(file.path(destination,"rn5ToRn6.chain"))
+      return( list(features.gtf=file.path(destination,"gencode.features.gtf.gz"),
+                   mirbase.fa=file.path(destination,"rno.mature.miRNAs.fa"),
+                   mirbase.gtf=file.path(destination,"mirbase.gtf"),
+                   gtRNAdb.fa=file.path(destination,"rn6-tRNAs.fa"),
+                   gtRNAdb.bed=file.path(destination,"rn6.tRNAs.bed"),
+                   equivalences=NA_character_,
+                   srcs=srcs)
+      )
     }
     if(org=="hg38"){
         ff <- list( c("http://www.smallrnagroup.uni-mainz.de/piRNAclusterDB/homo_sapiens/proTRAC_normal_ovary_generic/BED_files.zip", file.path(destination,"piRNAs.clusters.zip")),
@@ -56,8 +100,7 @@ getAnnotationFiles <- function(org="mm10", destination=getwd()){
         write.table(e[,-4],file.path(destination,"piRNA.clusters.bed"),col.names=F,row.names=F,sep="\t",quote=F)
         unlink(file.path(destination,"homo_sapiens/proTRAC_normal_ovary_generic"),T)
         
-        untar(file.path(destination,"gtRNAdb.tar.gz"))
-        library(Biostrings)
+        untar(file.path(destination,"gtRNAdb.tar.gz"), exdir=destination)
         fa <- readRNAStringSet(file.path(destination,"mirbase.fa.gz"),"fasta")
         fa <- fa[grep("^hsa-",names(fa))]
         writeXStringSet(fa,file.path(destination,"hg38.mature.miRNAs.fa"), format="fasta")
@@ -80,43 +123,56 @@ getAnnotationFiles <- function(org="mm10", destination=getwd()){
 
 #' prepareAnnotation
 #'
-#' Prepares an annotation GRanges and modified miRNA/tRNA sequences for a given organism. Either `filelist` or `species` should be provided.
+#' Prepares an annotation GRanges and modified miRNA/tRNA sequences for a given organism. 
+#' Either `filelist` or `species` should be provided.
 #'
-#' @param species The species for automatic fetching and creation of the annotation. See `?getAnnotationFiles` for the supported species/assemblies.
-#' @param filelist A list of named feature files, as produced by 'getAnnotationFiles', indicating the necessary files. The following slots are required: 'features.gtf','features.gtf','mirbase.gtf','gtRNAdb.fa','gtRNAdb.bed','tRNA.gtf'; the 'pi_precursors' is optional.
+#' @param species The species for automatic fetching and creation of the annotation. 
+#' See `?getAnnotationFiles` for the supported species/assemblies.
+#' @param filelist A list of named feature files, as produced by 'getAnnotationFiles', indicating the necessary files. 
+#' The following slots are required: 
+#' 'features.gtf','features.gtf','mirbase.gtf','gtRNAdb.fa','gtRNAdb.bed','tRNA.gtf'; the 'pi_precursors' is optional.
 #' @param destination The destination folder for the files (defaults to current working directory)
 #' @param description An optional character vector containing a description of the annotation (default empty)
 #'
 #' @return A GRanges object, and produces modified fasta files.
 #'
 #' @export
-prepareAnnotation <- function(species=NULL, filelist=NULL, destination=getwd(), description=""){
+prepareAnnotation <- function(species=NULL, filelist=NULL, destination=getwd(), description="", includeIsomirs=TRUE){
     if( (is.null(species) && is.null(filelist)) ||
         (!is.null(species) && !is.null(filelist))
     ){
         stop("Exactly one of `species` or `filelist` must be given.")
     }
+    dir.create(file.path(destination), showWarnings = FALSE, recursive = TRUE)
     if(!is.null(species)){
         filelist <- getAnnotationFiles(species, destination=destination)
     }
-    ff <- c("features.gtf","features.gtf","mirbase.gtf","gtRNAdb.fa","gtRNAdb.bed","tRNA.gtf")
-    if(!is.list(filelist) || !all(ff %in% names(filelist))) stop(paste("`filelist` should be a list with the following elements:",paste(ff,collapse=", ")))
+    ff <- c("features.gtf","mirbase.gtf","gtRNAdb.fa","gtRNAdb.bed","tRNA.gtf")
+    if(!is.list(filelist) || !all(ff %in% names(filelist))){
+      stop(paste("`filelist` should be a list with the following elements:",paste(ff,collapse=", ")))
+    }
     library(Biostrings)
     library(rtracklayer)
     library(GenomicRanges)
     library(tools)
     
     # miRNAs
-    mirs <- .buildIsomirs(filelist$mirbase.fa)
-    writeXStringSet(mirs,file.path(destination, "miRNAs.modified.fa"), format="fasta")
+    if(includeIsomirs){
+      mirs <- .buildIsomirs(filelist$mirbase.fa)
+    }else{
+      mirs <- DNAStringSet(complement(readRNAStringSet(filelist$mirbase.fa)))
+    }
+    names(mirs) <- paste0("pseudoChr_",names(mirs))
     mn <- sapply(names(mirs),FUN=function(x){ strsplit(x," ",fixed=T)[[1]][[1]] })
+    writeXStringSet(mirs,file.path(destination, "miRNAs.modified.fa"), format="fasta")
     mn2 <- sapply(mn, FUN=function(x){ strsplit(x,".",fixed=T)[[1]][[1]] })
     mn3 <- sapply(mn2, FUN=function(x){ x <- strsplit(x,"-",fixed=T)[[1]]; paste(x[-length(x)],collapse="-") })
     le <- length(mn)
     mirs <- GRanges(mn, IRanges(rep(1,le), width(mirs)), rep("+",le), transcript_id=mn2, gene_id=mn3, transcript_type="miRNA")
-    
+    # 
     mirbase.gtf <- .prepare.mirbase.gtf(filelist$mirbase.gtf)
     mirs <- suppressWarnings(c(mirbase.gtf,mirs))
+    levels(mirs$transcript_type)[which(levels(mirs$transcript_type)=="miRNA_primary_transcript")] <- "miRNA_hairpin"
     
     # tRNAs
     trnas <- .preparetRNAsequences(filelist$gtRNAdb.fa, filelist$gtRNAdb.bed)
@@ -210,13 +266,15 @@ prepareAnnotation <- function(species=NULL, filelist=NULL, destination=getwd(), 
     library(Biostrings)
     if(is.character(cDNA)) cDNA <- readDNAStringSet(cDNA)
     if(is.null(bed)){
-        message("No tRNA bed file provided - assuming that the fasta is stranded and spliced.")
+        warning("No tRNA bed file provided - assuming that the fasta is stranded and spliced.")
     }else{
         # a bed file is provided, so we will splice the sequences and invert if on negative strand
         if(is.character(bed)) bed <- import.bed(bed)
         names(cDNA) <- sapply(names(cDNA), FUN=function(x){ x <- strsplit(x," ",fixed=T)[[1]][[1]]; x <- strsplit(x,"_",fixed=T)[[1]]; x[length(x)] })
         names(bed) <- bed$name
-        bed <- bed[names(cDNA),]
+        i <- intersect(names(cDNA),names(bed))
+        bed <- bed[i,]
+        cDNA <- cDNA[i]
         # splicing
         for(i in which(sapply(bed$blocks,length)>1)){
             cDNA[[i]] <- DNAString(paste(apply(as.data.frame(bed$blocks[[i]]),1,fa=as.character(cDNA[[i]]),FUN=function(x,fa){ substr(fa,x[[1]],x[[2]])}),collapse=""))
@@ -230,4 +288,79 @@ prepareAnnotation <- function(species=NULL, filelist=NULL, destination=getwd(), 
     x <- xscat(cDNA,"CCA")
     names(x) <- names(cDNA)
     x
+}
+
+
+
+
+#' bed2gtf
+#'
+#' Converts a bed-format GRanges object to a GTF format GRanges object.
+#' 
+#' @param b A GRanges object in bed format (as produced by `rtracklayer::import.bed`)
+#' @param fieldsToInclude The additional columns of `b` to include in the results. By default, only the transcript_id is taken (from the `name` column)
+#'
+#' @return A GRanges object that can be saved with `rtracklayer::export.gff`
+#' @export
+bed2gtf <- function(b, fieldsToInclude=c("transcript_id")){
+  b$type <- "transcript"
+  if(!("transcript_id" %in% names(b@elementMetadata))) b$transcript_id <- b$name
+  nbl <- sapply(b$blocks,FUN=length)
+  bl <- unlist(b$blocks)
+  b2 <- GRanges( seqnames=rep(seqnames(b),nbl), 
+                 ranges=IRanges(start(bl)+rep(start(b),nbl)-1, end(bl)+rep(start(b),nbl)-1), 
+                 strand=rep(as.character(strand(b)),nbl),
+                 type=rep("exon",length(bl)) )
+  for(f in fieldsToInclude){
+    b2@elementMetadata[[f]] <- rep(b@elementMetadata[[f]],nbl)
+  }
+  b2 <- sort(c(b[,c("type", fieldsToInclude)],b2))
+}
+
+
+
+#' buildSrcTree
+#'
+#' @param a An annotation GRanges object
+#' @param metatypes An optional named vector linking different values of
+#' `transcript_type` in `a` to meta-types. If omitted, will be built
+#' using pre-built grouping scheme.
+#' @param clusters An optional named vector linking different values of 
+#' `transcript_id` or `gene_id` in `a` to clusters.
+#'
+#' @return a `data.`
+#' @export
+buildSrcTree <- function(a, metatypes=NULL, clusters=NULL){
+    suppressPackageStartupMessages(library("data.tree"))
+    a <- a@elementMetadata
+    a <- a[,intersect(colnames(a), c("transcript_id","gene_id","transcript_type","metatype","cluster"))]
+    a <- as.data.frame(a[!duplicated(a),])
+    if(!("metatype" %in% colnames(a))){
+        a$metatype <- as.character(a$transcript_type)
+        if(!is.null(metatypes)){
+            a$metatype[which(a$metatype %in% names(metatypes))] <- metatypes[a$metatype]
+        }else{
+            a$metatype[which(a$metatype=="miRNA_primary_transcript")] <- "miRNA"
+            a$metatype[which(a$metatype=="pseudo_tRNA")] <- "tRNA"
+            a$metatype[which(a$metatype=="Mt_tRNA")] <- "tRNA"
+            stypes <- c("miRNA","snoRNA","snRNA", "tRNA", "pseudo_tRNA", 
+                        "putative_tRNA", "Mt_tRNA", "scaRNA", "sRNA")
+            a$metatype[which(a$metatype %in% stypes)] <- "other_short_RNA"
+            a$metatype[which(!(a$metatype %in% stypes))] <- "other"
+        }
+        a$metatype <- as.factor(a$metatype)
+    }
+    if(!("cluster" %in% colnames(a)) && !is.null(clusters) && length(clusters)>0){
+        a$cluster <- clusters[a$gene_id]
+        a$cluster[which(a$transcript_id %in% names(clusters))] <- clusters[a$transcript_id]
+    }
+    fields <- c("metatype","cluster","gene_id","transcript_type","transcript_id")
+    fields <- fields[which(fields %in% colnames(a))]
+    message(paste("Building source tree with fields", paste(fields, collapse=", ")))
+    a$pathString <- apply(a[,fields],1,FUN=function(x){
+        x <- as.character(x)
+        x <- unique(x[which(!is.na(x))])
+        paste("RNA",paste(x, collapse="/"), sep="/")
+    })
+    as.Node(a)
 }
