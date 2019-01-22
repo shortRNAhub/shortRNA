@@ -70,11 +70,12 @@ getAnnotationFiles <- function(org="mm10", destination=getwd()){
       writeXStringSet(fa,file.path(destination,"rno.mature.miRNAs.fa"), format="fasta")
       unlink(file.path(destination,"mature.miRNA.fa.gz"))
       unlink(file.path(destination,"rn5ToRn6.chain"))
-      return( list(features.gtf=file.path(destination,"gencode.features.gtf.gz"),
+      return( list(features.gtf=file.path(destination,"features.gtf.gz"),
                    mirbase.fa=file.path(destination,"rno.mature.miRNAs.fa"),
                    mirbase.gtf=file.path(destination,"mirbase.gtf"),
                    gtRNAdb.fa=file.path(destination,"rn6-tRNAs.fa"),
-                   gtRNAdb.bed=file.path(destination,"rn6.tRNAs.bed"),
+                   gtRNAdb.bed=file.path(destination,"rn6.gtRNAdb.bed"),
+                   tRNA.gtf=file.path(destination,"gencode.tRNAs.gtf.gz"),
                    equivalences=NA_character_,
                    srcs=srcs)
       )
@@ -150,7 +151,8 @@ prepareAnnotation <- function( species=NULL,
                                destination=getwd(), 
                                description="", 
                                includeIsomirs=TRUE,
-                               resolveSplicing=getDefaultShortTypes() ){
+                               resolveSplicing=getDefaultShortTypes(),
+                               unresolvedLevel="gene" ){
     if( (is.null(species) && is.null(filelist)) ||
         (!is.null(species) && !is.null(filelist))
     ){
@@ -178,7 +180,7 @@ prepareAnnotation <- function( species=NULL,
     }else{
       mirs <- DNAStringSet(complement(readRNAStringSet(filelist$mirbase.fa)))
     }
-    names(mirs) <- paste0("pseudoChr_",names(mirs))
+    names(mirs) <- paste0("pseudoChr_",gsub("-","_",names(mirs)))
     mn <- sapply(names(mirs),FUN=function(x){ strsplit(x," ",fixed=T)[[1]][[1]] })
     writeXStringSet(mirs,file.path(destination, "miRNAs.modified.fa"), format="fasta")
     mn2 <- sapply(mn, FUN=function(x){ strsplit(x,".",fixed=T)[[1]][[1]] })
@@ -191,6 +193,7 @@ prepareAnnotation <- function( species=NULL,
     
     # tRNAs
     trnas <- .preparetRNAsequences(filelist$gtRNAdb.fa, filelist$gtRNAdb.bed)
+    names(trnas) <- paste0("pseudoChr_",gsub("-","_",names(trnas)))
     writeXStringSet(trnas,file.path(destination, "tRNAs.modified.fa"), format="fasta")
     le <- length(trnas)
     mn <- sapply(names(trnas), FUN=function(x){ x <- strsplit(x," ",fixed=T)[[1]][[1]]; x <- strsplit(x,"_",fixed=T)[[1]]; x[length(x)] })
@@ -227,35 +230,45 @@ prepareAnnotation <- function( species=NULL,
     # GENES
     meta <- c("transcript_id","gene_id","transcript_type")
     g <- import.gff(filelist$features.gtf)
+    g <- g[which(g$type %in% c("gene","transcript","exon")),]
+    if( !("transcript_type" %in% colnames(mcols(g))) &&
+        ("transcript_biotype" %in% colnames(mcols(g))) ){
+      g$transcript_type <- g$transcript_biotype
+      g$transcript_biotype <- NULL
+    }
     mcols(g)$transcript_type <- as.character(mcols(g)$transcript_type)
     
     w <- which(g$type=="transcript" & g$transcript_type=="miRNA")
     if(length(w)>0){
-      # keep only miRNAs that are not in mirbase
-      g <- g[-w,]
+      # remove miRNAs that are already in mirbase
       gmirs <- g[w,]
       ov <- findOverlaps(gmirs,mirbase.gtf)
-      gmirs <- gmirs[-unique(ov@from),]
-      mirs <- suppressWarnings( c(mirs, gmirs) )
+      gmirs <- gmirs[unique(ov@from),]
+      g <- g[which(!(g$transcript_id %in% gmirs$transcript_id | g$gene_id %in% gmirs$gene_id)),]
     }
     
     w <- which(g$type=="transcript" & g$transcript_type=="tRNA")
     if(length(w)>0){
-      # keep only tRNAs that are not in the previous annotations 
-      # and mark them as putative tRNAs
-      g <- g[-w,]
+      # remove tRNAs that are in previous annotations
       gtr <- g[w,]
-      ov <- findOverlaps(gtr,trnas)
-      gtr <- gtr[-unique(ov@from),]
-      gtr$transcript_type <- "putative_tRNA"
-      trnas <- suppressWarnings( c(trnas, gtr) )
+      ov <- findOverlaps(gtr, trnas)
+      gtr2 <- gtr[unique(ov@from),]
+      if(length(ov)>0) gtr <- gtr[-unique(ov@from),]
+      g <- g[which(!(g$transcript_id %in% gtr2$transcript_id | g$gene_id %in% gtr2$gene_id)),]
+      g[which(g$transcript_id %in% gtr$transcript_id), "transcript_type"] <- "putative_tRNA"
     }
     
     if(all(resolveSplicing==FALSE)){
       g <- .toGRangesList(g[which(g$type=="transcript"),meta])
     }else{
       if(!all(resolveSplicing==TRUE)){
-        g1 <- g[which(!(g$transcript_type %in% resolveSplicing) & g$type=="transcript"),meta]
+        if(unresolvedLevel=="gene"){
+          g1 <- g[which(!(g$transcript_type %in% resolveSplicing) & g$type=="gene"),meta]
+          g1$transcript_id <- g1$gene_id
+          g1$transcript_type <- "long_RNA"
+        }else{
+          g1 <- g[which(!(g$transcript_type %in% resolveSplicing) & g$type=="transcript"),meta]
+        }
         g1 <- .toGRangesList(g1)
         g2 <- g[which(g$transcript_type %in% resolveSplicing & g$type=="exon"),meta]
         g2 <- split(g2, g2$transcript_id)
@@ -275,13 +288,18 @@ prepareAnnotation <- function( species=NULL,
     }
     
     g <- g[,meta]
-    g2 <- .toGRangesList(suppressWarnings(c(mirs, trnas, pirnas))[,meta])
+    if("pi_precursors" %in% names(filelist) && !is.na(filelist$pi_precursors)){
+      g2 <- suppressWarnings(c(mirs, trnas, pirnas))
+    }else{
+      g2 <- suppressWarnings(c(mirs, trnas))
+    }
+    g2 <- .toGRangesList(g2[,meta])
     g <- suppressWarnings(c(g,g2))
     rm(g2)
 
     # set transcript-level metadata from exon-level one where missing:
-    ma <- as.data.frame(mcols(g), stringsAsFactors=F)
-    w <- which(is.na(ma$transcript_id))
+    ma <- as.data.frame(mcols(g,use.names=F), stringsAsFactors=F)
+    w <- which(is.na(ma$gene_id))
     if(length(w)>0){
       ma[w,] <- t(sapply(g[w],FUN=function(x){ as.matrix(mcols(x))[1,] }))
     }
@@ -433,10 +451,10 @@ buildSrcTree <- function(a, metatypes=NULL, clusters=NULL){
 }
 
 .toGRangesList <- function(x, name.field=NULL){
-  if("transcript_type" %in% names(mcols(x))) mcols(x)$transcript_type <- as.character(mcols(x)$transcript_type)
+  if("transcript_type" %in% names(x@elementMetadata)) x@elementMetadata$transcript_type <- as.character(x@elementMetadata$transcript_type)
   y <- as(x, "GRangesList")
   if(!is.null(name.field)){
-    names(y) <- mcols(x)[[name.field]]
+    names(y) <- mcols(x,use.names=F)[[name.field]]
   }
   return(y)
 }
