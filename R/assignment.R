@@ -19,7 +19,7 @@ assignReads <- function(sources, rules=defaultAssignRules(), trees=list(), nthre
   nn <- c(nn, "length", "validType", "status")
   
   sources$length <- sapply(sources$seq, FUN=nchar)
-  print(head(sources))
+
   # we check which feature types are valid with the overlaping reads
   sources$validType <- sapply(split(sources,1:nrow(sources),drop=F),rules=rules,FUN=.validateFeatureType)
   # in the case of primary piRNA, invalid still gets assigned to the precursor
@@ -47,7 +47,6 @@ assignReads <- function(sources, rules=defaultAssignRules(), trees=list(), nthre
       )
     })))
     colnames(sources) <- nn
-  
   }else{
     fns <- c("assignRead", ".validateFeatureType", ".aggSources", ".agCigar", ".disambiguate_miRNAs", ".disambiguate_tRNA", "defaultAssignRules")
     sources <- foreach(x=split(sources,sources$seq,drop=F), .export=fns) %dopar% {

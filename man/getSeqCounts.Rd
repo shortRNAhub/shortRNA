@@ -4,6 +4,7 @@
 \alias{getSeqCounts}
 \title{getSeqCounts}
 \usage{
+
 getSeqCounts(o, type = NULL, status = c("unknown", "invalid",
   "ambiguous", "unique"), normalized = FALSE, formatCase = FALSE)
 }

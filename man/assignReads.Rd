@@ -4,6 +4,7 @@
 \alias{assignReads}
 \title{assignReads}
 \usage{
+
 assignReads(sources, rules = defaultAssignRules(), trees = list(),
   nthreads = NULL)
 }
