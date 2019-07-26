@@ -200,19 +200,19 @@ addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", r
     return(list(parent = parent, notAssigned = notFound))
   })
 
+  reads <- lapply(tmp, function(x) x[[1]])
+  reads <- ldply(compact(reads))
+  
   if (nrow(reads) > 0) {
-    reads <- lapply(tmp, function(x) x[[1]])
-    reads <- ldply(compact(reads))
     colnames(reads) <- colnames(mappedFeaturesDF)
     for (i in 1:nrow(reads)) {
       FindNode(node = tree, name = reads$Features[i])$AddChild(reads$Reads[i])
     }
   }
 
+  notFound <- lapply(tmp, function(x) x[[2]])
   if (nrow(reads) > 0) {
-    notFound <- lapply(tmp, function(x) x[[2]])
     notFound <- ldply(compact(notFound))[, -1]
-
     notFound$pathString <- paste("Unassigned", notFound[, featuresCol], notFound[, readsCol], sep = "/")
     tree$AddChildNode(child = as.Node(notFound))
   }
