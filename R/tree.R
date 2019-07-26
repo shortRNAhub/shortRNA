@@ -1,51 +1,93 @@
 # Convert `fasta` to `data.tree` ----
 
-.RNAtoTree <- function(RNA) {
-  library(plyr)
-  n <- lapply(RNA$names, function(x) {
-    a <- strsplit(x, "-")[[1]]
-    if (a[1] == "mmu") a <- a[-1]
-    df <- data.frame(matrix(ncol = length(a)), stringsAsFactors = F)
-    for (i in 1:length(a)) {
-      df[1, i] <- paste(a[1:i], collapse = "-")
+# https://stackoverflow.com/questions/43803949/create-and-print-a-product-hierarchy-tree-without-na-from-data-frame-in-r-with
+.paste5 <- function(..., sep = " ", collapse = NULL, na.rm = FALSE) {
+  if (na.rm == FALSE) {
+    paste(..., sep = sep, collapse = collapse)
+  } else
+  if (na.rm == TRUE) {
+    paste.na <- function(x, sep) {
+      x <- gsub("^\\s+|\\s+$", "", x)
+      ret <- paste(na.omit(x), collapse = sep)
+      is.na(ret) <- ret == ""
+      return(ret)
     }
-    if (length(grep(pattern = "\\.", x = df[, ncol(df)])) == 1) {
-      b <- strsplit(df[, ncol(df)], "\\.")[[1]]
-      df[, ncol(df)] <- b[1]
-      df[, ncol(df) + 1] <- paste(b[1:2], collapse = ".")
+    df <- data.frame(..., stringsAsFactors = FALSE)
+    ret <- apply(df, 1, FUN = function(x) paste.na(x, sep))
+
+    if (is.null(collapse)) {
+      ret
+    } else {
+      paste.na(ret, sep = collapse)
     }
-    colnames(df) <- c("R", paste0("C", 1:(ncol(df) - 1)))
-    df$pathString <- paste(df[1, ], collapse = "/")
-    return(df)
-  })
-  n1 <- ldply(n, data.frame)
-  return(data.frame(RNA, n1, stringsAsFactors = F))
+  }
 }
 
+.longRNA2path <- function(file, root) {
+  library(rtracklayer)
+  gff <- readGFF(file)
+  suppressWarnings(df <- data.frame(gff) %>% mutate_all(funs(replace_na(., ""))))
+  gff$gID <- gsub("\\..*", "", gff[, "gene_id"])
+  gff$tID <- gsub("\\..*", "", gff[, "transcript_id"])
+  gff$pathString <- .paste5(root, "/", gff[, "gene_type"], "/", gff[, "gID"], ":",
+    gff[, "gene_name"], "/", gff[, "tID"],
+    na.rm = T, sep = ""
+  )
+  node <- as.Node(data.frame(gff), na.rm = TRUE)
+  return(node)
+}
+
+.name2path <- function(features, root) {
+  x <- features
+  x <- sapply(strsplit(gsub(".", "-", x, fixed = TRUE), "-", fixed = TRUE), FUN = function(x) {
+    if (x[1] == "mmu") x <- x[-1]
+    n <- NULL
+    if (root == "miRNA") {
+      if (length(grep(pattern = "[0-9][a-z]|[0-9][0-9][a-z]", x = x[2])) > 0) {
+        a <- strsplit(x[2], "")[[1]]
+        a1 <- grep(pattern = "[0-9]|[0-9][0-9]", x = a, value = T)
+        a2 <- grep(pattern = "[a-z]", x = a, value = T)
+        n <- c(a1, paste0(a1, a2))
+        x <- c(x[1], n, x[3:length(x)])
+        x1 <- sapply(1:2, FUN = function(i) paste(x[1:i], collapse = "-"))
+        x2 <- sapply(3:length(x), FUN = function(i) paste(x[c(1, 3:i)], collapse = "-"))
+        paste(c(x1, x2), collapse = "/")
+      }
+    } else if (root == "tRNA") {
+      x <- sapply(2:length(x), FUN = function(i) paste(x[1:i], collapse = "-"))
+      paste(x, collapse = "/")
+    }
+  })
+  paste0(root, "/", x)
+}
 
 #' Convert the annotation fasta file into tree obtained from `prepareAnnotation` function
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #' @import Biostrings data.tree plyr
 #' @seealso Biostrings data.tree plyr
 #' @param fasta a link to the fasta file
+#' @param root root name: longRNA or miRNA or tRNA
 #' @return A `list`: a `data.frame` and a `data.tree`
 #' \dontrun{
 #' @examples
-#' tRNA <- fastaToTree(fasta = "../test/tRNAs.modified.fa")
-#' miRNA <- fastaToTree(fasta = "../test/miRNAs.modified.fa")
+#' tRNA <- fastaToTree(file = "../test/tRNAs.modified.fa", root = "tRNA")
+#' miRNA <- fastaToTree(file = "../test/miRNAs.modified.fa", root = "miRNA")
+#' longRNA <- fastaToTree(file = "../test/gencode.vM22.chr_patch_hapl_scaff.annotation.gff3.gz", root = "longRNA")
 #' }
 #' @export
-fastaToTree <- function(fasta) {
-  library(Biostrings)
-  library(data.tree)
-  read.file <- readDNAStringSet(fasta)
-  df <- data.frame(names = names(read.file), Sequence = as.character(read.file), stringsAsFactors = F)
-  df$names <- as.character(sapply(df$names, function(x) strsplit(x, "\\ ")[[1]][1]))
-  df <- .RNAtoTree(RNA = df)
-  tree.df <- as.Node(df)
-  return(list(df = df, tree = tree.df))
+fastaToTree <- function(file) {
+  if (root == "longRNA") {
+    return(.longRNA2path(file = file, root = root))
+  } else {
+    library(Biostrings)
+    library(data.tree)
+    fasta <- readDNAStringSet(file)
+    features <- sapply(strsplit(names(fasta), " "), FUN = function(x) x[1])
+    .name2path(features = features, root = root) -> pathString
+    node <- as.Node(data.frame(features = features, pathString = pathString), na.rm = T)
+    return(node)
+  }
 }
-
 
 
 # Combine two `data.frame` into one ----
@@ -61,7 +103,6 @@ fastaToTree <- function(fasta) {
 #' @examples
 #' mm10 <- combineFeaturesDF(dfList = list(tRNA$df, miRNA$df), rootName = "mm10")
 #' }
-#' @export
 combineFeaturesDF <- function(dfList, rootName = "root", ...) {
   library(plyr)
   library(data.tree)
@@ -72,12 +113,11 @@ combineFeaturesDF <- function(dfList, rootName = "root", ...) {
 }
 
 
-
 # Adding reads to features ----
-
 .objToString <- function(obj) {
   deparse(substitute(obj))
 }
+
 
 #' Add reads to the features in the annotation `data.tree`. Also add a separate node with "Unassigned" reads/features
 #' @author Deepak Tanwar (tanward@ethz.ch)
@@ -92,42 +132,97 @@ combineFeaturesDF <- function(dfList, rootName = "root", ...) {
 #' @examples
 #' # Input
 #' testDF <- data.frame(
-#'   Reads = c("Read1", "Read1", "Read1", "Read2", "Read3", "Read4", "Read5"),
-#'   Features = c(
-#'     "tRNA-Ala-XYZ-1", "tRNA-Ala-XYZ-2", "tRNA-Ala-ABC-1",
-#'     "tRNA-Sel-GCG-1", "tRNA-Arg-TCG-3-1", "tRNA-Arg-TCG-3-1", "tRNA-Arg-TCG-3-1"
-#'   ),
-#'   stringsAsFactors = F
-#' )
+#' Reads = c("Read1", "Read1", "Read1", "Read2", "Read3", "Read4", "Read5"),
+#' Features = c(
+#'  "tRNA-Ala-AGC-10", "tRNA-Ala-AGC-2", "tRNA-Ala-AGC-3",
+#'  "tRNA-Ala-AGC-1C", "tRNA-Arg-AGC-1D", "tRNA-Ala-AGC-1E", "tRNA-Ala-AGC-3D"
+#' ),
+#' stringsAsFactors = F
+#')
+#'
+#' data("tRNA")
 #'
 #' # Analysis
-#' testRun <- addReadsFeatures(tree = mm10$tree, mappedFeaturesDF = testDF)
+#' testRun <- addReadsFeatures(tree = tRNA, mappedFeaturesDF = testDF)
 #'
 #' # Output
-#' testTree <- FindNode(node = mm10$tree, name = "tRNA-Arg-TCG")
+#' testTree <- FindNode(node = tRNA, name = "tRNA-Ala-AGC")
 #' testTreeUnassigned <- FindNode(node = mm10$tree, name = "Unassigned")
 #' }
 #' @export
 addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", readsCol = "Reads") {
   library(data.tree)
-  notFound <- data.frame(matrix(ncol = 2, nrow = 0), stringsAsFactors = F)
-  colnames(notFound) <- colnames(mappedFeaturesDF)
-  for (i in 1:nrow(mappedFeaturesDF)) {
-    if (is.null(FindNode(node = tree, name = mappedFeaturesDF[i, featuresCol]))) {
-      message("Coud not find the feature ", mappedFeaturesDF[i, featuresCol])
-      notFound[nrow(notFound) + 1, ] <- mappedFeaturesDF[i, ]
+  library(plyr)
+
+  mappedFeaturesDF.split <- split(mappedFeaturesDF, mappedFeaturesDF[, readsCol])
+  tmp <- lapply(mappedFeaturesDF.split, function(x) {
+    notFound <- data.frame(matrix(ncol = 2, nrow = 0), stringsAsFactors = FALSE)
+    colnames(notFound) <- colnames(x)
+
+    f <- unique(x[, featuresCol])
+    r <- unique(x[, readsCol])
+
+    parent <- NULL
+
+    # if (length(f) == 1) {
+    #   parent <- f
+    # } else {
+    p <- list()
+    for (i in 1:length(f)) { # For each feature
+      if (!is.null(FindNode(node = tree, name = r))) {
+        message(paste("Read exist!", r, "is already assigned!"))
+        next
+      } else { # If read is not assigned to the feature
+        if (is.null(FindNode(node = tree, name = f[i]))) { # If feature do not exists
+          message("Coud not find the feature ", f[i])
+          notFound[nrow(notFound) + 1, ] <- c(r, f[i])
+        } else { # If feature exists
+          a <- FindNode(node = tree, name = f[i])$pathString
+          a <- strsplit(a, "\\/")[[1]]
+          p[[i]] <- a
+        }
+      }
+    }
+
+    if (length(p) == 0) {
+      parent <- NULL
     } else {
-      a <- FindNode(node = tree, name = mappedFeaturesDF[i, featuresCol])$pathString
-      a <- strsplit(a, "\\/")[[1]]
-      a <- a[2:length(a)]
-      a <- paste(a, collapse = "`$`")
-      a <- paste0("`", a, "`")
-      expr <- paste0(.objToString(obj = tree), "$", a, "$AddChild(", mappedFeaturesDF[i, readsCol], ")")
-      expr <- paste0(.objToString(tree), "$", a)
-      eval(parse(text = expr))$AddChild(mappedFeaturesDF[i, readsCol])
+      ca <- p[[1]]
+      for (i in 2:length(p)) {
+        if (i != length(p)) {
+          ca <- ca[na.omit(match(ca, p[[i]]))]
+        } else {
+          ca <- ca[max(na.omit(match(ca, p[[i]])))]
+        }
+      }
+      parent <- ca
+    }
+    return(list(parent = parent, notAssigned = notFound))
+  })
+
+  if (nrow(reads) > 0) {
+    reads <- lapply(tmp, function(x) x[[1]])
+    reads <- ldply(compact(reads))
+    colnames(reads) <- colnames(mappedFeaturesDF)
+    for (i in 1:nrow(reads)) {
+      FindNode(node = tree, name = reads$Features[i])$AddChild(reads$Reads[i])
     }
   }
-  notFound$pathString <- paste("Unassigned", notFound[, featuresCol], notFound[, readsCol], sep = "/")
-  tree$AddChildNode(child = as.Node(notFound))
+
+  if (nrow(reads) > 0) {
+    notFound <- lapply(tmp, function(x) x[[2]])
+    notFound <- ldply(compact(notFound))[, -1]
+
+    notFound$pathString <- paste("Unassigned", notFound[, featuresCol], notFound[, readsCol], sep = "/")
+    tree$AddChildNode(child = as.Node(notFound))
+  }
+
+  # a <- a[2:length(a)]
+  # a <- paste(a, collapse = "`$`")
+  # a <- paste0("`", a, "`")
+  # expr <- paste0(.objToString(obj = tree), "$", a, "$AddChild(", mappedFeaturesDF[i, readsCol], ")")
+  # expr <- paste0(.objToString(tree), "$", a)
+  # eval(parse(text = expr))$AddChild(mappedFeaturesDF[i, readsCol])
+
   return(tree)
 }
