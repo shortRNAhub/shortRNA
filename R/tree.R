@@ -23,20 +23,44 @@
   }
 }
 
+## longRNAs to tree
 .longRNA2path <- function(file, root) {
   library(rtracklayer)
+  library(dplyr)
+  library(tidyr)
+  library(data.tree)
+  library(parallel)
+
   gff <- readGFF(file)
   suppressWarnings(df <- data.frame(gff) %>% mutate_all(funs(replace_na(., ""))))
   gff$gID <- gsub("\\..*", "", gff[, "gene_id"])
   gff$tID <- gsub("\\..*", "", gff[, "transcript_id"])
-  gff$pathString <- .paste5(root, "/", gff[, "gene_type"], "/", gff[, "gID"], ":",
-    gff[, "gene_name"], "/", gff[, "tID"],
+
+  gff.sp <- split(x = gff, f = gff[, "gene_type"])
+
+  gff.sp[[1]]$pathString <- .paste5(root, "/", gff.sp[[1]][, "gene_type"], "/", gff.sp[[1]][, "gID"], ":",
+    gff.sp[[1]][, "gene_name"], "/", gff.sp[[1]][, "tID"],
     na.rm = T, sep = ""
   )
-  node <- as.Node(data.frame(gff), na.rm = TRUE)
+
+  node <- as.Node(data.frame(gff.sp[[1]]), na.rm = TRUE)
+
+  gff.tree <- mclapply(gff.sp[2:length(gff.sp)], function(x) {
+    x$pathString <- .paste5(x[, "gene_type"], "/", x[, "gID"], ":",
+      x[, "gene_name"], "/", x[, "tID"],
+      na.rm = T, sep = ""
+    )
+    node <- as.Node(data.frame(x), na.rm = TRUE)
+    return(node)
+  }, mc.preschedule = F, mc.cores = detectCores() - 1)
+
+  tmp <- lapply(gff.tree, function(x) node$AddChildNode(x))
+
   return(node)
 }
 
+
+## tRNA/ miRNA
 .name2path <- function(features, root) {
   x <- features
   x <- sapply(strsplit(gsub(".", "-", x, fixed = TRUE), "-", fixed = TRUE), FUN = function(x) {
@@ -61,6 +85,22 @@
   paste0(root, "/", x)
 }
 
+
+## rRNAs
+.rRNA2path <- function(files, root) {
+  library(Biostrings)
+  library(stringr)
+  library(data.tree)
+  files <- list.files(path = files, pattern = ".fa", full.names = T)
+  files.read <- lapply(files, readDNAStringSet)
+
+  rr <- str_extract(string = files, pattern = "[0-9]+S|[0-9].[0-9]S")
+  names(files.read) <- rr
+
+  pathString <- paste(root, names(files.read), sep = "/")
+  return(as.Node(data.frame(pathString)))
+}
+
 #' Convert the annotation fasta file into tree obtained from `prepareAnnotation` function
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #' @import Biostrings data.tree plyr
@@ -75,10 +115,12 @@
 #' longRNA <- fastaToTree(file = "../test/gencode.vM22.chr_patch_hapl_scaff.annotation.gff3.gz", root = "longRNA")
 #' }
 #' @export
-fastaToTree <- function(file) {
+fastaToTree <- function(file, root) {
   if (root == "longRNA") {
     return(.longRNA2path(file = file, root = root))
-  } else {
+  } else if(root == "rRNA"){
+    return(.rRNA2path(files = file, root = "rRNA"))
+  } else{
     library(Biostrings)
     library(data.tree)
     fasta <- readDNAStringSet(file)
