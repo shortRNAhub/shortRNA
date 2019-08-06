@@ -110,9 +110,10 @@
 #' @return A `list`: a `data.frame` and a `data.tree`
 #' \dontrun{
 #' @examples
-#' tRNA <- fastaToTree(file = "../test/tRNAs.modified.fa", root = "tRNA")
-#' miRNA <- fastaToTree(file = "../test/miRNAs.modified.fa", root = "miRNA")
-#' longRNA <- fastaToTree(file = "../test/gencode.vM22.chr_patch_hapl_scaff.annotation.gff3.gz", root = "longRNA")
+#' tRNA <- fastaToTree(file = "test/tRNAs.modified.fa", root = "tRNA")
+#' miRNA <- fastaToTree(file = "test/miRNAs.modified.fa", root = "miRNA")
+#' rRNA <- fastaToTree(file = "test/miRNAs.modified.fa", root = "miRNA")
+#' longRNA <- fastaToTree(file = "test/gencode.vM22.chr_patch_hapl_scaff.annotation.gff3.gz", root = "longRNA")
 #' }
 #' @export
 fastaToTree <- function(file, root) {
@@ -268,3 +269,18 @@ addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", r
 
   return(tree)
 }
+
+load("../data/longRNA.rda")
+
+.treeToData <- function(tree) {
+  library(parallel)
+  library(data.tree)
+  n <- names(tree$children)
+  tmp <- mclapply(n, function(x) {
+    assign(x = x, value = node[[x]])
+    p <- paste0("usethis::use_data(", x, ",overwrite = TRUE)")
+    eval(parse(text = p))
+  }, mc.preschedule = FALSE, mc.cores = detectCores() - 1)
+}
+
+.treeToData(tree = r)

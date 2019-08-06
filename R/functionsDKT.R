@@ -1,3 +1,37 @@
+.RNAtoTree <- function(RNA) {
+  library(plyr)
+  n <- lapply(RNA$names, function(x) {
+    a <- strsplit(x, "-")[[1]]
+    if (a[1] == "mmu") a <- a[-1]
+    df <- data.frame(matrix(ncol = length(a)), stringsAsFactors = F)
+    for (i in 1:length(a)) {
+      df[1, i] <- paste(a[1:i], collapse = "-")
+    }
+    if (length(grep(pattern = "\\.", x = df[, ncol(df)])) == 1) {
+      b <- strsplit(df[, ncol(df)], "\\.")[[1]]
+      df[, ncol(df)] <- b[1]
+      df[, ncol(df) + 1] <- paste(b[1:2], collapse = ".")
+    }
+    colnames(df) <- c("R", paste0("C", 1:(ncol(df) - 1)))
+    df$pathString <- paste(df[1, ], collapse = "/")
+    return(df)
+  })
+  n1 <- ldply(n, data.frame)
+  return(data.frame(RNA, n1, stringsAsFactors = F))
+}
+
+fastaToTree <- function(fasta) {
+  library(Biostrings)
+  library(data.tree)
+  read.file <- readDNAStringSet(fasta)
+  df <- data.frame(names = names(read.file), Sequence = as.character(read.file), stringsAsFactors = F)
+  df$names <- as.character(sapply(df$names, function(x) strsplit(x, "\\ ")[[1]][1]))
+  df <- .RNAtoTree(RNA = df)
+  tree.df <- as.Node(df)
+  return(list(df = df, tree = tree.df))
+}
+
+
 # Build index for Rsubread from `fasta` file ----
 
 .listFilesFTP <- function(url) {
@@ -24,7 +58,7 @@
 #' @param outPath Output direcory where genome is downloaded and index is build.
 #' @param basename Basename for the Rsubread index.
 #' @param ... Other options for `Rsubread::buildindex()`.
-#' 
+#'
 #' @return **index** for aligning fastq files with Rsubread.
 #' \dontrun{
 #' @examples
@@ -37,7 +71,7 @@ indexRsubread <- function(fastaGenome = NULL,
                           ...) {
   library(Rsubread)
   library(R.utils)
-  
+
   # If fasta file is provided
   if (!is.null(fastaGenome)) {
     message("...building index for Rsubread...\n")
@@ -47,18 +81,19 @@ indexRsubread <- function(fastaGenome = NULL,
     # If not provided
     message(
       paste("As the `fasta` file is not provided via fastaGenome,", refGenome, "will be dowloaded and index will be build.")
-      )
-    
+    )
+
     # Various checks
-    if (!grepl(pattern = "hg19|hg38|mm9|mm10", x = refGenome)) 
+    if (!grepl(pattern = "hg19|hg38|mm9|mm10", x = refGenome)) {
       stop("Please provide path to the `fasta` file! This function can only build index for mm9, mm10, hg19 or hg38, or from a `fasta file`!")
+    }
     if (grepl(pattern = "hg[0-9][0-9]", x = refGenome) & !grepl(pattern = "[0-9][0-9]", x = gencodeRelease)) {
       stop("Please see: https://www.gencodegenes.org/human/releases.html")
     }
     if (grepl(pattern = "mm[0-9]|mm[0-9][0-9]", x = refGenome) & !grepl(pattern = "M[0-9]|M[0-9][0-9]", x = gencodeRelease)) {
       stop("Please see: https://www.gencodegenes.org/mouse/releases.html")
     }
-    
+
     # Obtaining link to download fasta file
     url <- "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_"
     ftp <- NULL
@@ -77,7 +112,7 @@ indexRsubread <- function(fastaGenome = NULL,
       files <- .listFilesFTP(url = u)
       ftp <- files[grep(pattern = "GRCh38.p[0-9].genome.fa.gz|GRCh38.p[0-9][0-9].genome.fa.gz", x = files)]
     }
-    
+
     # Getting name to save fasta file
     str <- strsplit(x = ftp, split = "/")[[1]]
     n <- str[length(str)]
@@ -85,12 +120,14 @@ indexRsubread <- function(fastaGenome = NULL,
     message("...downloading file...\n")
     download.file(url = ftp, destfile = fa)
     message("...file downloaded...\n\n...building index for Rsubread...\n")
-    
+
     # Index building
     buildindex(basename = basename, reference = gunzip(fa), ...)
     gzip(gsub(pattern = "\\.gz$", "", fa))
   }
 }
+
+# Aligning `fastq` files with Rsubread ----
 
 
 #' Read Bismark coverage files containing methylated and unmethylated read counts for CpG loci and create DGEList.
@@ -108,9 +145,8 @@ indexRsubread <- function(fastaGenome = NULL,
 #'
 #' @examples
 #' dge.files <- ReadBismark2DGE(files = files, sample.names = names, data.table = T, nParallel = 8)
-#'
 #' @export
 
-alignShortRNA <- function(fastq, index, ){
-  nBestLocations = 1000
+alignShortRNA <- function(fastq, index) {
+  nBestLocations <- 1000
 }
