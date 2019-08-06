@@ -1,0 +1,192 @@
+---
+# PLEASE SEE THE README for in depth description github.com/brentthorne/posterdown
+#---POSTER SIZE & DEFAULT FONT---#
+poster_height: "36in" # height in inches of poster
+poster_width: "48in" # width in inches of poster
+font_family: "Palatino" # choose from typical html fonts (example: "Palatino")
+#---TITLE BOX OPTIONS---#
+#ESSENTIALS
+title: "shortRNA: a flexible framework for the analysis of short RNA sequencing data"
+author:
+  - name: Pierre-Luc Germain
+    affil: 1,2,3
+  - name: <u>Deepak K. Tanwar</u>
+    affil: 3,4
+  - name: Isabelle M. Mansuy
+    affil: 4
+affiliation:
+  - num: 1
+    address: Institute for Neuroscience, Department of Health Sciences and Technology, ETH Zürich
+  - num: 2
+    address: Statistical Bioinformatics Group, University of Zürich
+  - num: 3
+    address: Statistical Bioinformatics Group, Swiss Institute of Bioinformatics
+  - num: 4
+    address: Laboratory of Neuroepigenetics, Medical Faculty of the University of Zürich and Department of Health Sciences and Technology of the ETH Zürich  
+#STYLE & FORMATTING
+titlebox_bgcol: "#008080"  #Colour of the Title Box background
+titlebox_bordercol: "#0b4545" #Colour of the title Box border.
+titlebox_shape: "" #ONLY posterdown_PDF
+titlebox_borderwidth: "1cm"
+titletext_fontfamily: Helvetica
+title_textcol: "#ffffff" #colour of title text
+# author_textcol: "#0b4545" # Colour of author text
+affiliation_textcol: "#FFFFFF" # Colour of affiliation text
+title_textsize: "75pt"         # Poster title fontsize
+author_textsize: "50pt"       # Author list font size
+affiliation_textsize: "40pt"  # Affiliation font size
+#ADDING LOGOS
+logoleft_name: "files/ethz.jpg"
+logoright_name: "files/shortRNA.png"
+#---POSTER BODY OPTIONS---#
+body_bgcol: "#ffffff" #colour of the poster main background
+body_textsize: "45px"    # Size of the main poster body text
+body_textcol: "#000000" # Colour of main text in the body of poster
+column_numbers: 3 # Number of columns that the poster has
+column_margins: "0.5in" # Margin spacing for columns
+columnline_col: "#008080" #colour 
+columnline_width: "1mm" #width of line between each column
+columnline_style: dashed #style of the column line seperator.
+#SECTION TITLE STYLING
+sectitle_textcol: "#ffffff" # Colour of the poster section titles
+sectitle_bgcol: "#0b4545" # Colour of the section title box
+sectitle_bordercol: "#0b4545" # Colour of the border around the section title box.
+sectitle_borderwidth: "2mm" # Thicknes of the section title box border
+sectitle_boxshape: "4mm 0mm" # Changes the shape of the section title box.
+sectitle2_textcol: "#0b4545" # Color of 2nd level header text.
+#--OTHER--#
+link_col: "#0b4545" #colour of other links within the poster
+#--Standard Options--#
+output: 
+  posterdown::posterdown_html:
+    self_contained: false
+    pandoc_args: --mathjax
+    highlight: tango
+    number_sections: false
+bibliography: files/references.bib
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(results = 'asis', echo = FALSE, comment = FALSE,  warning = FALSE, message = FALSE, fig.align = 'center')
+```
+
+<!--
+Bellow you will find typical RMarkdown syntax which should fill in the columns for the poster from top to bottom left to right. The more information you have the more will be filled. Please let me know if you have feedback at brentthorne18@gmail.com or at github.com/brentthorne/posterdown.
+ENJOY! XD
+-->
+
+# Introduction
+
+Short non-coding RNAs have been shown to be altered in different models of transgenerational epigenetic inheritance1-3, sometimes functionally contributing to the phenotype4-5, and have been implicated in a large number of biological processes and pathological conditions. However, their study is hampered by a number of technical issues, including the bioinformatic analysis of short RNA sequencing data. Among issues associated to the latter are the following:
+
+1. First, analysis methods generally are not simultaneously optimized towards all known short RNA types (e.g. miRNA, piRNA, tRNA fragments, etc). On top of multiplying the work needed for an extensive analysis of the data, this can potentially create misassignment mistakes.
+2. Second, most current methods either do not deal adequately with post- transcriptional modifications (for genome-based methods), or if they do (transcript- based methods), do not deal with unannotated features.
+3. Third, current methods do not adequately account for the hierarchical organization of the features one might want to quantify/test.
+4. Finally, there is still no consensus on the most appropriate normalization method for such data.
+
+
+## Objectives
+
+**_Because of these shortcomings, we developed a new analysis framework that addresses these issues using alternative nested equivalence classes over a customized annotation. We present this approach and package, and show how it can be used to redress biases in the quantification of both specific RNA as well as large RNA classes._**
+
+
+# Methods
+
+```{r, echo = FALSE}
+library(DiagrammeR)
+
+mermaid("
+        graph TD
+
+title[<p><big><u>Data analysis piepeline</u></big></p>]
+title-->fastq
+style title fill:#FFF,stroke:#FFF
+linkStyle 0 stroke:#FFF,stroke-width:0
+
+fastq(FastQ)-->|FastQC|qc[Quality check]
+
+qc-->|Trim Galore|QC{Trimming}
+
+QC-->|Salmon|rnaAln[Pseudo-alignment]
+QC-->|STAR|rnaAlnS[Alignment]
+QC-->|RSubread|shortAln[Alignment]
+QC-->|Bismark|rrbsAln[Alignment]
+QC-->|Bowtie2|atacAln[Alignment]
+
+style fastq stroke:black
+style qc stroke:black
+style QC stroke:black
+
+subgraph 
+rnaAln-->|voom/dupCor|rnaDiff[Differential analysis]
+rnaAlnS-->|DEXSeq|rnaExon[Differential exon usage]
+rnaDiff-->|fGSEA|rnaPath[Pathway analysis<br>KEGG, Reactome, GO]
+rnaDiff-->|VIPER|rnaTF[TFBA]
+end
+
+style rnaAln fill:MistyRose,stroke:black
+style rnaAlnS fill:MistyRose,stroke:black
+style rnaDiff fill:MistyRose,stroke:black
+style rnaExon fill:MistyRose,stroke:black
+style rnaPath fill:MistyRose,stroke:black
+style rnaTF fill:MistyRose,stroke:black
+
+
+subgraph 
+shortAln-->|Statistical analysis|sRNA[shortRNA<br>our package]
+end
+
+style sRNA fill:PaleTurquoise,stroke:black
+style shortAln fill:PaleTurquoise,stroke:black
+
+subgraph 
+rrbsAln-->|Bismark|methEx[Methylation<br>extraction]
+methEx-->|edgeR|dml[DML]
+dml-->|rGREAT|great[Functional analysis]
+methEx-->|dmrseq|dmr[DMR]
+dmr-->|rGREAT|great[Functional analysis]
+end
+
+style rrbsAln fill:HoneyDew,stroke:black
+style methEx fill:HoneyDew,stroke:black
+style dml fill:HoneyDew,stroke:black
+style dmr fill:HoneyDew,stroke:black
+style great fill:HoneyDew,stroke:black
+
+subgraph 
+atacAln-->|HMMRATAC|PC[Peak calling]
+PC-->|csaw|daPC[Differential analysis]
+daPC-->|VIPER|atacTF[TFBA]
+daPC-->|rGREAT|atacTF[Functional analysis]
+end
+
+style atacAln fill:PeachPuff,stroke:black
+style PC fill:PeachPuff,stroke:black
+style daPC fill:PeachPuff,stroke:black
+style atacTF fill:PeachPuff,stroke:black
+        ")
+```
+
+
+# Results
+
+
+
+Look at this animation [@gganimate2017] !!!! Figure \@ref(fig:gganimatefig).
+
+```{r,gganimatefig, out.width='80%', cache=TRUE, fig.align='center', echo=TRUE, fig.cap='WOW THIS IS AN AWESOME GIF!'}
+```
+
+
+```{r, out.width='100%', fig.height=5, fig.cap='Using ggplot and patchwork to generate a layout of multiple plots in one figure. The iris dataset was used to generate (a) a line graph, (b) a scatterplot, and (c) a boxplot all together!'}
+```
+
+
+# Conclusion
+
+```{r, leafletfig, fig.cap='Here is a leaflet figure which whill run as expected online, when printed it will take the last state it is left in beofre choosing to print.'}
+```
+
+# Outlook
+
+# References

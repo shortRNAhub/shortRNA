@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+<!--
+Font-awesome icons ie github or twitter
+-->
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/brands.css" integrity="sha384-n9+6/aSqa9lBidZMRCQHTHKJscPq6NW4pCQBiMmHdUCvPN8ZOg2zJJTkC7WIezWv" crossorigin="anonymous">
+
+<!--
+Google fonts api stuff
+-->
+<link href='https://fonts.googleapis.com/css?family=Palatino' rel='stylesheet'>
+<link href='https://fonts.googleapis.com/css?family=Helvetica' rel='stylesheet'>
+
+
+
+<title>shortRNA: a flexible framework for the analysis of short RNA sequencing data</title>
+
+<script src="Deepak_Tanwar_BC2_files/htmlwidgets-1.3/htmlwidgets.js"></script>
+<script src="Deepak_Tanwar_BC2_files/d3-3.3.8/d3.min.js"></script>
+<script src="Deepak_Tanwar_BC2_files/dagre-0.4.0/dagre-d3.min.js"></script>
+<link href="Deepak_Tanwar_BC2_files/mermaid-0.3.0/dist/mermaid.css" rel="stylesheet" />
+<script src="Deepak_Tanwar_BC2_files/mermaid-0.3.0/dist/mermaid.slim.min.js"></script>
+<link href="Deepak_Tanwar_BC2_files/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
+<script src="Deepak_Tanwar_BC2_files/chromatography-0.1/chromatography.js"></script>
+<script src="Deepak_Tanwar_BC2_files/DiagrammeR-binding-1.0.1/DiagrammeR.js"></script>
+
+
+
+
+
+<style>
+@page {
+size: 48in 36in;
+margin: 0;
+padding: 0;
+}
+body {
+margin: 0;
+font-size: 45px;
+width: 48in;
+height: 36in;
+padding: 0;
+text-align: justify;
+font-family: Palatino;
+background-color: #ffffff;
+}
+.poster_wrap {
+width: 48in;
+height: 36in;
+padding: 0cm;
+}
+.title_container {
+width: 48in;
+height: calc(36in * 0.15);
+overflow: hidden;
+background-color: #0b4545;
+border: 1cm solid #0b4545;
+}
+.logo_left {
+float: left;
+width: 10%;
+height: 100%;
+background-color: #0b4545;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+.logo_right {
+float: right;
+width: 10%;
+height: 100%;
+background-color: #0b4545;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+.poster_title {
+text-align: center;
+position: relative;
+float: left;
+width: 80%;
+height: 100%;
+color: #ffffff;
+top: 50%;
+transform: translateY(-50%);
+-webkit-transform: translateY(-50%);
+}
+#title {
+font-family: Helvetica;
+}
+/* unvisited link */
+a:link {
+color: #0b4545;
+}
+
+/* visited link */
+a:visited {
+color: #0b4545;
+}
+
+/* mouse over link */
+a:hover {
+color: #0b4545;
+}
+
+/* selected link */
+a:active {
+color: #0b4545;
+}
+.poster_body {
+-webkit-column-count: 3; /* Chrome, Safari, Opera */
+-moz-column-count: 3; /* Firefox */
+column-count: 3;
+-webkit-column-fill: auto;
+-moz-column-fill: auto;
+column-fill: auto;
+-webkit-column-rule-width: 1mm;
+-moz-column-rule-width: 1mm;
+column-rule-width: 1mm;
+-webkit-column-rule-style: dashed;
+-moz-column-rule-style: dashed;
+column-rule-style: dashed;
+-webkit-column-rule-color: #008080;
+-moz-column-rule-color: #008080;
+column-rule-color: #008080;
+width: 100%;
+height: 100%;
+color: #000000
+}
+.poster_title h1 {
+font-size: 75pt;
+margin: 0;
+border: 0;
+font-weight: normal;
+}
+.poster_body_wrap{
+width: 48in;
+height: calc(36in * 0.83);
+padding-top: calc(36in * 0.01);
+padding-bottom: calc(36in * 0.01);
+}
+.poster_title h3 {
+color: #ffffff;
+font-size: 50pt;
+margin: 0;
+border: 0;
+font-weight: normal;
+}
+.poster_title h3 > sup {
+  font-size: 35pt;
+  margin-left: 0.02em;
+}
+.poster_title h5 {
+color: #FFFFFF;
+font-size: ;
+margin: 0;
+border: 0;
+font-weight: normal;
+}
+img {
+margin-top: 2cm;
+margin-bottom: 0;
+}
+.section {
+  padding: 0.2em;
+}
+.poster_body h1 {
+text-align: center;
+color: #ffffff;
+font-size: 65pt;
+border: 2mm solid #0b4545;
+background-color: #0b4545;
+border-radius: 4mm 0mm;
+margin-top: 2mm;
+margin-bottom: 2mm;
+font-weight: normal;
+}
+.poster_body h2 {
+color: #0b4545;
+font-size: 40pt;
+padding-left: 4mm;
+font-weight: normal;
+}
+.span h1 {
+text-align: center;
+color: #ffffff;
+font-size: 50pt;
+border: 2mm solid yellow;
+background-color: yellow;
+border-radius: 4mm 0mm;
+margin-top: 5mm;
+margin-bottom: 5mm;
+padding-top: 5mm;
+padding-bottom: 5mm;
+width: 100%
+}
+.span {
+background-color: red;
+width: 200%;
+position:relative;
+}
+/* center align leaflet map,
+from https://stackoverflow.com/questions/52112119/center-leaflet-in-a-rmarkdown-document */
+.html-widget {
+margin: auto;
+position: sticky;
+margin-top: 2cm;
+margin-bottom: 2cm;
+}
+.leaflet.html-widget.html-widget-static-bound.leaflet-container.leaflet-touch.leaflet-fade-anim.leaflet-grab.leaflet-touch-drag.leaflet-touch-zoom {
+position: sticky;
+width: 100%;
+}
+pre.sourceCode.r {
+background-color: #dddddd40;
+border-radius: 4mm;
+padding: 4mm;
+width: 75%;
+/* align-items: center; */
+margin: auto;
+padding-left: 2cm;
+}
+code.sourceCode.r{
+background-color: transparent;
+font-size: 20pt;
+border-radius: 2mm;
+}
+.caption {
+font-size: 25pt;
+}
+.table caption {
+font-size: 25pt;
+padding-bottom: 3mm;
+
+}
+code {
+font-size: 1em;
+font-family: monospace;
+background-color: #00808024;
+color: #0b4545;
+padding: 1.2mm;
+border-radius: 2mm;
+}
+
+.poster_title code {
+font-size: 1em;
+}
+table {
+font-size: 40px;
+margin: auto;
+border-top: 3px solid #666;
+border-bottom: 3px solid #666;
+}
+table thead th {
+border-bottom: 3px solid #ddd;
+}
+td {
+padding: 8px;
+}
+th {
+padding: 15px;
+}
+caption {
+margin-bottom: 10px;
+}
+.poster_body p {
+margin-right: 4mm;
+margin-left: 4mm;
+margin-top: 6mm;
+margin-bottom: 10mm;
+}
+.poster_body ol {
+margin-right: 4mm;
+margin-left: 4mm;
+}
+#ul {
+margin-right: 4mm;
+margin-left: 4mm;
+}
+.references p {
+font-size: 20pt;
+}
+.orcid img {
+  width: 1em;
+}
+</style>
+
+</head>
+<body>
+
+
+<div class="poster_wrap">
+
+<div class="title_container">
+<!-- Left Logo  -->
+<div class="logo_left">
+<img src= 'files/ethz.jpg' style="width: 80%">
+</div>
+<!-- Poster Title -->
+<div class= "poster_title">
+<h1 id="title">shortRNA: a flexible framework for the analysis of short RNA sequencing data</h1>
+<h3 id="author">Pierre-Luc Germain<sup>1,2,3</sup>, <u>Deepak K. Tanwar</u><sup>3,4</sup>, Isabelle M. Mansuy<sup>4</sup></h3><br>
+<h5 id="affiliation"><sup>1</sup> Institute for Neuroscience, Department of Health Sciences and Technology, ETH Zürich<br> <sup>2</sup> Statistical Bioinformatics Group, University of Zürich<br> <sup>3</sup> Statistical Bioinformatics Group, Swiss Institute of Bioinformatics<br> <sup>4</sup> Laboratory of Neuroepigenetics, Medical Faculty of the University of Zürich and Department of Health Sciences and Technology of the ETH Zürich</h5>
+</div>
+<!-- Right Logo  -->
+<div class="logo_right">
+<img src=files/shortRNA.png style="width: 80%">
+</div>
+</div>
+
+<div class='poster_body_wrap'>
+<div class='poster_body'>
+<!--
+Bellow you will find typical RMarkdown syntax which should fill in the columns for the poster from top to bottom left to right. The more information you have the more will be filled. Please let me know if you have feedback at brentthorne18@gmail.com or at github.com/brentthorne/posterdown.
+ENJOY! XD
+-->
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>Short non-coding RNAs have been shown to be altered in different models of transgenerational epigenetic inheritance1-3, sometimes functionally contributing to the phenotype4-5, and have been implicated in a large number of biological processes and pathological conditions. However, their study is hampered by a number of technical issues, including the bioinformatic analysis of short RNA sequencing data. Among issues associated to the latter are the following:</p>
+<ol style="list-style-type: decimal">
+<li>First, analysis methods generally are not simultaneously optimized towards all known short RNA types (e.g. miRNA, piRNA, tRNA fragments, etc). On top of multiplying the work needed for an extensive analysis of the data, this can potentially create misassignment mistakes.</li>
+<li>Second, most current methods either do not deal adequately with post- transcriptional modifications (for genome-based methods), or if they do (transcript- based methods), do not deal with unannotated features.</li>
+<li>Third, current methods do not adequately account for the hierarchical organization of the features one might want to quantify/test.</li>
+<li>Finally, there is still no consensus on the most appropriate normalization method for such data.</li>
+</ol>
+<div id="objectives" class="section level2">
+<h2>Objectives</h2>
+<p><strong><em>Because of these shortcomings, we developed a new analysis framework that addresses these issues using alternative nested equivalence classes over a customized annotation. We present this approach and package, and show how it can be used to redress biases in the quantification of both specific RNA as well as large RNA classes.</em></strong></p>
+</div>
+</div>
+<div id="methods" class="section level1">
+<h1>Methods</h1>
+<div id="htmlwidget-ac28df16fb1188c73750" style="width:672px;height:480px;" class="DiagrammeR html-widget"></div>
+<script type="application/json" data-for="htmlwidget-ac28df16fb1188c73750">{"x":{"diagram":"\n        graph TD\n\ntitle[<p><big><u>Data analysis piepeline<\/u><\/big><\/p>]\ntitle-->fastq\nstyle title fill:#FFF,stroke:#FFF\nlinkStyle 0 stroke:#FFF,stroke-width:0\n\nfastq(FastQ)-->|FastQC|qc[Quality check]\n\nqc-->|Trim Galore|QC{Trimming}\n\nQC-->|Salmon|rnaAln[Pseudo-alignment]\nQC-->|STAR|rnaAlnS[Alignment]\nQC-->|RSubread|shortAln[Alignment]\nQC-->|Bismark|rrbsAln[Alignment]\nQC-->|Bowtie2|atacAln[Alignment]\n\nstyle fastq stroke:black\nstyle qc stroke:black\nstyle QC stroke:black\n\nsubgraph \nrnaAln-->|voom/dupCor|rnaDiff[Differential analysis]\nrnaAlnS-->|DEXSeq|rnaExon[Differential exon usage]\nrnaDiff-->|fGSEA|rnaPath[Pathway analysis<br>KEGG, Reactome, GO]\nrnaDiff-->|VIPER|rnaTF[TFBA]\nend\n\nstyle rnaAln fill:MistyRose,stroke:black\nstyle rnaAlnS fill:MistyRose,stroke:black\nstyle rnaDiff fill:MistyRose,stroke:black\nstyle rnaExon fill:MistyRose,stroke:black\nstyle rnaPath fill:MistyRose,stroke:black\nstyle rnaTF fill:MistyRose,stroke:black\n\n\nsubgraph \nshortAln-->|Statistical analysis|sRNA[shortRNA<br>our package]\nend\n\nstyle sRNA fill:PaleTurquoise,stroke:black\nstyle shortAln fill:PaleTurquoise,stroke:black\n\nsubgraph \nrrbsAln-->|Bismark|methEx[Methylation<br>extraction]\nmethEx-->|edgeR|dml[DML]\ndml-->|rGREAT|great[Functional analysis]\nmethEx-->|dmrseq|dmr[DMR]\ndmr-->|rGREAT|great[Functional analysis]\nend\n\nstyle rrbsAln fill:HoneyDew,stroke:black\nstyle methEx fill:HoneyDew,stroke:black\nstyle dml fill:HoneyDew,stroke:black\nstyle dmr fill:HoneyDew,stroke:black\nstyle great fill:HoneyDew,stroke:black\n\nsubgraph \natacAln-->|HMMRATAC|PC[Peak calling]\nPC-->|csaw|daPC[Differential analysis]\ndaPC-->|VIPER|atacTF[TFBA]\ndaPC-->|rGREAT|atacTF[Functional analysis]\nend\n\nstyle atacAln fill:PeachPuff,stroke:black\nstyle PC fill:PeachPuff,stroke:black\nstyle daPC fill:PeachPuff,stroke:black\nstyle atacTF fill:PeachPuff,stroke:black\n        "},"evals":[],"jsHooks":[]}</script>
+</div>
+<div id="results" class="section level1">
+<h1>Results</h1>
+<p>Look at this animation <span class="citation">(Pedersen and Robinson 2017)</span> !!!! Figure <a href="#fig:gganimatefig"><strong>??</strong></a>.</p>
+</div>
+<div id="conclusion" class="section level1">
+<h1>Conclusion</h1>
+</div>
+<div id="outlook" class="section level1">
+<h1>Outlook</h1>
+</div>
+<div id="references" class="section level1 unnumbered">
+<h1>References</h1>
+<div id="refs" class="references">
+<div id="ref-gganimate2017">
+<p>Pedersen, Thomas Lin, and David Robinson. 2017. <em>Gganimate: A Grammar of Animated Graphics</em>. <a href="http://github.com/thomasp85/gganimate">http://github.com/thomasp85/gganimate</a>.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+
+
+
+</body>
+</html>
