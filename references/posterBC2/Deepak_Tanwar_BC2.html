@@ -338,8 +338,14 @@ ENJOY! XD
 </div>
 <div id="methods" class="section level1">
 <h1>Methods</h1>
-<div id="htmlwidget-ac28df16fb1188c73750" style="width:672px;height:480px;" class="DiagrammeR html-widget"></div>
-<script type="application/json" data-for="htmlwidget-ac28df16fb1188c73750">{"x":{"diagram":"\n        graph TD\n\ntitle[<p><big><u>Data analysis piepeline<\/u><\/big><\/p>]\ntitle-->fastq\nstyle title fill:#FFF,stroke:#FFF\nlinkStyle 0 stroke:#FFF,stroke-width:0\n\nfastq(FastQ)-->|FastQC|qc[Quality check]\n\nqc-->|Trim Galore|QC{Trimming}\n\nQC-->|Salmon|rnaAln[Pseudo-alignment]\nQC-->|STAR|rnaAlnS[Alignment]\nQC-->|RSubread|shortAln[Alignment]\nQC-->|Bismark|rrbsAln[Alignment]\nQC-->|Bowtie2|atacAln[Alignment]\n\nstyle fastq stroke:black\nstyle qc stroke:black\nstyle QC stroke:black\n\nsubgraph \nrnaAln-->|voom/dupCor|rnaDiff[Differential analysis]\nrnaAlnS-->|DEXSeq|rnaExon[Differential exon usage]\nrnaDiff-->|fGSEA|rnaPath[Pathway analysis<br>KEGG, Reactome, GO]\nrnaDiff-->|VIPER|rnaTF[TFBA]\nend\n\nstyle rnaAln fill:MistyRose,stroke:black\nstyle rnaAlnS fill:MistyRose,stroke:black\nstyle rnaDiff fill:MistyRose,stroke:black\nstyle rnaExon fill:MistyRose,stroke:black\nstyle rnaPath fill:MistyRose,stroke:black\nstyle rnaTF fill:MistyRose,stroke:black\n\n\nsubgraph \nshortAln-->|Statistical analysis|sRNA[shortRNA<br>our package]\nend\n\nstyle sRNA fill:PaleTurquoise,stroke:black\nstyle shortAln fill:PaleTurquoise,stroke:black\n\nsubgraph \nrrbsAln-->|Bismark|methEx[Methylation<br>extraction]\nmethEx-->|edgeR|dml[DML]\ndml-->|rGREAT|great[Functional analysis]\nmethEx-->|dmrseq|dmr[DMR]\ndmr-->|rGREAT|great[Functional analysis]\nend\n\nstyle rrbsAln fill:HoneyDew,stroke:black\nstyle methEx fill:HoneyDew,stroke:black\nstyle dml fill:HoneyDew,stroke:black\nstyle dmr fill:HoneyDew,stroke:black\nstyle great fill:HoneyDew,stroke:black\n\nsubgraph \natacAln-->|HMMRATAC|PC[Peak calling]\nPC-->|csaw|daPC[Differential analysis]\ndaPC-->|VIPER|atacTF[TFBA]\ndaPC-->|rGREAT|atacTF[Functional analysis]\nend\n\nstyle atacAln fill:PeachPuff,stroke:black\nstyle PC fill:PeachPuff,stroke:black\nstyle daPC fill:PeachPuff,stroke:black\nstyle atacTF fill:PeachPuff,stroke:black\n        "},"evals":[],"jsHooks":[]}</script>
+<p>Figure <a href="#fig:mm10DB">1</a> shows how the database for mm10 is organised.</p>
+<div class="figure" style="text-align: center"><span id="fig:mm10DB"></span>
+<div id="htmlwidget-c999d5d9084db26345ff" style="width:1536px;height:480px;" class="DiagrammeR html-widget"></div>
+<script type="application/json" data-for="htmlwidget-c999d5d9084db26345ff">{"x":{"diagram":"\n        graph TB\n        \nmm10(mm10)-->tRNA[tRNA]\nmm10-->miRNA[miRNA]\nmm10-->piRNA[piRNA]\nmm10-->circRNA[circRNA]\nmm10-->rRNA[rRNA]\nmm10-->RNA[longRNA]\n\nstyle mm10 stroke:black\n\nsubgraph \ntRNA-->GtRNA[GtRNAdb]\ntRNA-->GetRNA[Gencode]\nend\n\nstyle tRNA fill:MistyRose,stroke:black\nstyle GtRNA fill:MistyRose,stroke:black\nstyle GetRNA fill:MistyRose,stroke:black\n\n\nsubgraph \nmiRNA-->mirBase[mirBase]\nmiRNA-->GemiRNA[Gencode]\nend\n\nstyle miRNA fill:PaleTurquoise,stroke:black\nstyle mirBase fill:PaleTurquoise,stroke:black\nstyle GemiRNA fill:PaleTurquoise,stroke:black\n\n\nsubgraph \npiRNA-->piRBase[pirBase]\npiRNA-->piRNABank[piRNABank]\nend\n\nstyle piRNA fill:HoneyDew,stroke:black\nstyle piRBase fill:HoneyDew,stroke:black\nstyle piRNABank fill:HoneyDew,stroke:black\n\n\nsubgraph \nrRNA-->rrRNA\nend\n\nstyle rRNA fill:PeachPuff,stroke:black\nstyle rrRNA fill:PeachPuff,stroke:black\n\n\nsubgraph \ncircRNA-->circBase[circBase]\nend\n\nstyle circRNA fill:LightSteelBlue,stroke:black\nstyle circBase fill:LightSteelBlue,stroke:black\n\nsubgraph \nRNA-->gencode[Gencode]\nend\n\nstyle RNA fill:Plum,stroke:black\nstyle gencode fill:Plum,stroke:black\n        "},"evals":[],"jsHooks":[]}</script>
+<p class="caption">
+Figure 1: <b>Databases in the mm10</b>
+</p>
+</div>
 </div>
 <div id="results" class="section level1">
 <h1>Results</h1>
@@ -347,11 +353,15 @@ ENJOY! XD
 </div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
+<div id="code" class="section level2">
+<h2>Code</h2>
+<p>The code is available from Github: <a href="github.com/mansuylab/shortRNA">mansuylab/shortRNA</a></p>
 </div>
-<div id="outlook" class="section level1">
-<h1>Outlook</h1>
 </div>
-<div id="references" class="section level1 unnumbered">
+<div id="references" class="section level1">
+<h1>References</h1>
+</div>
+<div id="references-1" class="section level1 unnumbered">
 <h1>References</h1>
 <div id="refs" class="references">
 <div id="ref-gganimate2017">

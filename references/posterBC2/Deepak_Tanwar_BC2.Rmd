@@ -92,101 +92,87 @@ Short non-coding RNAs have been shown to be altered in different models of trans
 
 # Methods
 
-```{r, echo = FALSE}
+Figure \@ref(fig:mm10DB) shows how the database for mm10 is organised.
+
+```{r, mm10DB, echo = FALSE, fig.align='center', fig.width=16,fig.cap="<b>Databases in the mm10</b>"}
 library(DiagrammeR)
 
 mermaid("
-        graph TD
+        graph TB
+        
+mm10(mm10)-->tRNA[tRNA]
+mm10-->miRNA[miRNA]
+mm10-->piRNA[piRNA]
+mm10-->circRNA[circRNA]
+mm10-->rRNA[rRNA]
+mm10-->RNA[longRNA]
 
-title[<p><big><u>Data analysis piepeline</u></big></p>]
-title-->fastq
-style title fill:#FFF,stroke:#FFF
-linkStyle 0 stroke:#FFF,stroke-width:0
-
-fastq(FastQ)-->|FastQC|qc[Quality check]
-
-qc-->|Trim Galore|QC{Trimming}
-
-QC-->|Salmon|rnaAln[Pseudo-alignment]
-QC-->|STAR|rnaAlnS[Alignment]
-QC-->|RSubread|shortAln[Alignment]
-QC-->|Bismark|rrbsAln[Alignment]
-QC-->|Bowtie2|atacAln[Alignment]
-
-style fastq stroke:black
-style qc stroke:black
-style QC stroke:black
+style mm10 stroke:black
 
 subgraph 
-rnaAln-->|voom/dupCor|rnaDiff[Differential analysis]
-rnaAlnS-->|DEXSeq|rnaExon[Differential exon usage]
-rnaDiff-->|fGSEA|rnaPath[Pathway analysis<br>KEGG, Reactome, GO]
-rnaDiff-->|VIPER|rnaTF[TFBA]
+tRNA-->GtRNA[GtRNAdb]
+tRNA-->GetRNA[Gencode]
 end
 
-style rnaAln fill:MistyRose,stroke:black
-style rnaAlnS fill:MistyRose,stroke:black
-style rnaDiff fill:MistyRose,stroke:black
-style rnaExon fill:MistyRose,stroke:black
-style rnaPath fill:MistyRose,stroke:black
-style rnaTF fill:MistyRose,stroke:black
+style tRNA fill:MistyRose,stroke:black
+style GtRNA fill:MistyRose,stroke:black
+style GetRNA fill:MistyRose,stroke:black
 
 
 subgraph 
-shortAln-->|Statistical analysis|sRNA[shortRNA<br>our package]
+miRNA-->mirBase[mirBase]
+miRNA-->GemiRNA[Gencode]
 end
 
-style sRNA fill:PaleTurquoise,stroke:black
-style shortAln fill:PaleTurquoise,stroke:black
+style miRNA fill:PaleTurquoise,stroke:black
+style mirBase fill:PaleTurquoise,stroke:black
+style GemiRNA fill:PaleTurquoise,stroke:black
+
 
 subgraph 
-rrbsAln-->|Bismark|methEx[Methylation<br>extraction]
-methEx-->|edgeR|dml[DML]
-dml-->|rGREAT|great[Functional analysis]
-methEx-->|dmrseq|dmr[DMR]
-dmr-->|rGREAT|great[Functional analysis]
+piRNA-->piRBase[pirBase]
+piRNA-->piRNABank[piRNABank]
 end
 
-style rrbsAln fill:HoneyDew,stroke:black
-style methEx fill:HoneyDew,stroke:black
-style dml fill:HoneyDew,stroke:black
-style dmr fill:HoneyDew,stroke:black
-style great fill:HoneyDew,stroke:black
+style piRNA fill:HoneyDew,stroke:black
+style piRBase fill:HoneyDew,stroke:black
+style piRNABank fill:HoneyDew,stroke:black
+
 
 subgraph 
-atacAln-->|HMMRATAC|PC[Peak calling]
-PC-->|csaw|daPC[Differential analysis]
-daPC-->|VIPER|atacTF[TFBA]
-daPC-->|rGREAT|atacTF[Functional analysis]
+rRNA-->rrRNA
 end
 
-style atacAln fill:PeachPuff,stroke:black
-style PC fill:PeachPuff,stroke:black
-style daPC fill:PeachPuff,stroke:black
-style atacTF fill:PeachPuff,stroke:black
+style rRNA fill:PeachPuff,stroke:black
+style rrRNA fill:PeachPuff,stroke:black
+
+
+subgraph 
+circRNA-->circBase[circBase]
+end
+
+style circRNA fill:LightSteelBlue,stroke:black
+style circBase fill:LightSteelBlue,stroke:black
+
+subgraph 
+RNA-->gencode[Gencode]
+end
+
+style RNA fill:Plum,stroke:black
+style gencode fill:Plum,stroke:black
         ")
 ```
 
 
 # Results
 
-
-
 Look at this animation [@gganimate2017] !!!! Figure \@ref(fig:gganimatefig).
-
-```{r,gganimatefig, out.width='80%', cache=TRUE, fig.align='center', echo=TRUE, fig.cap='WOW THIS IS AN AWESOME GIF!'}
-```
-
-
-```{r, out.width='100%', fig.height=5, fig.cap='Using ggplot and patchwork to generate a layout of multiple plots in one figure. The iris dataset was used to generate (a) a line graph, (b) a scatterplot, and (c) a boxplot all together!'}
-```
 
 
 # Conclusion
 
-```{r, leafletfig, fig.cap='Here is a leaflet figure which whill run as expected online, when printed it will take the last state it is left in beofre choosing to print.'}
-```
 
-# Outlook
+## Code
+The code is available from Github: [mansuylab/shortRNA](github.com/mansuylab/shortRNA)
 
 # References
