@@ -10,6 +10,7 @@
 #' @export
 getAnnotationFiles <- function(org = "mm10", destination = getwd()) {
   if (org == "mm10") {
+    # Download tRNA file from Gencode
     ff <- list(
       c("ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M18/gencode.vM18.tRNAs.gtf.gz", 
         file.path(destination, "gencode.tRNAs.gtf.gz")),
@@ -24,16 +25,21 @@ getAnnotationFiles <- function(org = "mm10", destination = getwd()) {
       c("http://gtrnadb.ucsc.edu/genomes/eukaryota/Mmusc10/mm10-tRNAs.tar.gz", 
         file.path(destination, "gtRNAdb.tar.gz"))
     )
+    
     srcs <- sapply(ff, FUN = function(x) {
       download.file(x[[1]], ifelse(length(x) > 1, x[[2]], NULL))
       return(x[[1]])
     })
+    
     untar(file.path(destination, "gtRNAdb.tar.gz"))
+    
     library(Biostrings)
     fa <- readRNAStringSet(file.path(destination, "mirbase.fa.gz"), "fasta")
     fa <- fa[grep("^mmu-", names(fa))]
+    
     writeXStringSet(fa, file.path(destination, "mm10.mature.miRNAs.fa"), format = "fasta")
     unlink(file.path(destination, "mature.miRNA.fa.gz"))
+    
     return(list(
       features.gtf = file.path(destination, "gencode.features.gtf.gz"),
       mirbase.fa = file.path(destination, "mm10.mature.miRNAs.fa"),

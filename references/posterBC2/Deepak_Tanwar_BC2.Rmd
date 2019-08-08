@@ -1,12 +1,20 @@
 ---
-# PLEASE SEE THE README for in depth description github.com/brentthorne/posterdown
-#---POSTER SIZE & DEFAULT FONT---#
-poster_height: "36in" # height in inches of poster
-poster_width: "48in" # width in inches of poster
-font_family: "Palatino" # choose from typical html fonts (example: "Palatino")
-#---TITLE BOX OPTIONS---#
-#ESSENTIALS
+#--Poster dimension--#
+poster_height: "38in"
+poster_width: "45in"
+
+#--Title--#
 title: "shortRNA: a flexible framework for the analysis of short RNA sequencing data"
+titletext_fontfamily: "Palantino"
+title_textsize: "75pt"
+titlebox_bgcol: "#008080"
+titlebox_bordercol: '#0b4545'
+titlebox_borderwidth:	"1cm"
+title_textcol: "#ffffff"
+logoleft_name: "files/ethz.jpg"
+logoright_name: "files/shortRNA.png"
+
+#--Authors--#
 author:
   - name: Pierre-Luc Germain
     affil: 1,2,3
@@ -14,48 +22,51 @@ author:
     affil: 3,4
   - name: Isabelle M. Mansuy
     affil: 4
+author_textsize: "50pt"
+author_textcol: "#0b4545"
+
+#--Affiliations--#
 affiliation:
   - num: 1
-    address: Institute for Neuroscience, Department of Health Sciences and Technology, ETH Zürich
+    address: "Institute for Neuroscience, Department of Health Sciences and Technology, ETH Zürich"
   - num: 2
-    address: Statistical Bioinformatics Group, University of Zürich
+    address: "Statistical Bioinformatics Group, University of Zürich"
   - num: 3
-    address: Statistical Bioinformatics Group, Swiss Institute of Bioinformatics
+    address: "Statistical Bioinformatics Group, Swiss Institute of Bioinformatics"
   - num: 4
-    address: Laboratory of Neuroepigenetics, Medical Faculty of the University of Zürich and Department of Health Sciences and Technology of the ETH Zürich  
-#STYLE & FORMATTING
-titlebox_bgcol: "#008080"  #Colour of the Title Box background
-titlebox_bordercol: "#0b4545" #Colour of the title Box border.
-titlebox_shape: "" #ONLY posterdown_PDF
-titlebox_borderwidth: "1cm"
-titletext_fontfamily: Helvetica
-title_textcol: "#ffffff" #colour of title text
-# author_textcol: "#0b4545" # Colour of author text
-affiliation_textcol: "#FFFFFF" # Colour of affiliation text
-title_textsize: "75pt"         # Poster title fontsize
-author_textsize: "50pt"       # Author list font size
-affiliation_textsize: "40pt"  # Affiliation font size
-#ADDING LOGOS
-logoleft_name: "files/ethz.jpg"
-logoright_name: "files/shortRNA.png"
-#---POSTER BODY OPTIONS---#
-body_bgcol: "#ffffff" #colour of the poster main background
-body_textsize: "45px"    # Size of the main poster body text
-body_textcol: "#000000" # Colour of main text in the body of poster
-column_numbers: 3 # Number of columns that the poster has
-column_margins: "0.5in" # Margin spacing for columns
-columnline_col: "#008080" #colour 
-columnline_width: "1mm" #width of line between each column
-columnline_style: dashed #style of the column line seperator.
-#SECTION TITLE STYLING
-sectitle_textcol: "#ffffff" # Colour of the poster section titles
-sectitle_bgcol: "#0b4545" # Colour of the section title box
-sectitle_bordercol: "#0b4545" # Colour of the border around the section title box.
-sectitle_borderwidth: "2mm" # Thicknes of the section title box border
-sectitle_boxshape: "4mm 0mm" # Changes the shape of the section title box.
-sectitle2_textcol: "#0b4545" # Color of 2nd level header text.
-#--OTHER--#
-link_col: "#0b4545" #colour of other links within the poster
+    address: "Laboratory of Neuroepigenetics, Medical Faculty of the University of Zürich and Department of Health Sciences and Technology of the ETH Zürich"
+affiliation_textsize: "40pt"
+affiliation_textcol: "#FFFFFF"
+
+#--Poster options--#
+font_family: "Arial"
+primary_colour:	"#008080"
+secondary_colour:	"#0b4545"
+accent_colour:	"#cc0000"
+body_bgcol: "#ffffff"
+body_textsize: "45px"
+body_textcol: "#000000"
+
+#--Columns options--#
+column_margins: "0.5in"
+columnline_col: "#008080"
+columnline_width: "1mm"
+columnline_style: "dashed"
+column_numbers:	3
+
+#--Sections options--#
+sectitle_textcol: "#ffffff"
+sectitle_textsize:	"65pt"
+sectitle_bgcol: "#0b4545"
+sectitle_bordercol: "#0b4545"
+sectitle_borderwidth: "2mm"
+sectitle_boxshape: "4mm 0mm"
+sectitle2_textcol: "#0b4545"
+sectitle2_textsize:	"40pt"
+
+#--Link options--#
+link_col: "#0b4545"
+
 #--Standard Options--#
 output: 
   posterdown::posterdown_html:
@@ -64,25 +75,48 @@ output:
     highlight: tango
     number_sections: false
 bibliography: files/references.bib
+link-citations: yes
 ---
 
-```{r, include=FALSE}
-knitr::opts_chunk$set(results = 'asis', echo = FALSE, comment = FALSE,  warning = FALSE, message = FALSE, fig.align = 'center')
-```
+<!-- CSS -->
+<style>
+#main-img-left {
+ width: 23%;
+ margin-bottom: 1.5%;
+}
+#main-img-center {
+ width: 10%;
+ margin-bottom: -0.5%;
+}
+#main-img-right {
+ width: 7%;
+}
+#p.caption {
+ margin-top: -20;
+ margin-bottom: 0;
+}
 
-<!--
-Bellow you will find typical RMarkdown syntax which should fill in the columns for the poster from top to bottom left to right. The more information you have the more will be filled. Please let me know if you have feedback at brentthorne18@gmail.com or at github.com/brentthorne/posterdown.
-ENJOY! XD
--->
+figure {
+    display: block;
+    -webkit-margin-before: 0em;
+    -webkit-margin-after: 0em;
+    -webkit-margin-start: 0px;
+    -webkit-margin-end: 0px;
+}
+</style>
+
 
 # Introduction
 
-Short non-coding RNAs have been shown to be altered in different models of transgenerational epigenetic inheritance1-3, sometimes functionally contributing to the phenotype4-5, and have been implicated in a large number of biological processes and pathological conditions. However, their study is hampered by a number of technical issues, including the bioinformatic analysis of short RNA sequencing data. Among issues associated to the latter are the following:
+Short RNAs, categorized as non-coding RNA molecules, are less than 200 nucleotides in length and play a vital role in the regulation of the genome. They have been implicated in a large number of biological processes and pathological conditions. Moreover, short RNAs are linked with development and disease such as cancer, Parkinson’s disease, Alzheimer’s disease, and prion disease. However, their study is hampered by a number of technical issues, including the bioinformatic analysis of short RNA sequencing data:
 
-1. First, analysis methods generally are not simultaneously optimized towards all known short RNA types (e.g. miRNA, piRNA, tRNA fragments, etc). On top of multiplying the work needed for an extensive analysis of the data, this can potentially create misassignment mistakes.
-2. Second, most current methods either do not deal adequately with post- transcriptional modifications (for genome-based methods), or if they do (transcript- based methods), do not deal with unannotated features.
-3. Third, current methods do not adequately account for the hierarchical organization of the features one might want to quantify/test.
-4. Finally, there is still no consensus on the most appropriate normalization method for such data.
+1. Analysis methods are not simultaneously optimized towards all known short RNA types (e.g. miRNA, piRNA, rasiRNA, siRNA, snoRNA, tsRNA, tRFs, srRNA and U-RNA). On top of multiplying the work needed for an extensive analysis of the data, this can potentially create misassignment mistakes.
+
+2. Current methods either do not deal adequately with post-transcriptional modifications (for genome-based methods); or if they do (transcript-based methods), they do not deal with unannotated features.
+
+3. Current methods do not adequately account for the hierarchical organization of the features one might want to quantify or test.
+
+4. There is still no consensus on the most appropriate normalization method for short-RNA-Seq data.
 
 
 ## Objectives
@@ -92,82 +126,103 @@ Short non-coding RNAs have been shown to be altered in different models of trans
 
 # Methods
 
+## Annotations or databases for alignment
+
 Figure \@ref(fig:mm10DB) shows how the database for mm10 is organised.
 
-```{r, mm10DB, echo = FALSE, fig.align='center', fig.width=16,fig.cap="<b>Databases in the mm10</b>"}
-library(DiagrammeR)
+```{r, mm10DB, echo = FALSE, fig.align='center',fig.cap="<b>Databases used for mouse</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=3}
+require(knitr)
+library(magick)
+library(grid)
 
-mermaid("
-        graph TB
-        
-mm10(mm10)-->tRNA[tRNA]
-mm10-->miRNA[miRNA]
-mm10-->piRNA[piRNA]
-mm10-->circRNA[circRNA]
-mm10-->rRNA[rRNA]
-mm10-->RNA[longRNA]
-
-style mm10 stroke:black
-
-subgraph 
-tRNA-->GtRNA[GtRNAdb]
-tRNA-->GetRNA[Gencode]
-end
-
-style tRNA fill:MistyRose,stroke:black
-style GtRNA fill:MistyRose,stroke:black
-style GetRNA fill:MistyRose,stroke:black
-
-
-subgraph 
-miRNA-->mirBase[mirBase]
-miRNA-->GemiRNA[Gencode]
-end
-
-style miRNA fill:PaleTurquoise,stroke:black
-style mirBase fill:PaleTurquoise,stroke:black
-style GemiRNA fill:PaleTurquoise,stroke:black
-
-
-subgraph 
-piRNA-->piRBase[pirBase]
-piRNA-->piRNABank[piRNABank]
-end
-
-style piRNA fill:HoneyDew,stroke:black
-style piRBase fill:HoneyDew,stroke:black
-style piRNABank fill:HoneyDew,stroke:black
-
-
-subgraph 
-rRNA-->rrRNA
-end
-
-style rRNA fill:PeachPuff,stroke:black
-style rrRNA fill:PeachPuff,stroke:black
-
-
-subgraph 
-circRNA-->circBase[circBase]
-end
-
-style circRNA fill:LightSteelBlue,stroke:black
-style circBase fill:LightSteelBlue,stroke:black
-
-subgraph 
-RNA-->gencode[Gencode]
-end
-
-style RNA fill:Plum,stroke:black
-style gencode fill:Plum,stroke:black
-        ")
+img <- image_read(path = "files/01_db_1.png")
+img%>%grid.raster()
 ```
 
+## Pipeline
+
+```{r, pipeline, echo = FALSE, fig.align='center',fig.cap="<b>shortRNA-Seq pipeline</b>", fig.height= 15, message=FALSE, warning=FALSE}
+library(DiagrammeR)
+mermaid("
+graph TD
+
+subgraph 
+raw(FastQ or SRA)-->qc(QC)
+qc-->aln{Alignment}
+end
+
+style raw stroke:black
+style qc stroke:black
+style aln stroke:black
+
+
+subgraph 
+aln-->mu[Mapped reads]
+aln-->um[Unmapped reads]
+aln-->mmu[Multi-mapped reads]
+um-->rules[Rules to map]
+mmu-->rules[Rules to map]
+end
+
+style aln fill:MistyRose,stroke:black
+style mu fill:MistyRose,stroke:black
+style um fill:MistyRose,stroke:black
+style mmu fill:MistyRose,stroke:black
+style rules fill:MistyRose,stroke:black
+
+
+subgraph 
+rules-->norm[Normalization]
+mu-->norm[Normalization]
+norm-->da[Differential analysis]
+da-->fa[Functional analysis]
+end
+
+style norm fill:PaleTurquoise,stroke:black
+style da fill:PaleTurquoise,stroke:black
+style fa fill:PaleTurquoise,stroke:black
+
+
+subgraph 
+fa-->rep((Report))
+fa-->sa>Shiny App]
+end
+
+style rep fill:PeachPuff,stroke:black
+style sa fill:PeachPuff,stroke:black
+")
+```
 
 # Results
 
-Look at this animation [@gganimate2017] !!!! Figure \@ref(fig:gganimatefig).
+## Comparison with other methods
+Table \@ref(tab:comparison) shows the comparison of shortRNA with other tools.
 
+```{r, comparison, message=FALSE, warning=FALSE, echo=FALSE, results='asis'}
+library(kableExtra)
+library(icon)
+
+table <- data.frame(matrix(nrow = 13, ncol = 9))
+colnames(table) <- c("Tool", "Languages", "Quality control", "Alignment", "Databases", "Differential analysis",
+                     "Pathway analysis", "Exploratory analysis", "References")
+
+table$Tool <- c("ncProSeq", "MINTmap", "TAM 2.0", "SPORTS 1.0", "OASIS 2", "exceRpt", "Prost!", 
+                 "sRNAnalyzer", "sRNAtoolbox", "mirDeep", "DEUS", "AASRA", "shortRNA")
+
+
+table$Languages <- c("Python, Perl, R, Bash", "Perl", "", "Perl, R", 
+                     "Java, J2EE, mysql, Python, R, PHP, JavaScript", "", "", "", "", "", "", "Python", "R")
+
+
+kable(x = table, format = "html", 
+      booktabs = T, 
+      align = "c",
+      full_width = FALSE,
+      font_size = 5,
+      caption = "Comparison of different available tools for shortRNA-Seq analysis.")
+```
+
+<!-- Look at this animation [@gganimate2017] !!!! Figure \@ref(fig:gganimatefig). -->
 
 # Conclusion
 

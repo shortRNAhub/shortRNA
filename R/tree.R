@@ -24,7 +24,7 @@
 }
 
 ## longRNAs to tree
-.longRNA2path <- function(file, root) {
+.longRNA2path <- function(file, root, cores = detectCores() - 2) {
   library(rtracklayer)
   library(dplyr)
   library(tidyr)
@@ -32,7 +32,7 @@
   library(parallel)
 
   gff <- readGFF(file)
-  suppressWarnings(df <- data.frame(gff) %>% mutate_all(funs(replace_na(., ""))))
+  suppressWarnings(gff <- data.frame(gff) %>% mutate_all(funs(replace_na(., ""))))
   gff$gID <- gsub("\\..*", "", gff[, "gene_id"])
   gff$tID <- gsub("\\..*", "", gff[, "transcript_id"])
 
@@ -52,7 +52,7 @@
     )
     node <- as.Node(data.frame(x), na.rm = TRUE)
     return(node)
-  }, mc.preschedule = F, mc.cores = detectCores() - 1)
+  }, mc.preschedule = F, mc.cores = cores)
 
   tmp <- lapply(gff.tree, function(x) node$AddChildNode(x))
 
@@ -111,14 +111,14 @@
 #' \dontrun{
 #' @examples
 #' tRNA <- fastaToTree(file = "test/tRNAs.modified.fa", root = "tRNA")
-#' miRNA <- fastaToTree(file = "test/miRNAs.modified.fa", root = "miRNA")
-#' rRNA <- fastaToTree(file = "test/miRNAs.modified.fa", root = "miRNA")
-#' longRNA <- fastaToTree(file = "test/gencode.vM22.chr_patch_hapl_scaff.annotation.gff3.gz", root = "longRNA")
+#' miRNA.mirBase <- fastaToTree(file = "test/miRNAs.modified.fa", root = "miRNA")
+#' rRNA <- fastaToTree(file = "test/Mus_musculus/rRNAdb/", root = "rRNA")
+#' longRNA.gencode <- fastaToTree(file = "test/gencode.vM22.chr_patch_hapl_scaff.annotation.gff3.gz", root = "longRNA")
 #' }
 #' @export
 fastaToTree <- function(file, root) {
   if (root == "longRNA") {
-    return(.longRNA2path(file = file, root = root))
+    return(.longRNA2path(file = file, root = root, cores = 4))
   } else if(root == "rRNA"){
     return(.rRNA2path(files = file, root = "rRNA"))
   } else{
@@ -130,29 +130,6 @@ fastaToTree <- function(file, root) {
     node <- as.Node(data.frame(features = features, pathString = pathString), na.rm = T)
     return(node)
   }
-}
-
-
-# Combine two `data.frame` into one ----
-
-#' Combine a list of `data.frame` into one `data.tree`. `data.frame` should have a column "pathString", or specify.
-#' @author Deepak Tanwar (tanward@ethz.ch)
-#' @import data.tree plyr
-#' @seealso data.tree plyr
-#' @param dfList a list of data frames
-#' @param rootName name for the root
-#' @return A `list`: a `data.frame` and a `data.tree`
-#' \dontrun{
-#' @examples
-#' mm10 <- combineFeaturesDF(dfList = list(tRNA$df, miRNA$df), rootName = "mm10")
-#' }
-combineFeaturesDF <- function(dfList, rootName = "root", ...) {
-  library(plyr)
-  library(data.tree)
-  df <- Reduce(function(df1, df2) rbind.fill(df1, df2), dfList)
-  df$pathString <- paste(rootName, df$pathString, sep = "/")
-  tree.df <- as.Node(df)
-  return(list(df = df, tree = tree.df))
 }
 
 
@@ -270,17 +247,40 @@ addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", r
   return(tree)
 }
 
-load("../data/longRNA.rda")
 
-.treeToData <- function(tree) {
+# Save tree children as separate data objects ----
+.treeToData <- function(tree, cores = detectCores() - 2) {
   library(parallel)
   library(data.tree)
+  library(usethis)
   n <- names(tree$children)
   tmp <- mclapply(n, function(x) {
-    assign(x = x, value = node[[x]])
-    p <- paste0("usethis::use_data(", x, ",overwrite = TRUE)")
+    assign(x = x, value = tree[[x]])
+    p <- paste0("use_data(", x, ",overwrite = TRUE)")
     eval(parse(text = p))
-  }, mc.preschedule = FALSE, mc.cores = detectCores() - 1)
+  }, mc.preschedule = FALSE, mc.cores = cores)
 }
 
-.treeToData(tree = r)
+.treeToData(tree = longRNA.gencode, cores = 4)
+
+# Combine two `data.frame` into one ----
+
+#' Combine a list of `data.frame` into one `data.tree`. `data.frame` should have a column "pathString", or specify.
+#' @author Deepak Tanwar (tanward@ethz.ch)
+#' @import data.tree plyr
+#' @seealso data.tree plyr
+#' @param dfList a list of data frames
+#' @param rootName name for the root
+#' @return A `list`: a `data.frame` and a `data.tree`
+#' \dontrun{
+#' @examples
+#' mm10 <- combineFeaturesDF(dfList = list(tRNA$df, miRNA$df), rootName = "mm10")
+#' }
+combineFeaturesDF <- function(dfList, rootName = "root", ...) {
+  library(plyr)
+  library(data.tree)
+  df <- Reduce(function(df1, df2) rbind.fill(df1, df2), dfList)
+  df$pathString <- paste(rootName, df$pathString, sep = "/")
+  tree.df <- as.Node(df)
+  return(list(df = df, tree = tree.df))
+}
