@@ -23,14 +23,7 @@ Google fonts api stuff
 
 <title>shortRNA: a flexible framework for the analysis of short RNA sequencing data</title>
 
-<script src="Deepak_Tanwar_BC2_files/htmlwidgets-1.3/htmlwidgets.js"></script>
-<script src="Deepak_Tanwar_BC2_files/d3-3.3.8/d3.min.js"></script>
-<script src="Deepak_Tanwar_BC2_files/dagre-0.4.0/dagre-d3.min.js"></script>
-<link href="Deepak_Tanwar_BC2_files/mermaid-0.3.0/dist/mermaid.css" rel="stylesheet" />
-<script src="Deepak_Tanwar_BC2_files/mermaid-0.3.0/dist/mermaid.slim.min.js"></script>
-<link href="Deepak_Tanwar_BC2_files/DiagrammeR-styles-0.2/styles.css" rel="stylesheet" />
-<script src="Deepak_Tanwar_BC2_files/chromatography-0.1/chromatography.js"></script>
-<script src="Deepak_Tanwar_BC2_files/DiagrammeR-binding-1.0.1/DiagrammeR.js"></script>
+<script src="Deepak_Tanwar_BC2_files/kePrint-0.0.1/kePrint.js"></script>
 
 
 
@@ -44,7 +37,7 @@ padding: 0;
 }
 body {
 margin: 0;
-font-size: 45px;
+font-size: 25px;
 width: 45in;
 height: 38in;
 padding: 0;
@@ -149,7 +142,7 @@ padding-bottom: calc(38in * 0.01);
 }
 .poster_title h3 {
 color: #0b4545;
-font-size: 50pt;
+font-size: 45pt;
 margin: 0;
 border: 0;
 font-weight: normal;
@@ -175,7 +168,7 @@ margin-bottom: 0;
 .poster_body h1 {
 text-align: center;
 color: #ffffff;
-font-size: 65pt;
+font-size: 45pt;
 border: 2mm solid #0b4545;
 background-color: #0b4545;
 border-radius: 4mm 0mm;
@@ -185,7 +178,7 @@ font-weight: normal;
 }
 .poster_body h2 {
 color: #0b4545;
-font-size: 40pt;
+font-size: 30pt;
 padding-left: 4mm;
 font-weight: normal;
 }
@@ -318,32 +311,6 @@ font-size: 20pt;
 
 <div class='poster_body_wrap'>
 <div class='poster_body'>
-<!-- CSS -->
-<style>
-#main-img-left {
- width: 23%;
- margin-bottom: 1.5%;
-}
-#main-img-center {
- width: 10%;
- margin-bottom: -0.5%;
-}
-#main-img-right {
- width: 7%;
-}
-#p.caption {
- margin-top: -20;
- margin-bottom: 0;
-}
-
-figure {
-    display: block;
-    -webkit-margin-before: 0em;
-    -webkit-margin-after: 0em;
-    -webkit-margin-start: 0px;
-    -webkit-margin-end: 0px;
-}
-</style>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
 <p>Short RNAs, categorized as non-coding RNA molecules, are less than 200 nucleotides in length and play a vital role in the regulation of the genome. They have been implicated in a large number of biological processes and pathological conditions. Moreover, short RNAs are linked with development and disease such as cancer, Parkinson’s disease, Alzheimer’s disease, and prion disease. However, their study is hampered by a number of technical issues, including the bioinformatic analysis of short RNA sequencing data:</p>
@@ -353,6 +320,24 @@ figure {
 <li><p>Current methods do not adequately account for the hierarchical organization of the features one might want to quantify or test.</p></li>
 <li><p>There is still no consensus on the most appropriate normalization method for short-RNA-Seq data.</p></li>
 </ol>
+<div id="example-1" class="section level3">
+<h3>Example 1</h3>
+<p><strong>The issue of post-transcriptional modifications:</strong></p>
+<p>tRNA-iMet-CAT-4 is transcribed from chrX, and as other tRNAs receives post-transcriptionally the 3’ addition of the nucleotides CCA:</p>
+<p>… GATTGAAACCATCCTCTGCTT    → <font color="red">aligns to multiple locations on the genome</font><br>
+        ↓<br>
+… GATTGAAACCATCCTCTGCTT<strong>CCA</strong>  → <font color="red">does not align to the genome</font></p>
+<p>to deal with this, researchers have often simply trimmed 3’ CCAs before alignment, however this can often results in the read becoming ambiguous when instead it initially wasn’t, as in the case above.
+One solution to this issue is to build a custom genome that is complemented with known, post-transcriptionally modified transcripts (see also 6)</p>
+</div>
+<div id="example-2" class="section level3">
+<h3>Example 2</h3>
+<p><img src="files/02_tRNA.png" align="right"/></p>
+<p><strong>The issue of ambiguity between related features:</strong>
+tRNA typically have several copies across the genome - for instance tRNA-Ala-AGC has 23 nearly-identical copies. While a genome alignment will make most reads from such features ambiguous (i.e. multimapping), from a functional point of view it is irrelevant from which exact location they came from.</p>
+<p>This issue becomes even more critical with tRNA fragments, which often have conserved sequences across different tRNAs.</p>
+<p>One way to address this issue is to aggregate reads into functional equivalence classes, i.e. higher level than specific genes/transcripts.</p>
+</div>
 <div id="objectives" class="section level2">
 <h2>Objectives</h2>
 <p><strong><em>Because of these shortcomings, we developed a new analysis framework that addresses these issues using alternative nested equivalence classes over a customized annotation. We present this approach and package, and show how it can be used to redress biases in the quantification of both specific RNA as well as large RNA classes.</em></strong></p>
@@ -360,9 +345,8 @@ figure {
 </div>
 <div id="methods" class="section level1">
 <h1>Methods</h1>
-<div id="annotations-or-databases-for-alignment" class="section level2">
-<h2>Annotations or databases for alignment</h2>
-<p>Figure <a href="#fig:mm10DB">1</a> shows how the database for mm10 is organised.</p>
+<div id="database-sources" class="section level2">
+<h2>Database sources</h2>
 <div class="figure" style="text-align: center"><span id="fig:mm10DB"></span>
 <img src="Deepak_Tanwar_BC2_files/figure-html/mm10DB-1.png" alt="&lt;b&gt;Databases used for mouse&lt;/b&gt;" width="1372.8" />
 <p class="caption">
@@ -370,13 +354,21 @@ Figure 1: <b>Databases used for mouse</b>
 </p>
 </div>
 </div>
-<div id="pipeline" class="section level2">
-<h2>Pipeline</h2>
+<div id="pipeline-for-data-analysis" class="section level2">
+<h2>Pipeline for data analysis</h2>
 <div class="figure" style="text-align: center"><span id="fig:pipeline"></span>
-<div id="htmlwidget-bb161a269e5330c5917d" style="width:672px;height:1440px;" class="DiagrammeR html-widget"></div>
-<script type="application/json" data-for="htmlwidget-bb161a269e5330c5917d">{"x":{"diagram":"\ngraph TD\n\nsubgraph \nraw(FastQ or SRA)-->qc(QC)\nqc-->aln{Alignment}\nend\n\nstyle raw stroke:black\nstyle qc stroke:black\nstyle aln stroke:black\n\n\nsubgraph \naln-->mu[Mapped reads]\naln-->um[Unmapped reads]\naln-->mmu[Multi-mapped reads]\num-->rules[Rules to map]\nmmu-->rules[Rules to map]\nend\n\nstyle aln fill:MistyRose,stroke:black\nstyle mu fill:MistyRose,stroke:black\nstyle um fill:MistyRose,stroke:black\nstyle mmu fill:MistyRose,stroke:black\nstyle rules fill:MistyRose,stroke:black\n\n\nsubgraph \nrules-->norm[Normalization]\nmu-->norm[Normalization]\nnorm-->da[Differential analysis]\nda-->fa[Functional analysis]\nend\n\nstyle norm fill:PaleTurquoise,stroke:black\nstyle da fill:PaleTurquoise,stroke:black\nstyle fa fill:PaleTurquoise,stroke:black\n\n\nsubgraph \nfa-->rep((Report))\nfa-->sa>Shiny App]\nend\n\nstyle rep fill:PeachPuff,stroke:black\nstyle sa fill:PeachPuff,stroke:black\n"},"evals":[],"jsHooks":[]}</script>
+<img src="Deepak_Tanwar_BC2_files/figure-html/pipeline-1.png" alt="&lt;b&gt;Pipeline for data analysis&lt;/b&gt;" width="1372.8" />
 <p class="caption">
-Figure 2: <b>shortRNA-Seq pipeline</b>
+Figure 2: <b>Pipeline for data analysis</b>
+</p>
+</div>
+</div>
+<div id="tree-structure" class="section level2">
+<h2>Tree structure</h2>
+<div class="figure" style="text-align: center"><span id="fig:tree"></span>
+<img src="Deepak_Tanwar_BC2_files/figure-html/tree-1.png" alt="&lt;b&gt;An example tree structre from tRNAs&lt;/b&gt;" width="1372.8" />
+<p class="caption">
+Figure 3: <b>An example tree structre from tRNAs</b>
 </p>
 </div>
 </div>
@@ -385,423 +377,360 @@ Figure 2: <b>shortRNA-Seq pipeline</b>
 <h1>Results</h1>
 <div id="comparison-with-other-methods" class="section level2">
 <h2>Comparison with other methods</h2>
-<p>Table <a href="#tab:comparison">1</a> shows the comparison of shortRNA with other tools.</p>
-<table>
-<caption>
-<span id="tab:comparison">Table 1: </span>Comparison of different available tools for shortRNA-Seq analysis.
-</caption>
+<table class="table" style="font-size: 16px; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
-<th style="text-align:center;">
-Tool
+<th style="text-align:left;">
+Features
 </th>
-<th style="text-align:center;">
-Languages
+<th style="text-align:left;">
+ncPro-Seq
 </th>
-<th style="text-align:center;">
-Quality control
+<th style="text-align:left;">
+SPORTS 1.0
 </th>
-<th style="text-align:center;">
-Alignment
+<th style="text-align:left;">
+exceRpt
 </th>
-<th style="text-align:center;">
-Databases
+<th style="text-align:left;">
+RAPID
 </th>
-<th style="text-align:center;">
-Differential analysis
-</th>
-<th style="text-align:center;">
-Pathway analysis
-</th>
-<th style="text-align:center;">
-Exploratory analysis
-</th>
-<th style="text-align:center;">
-References
+<th style="text-align:left;">
+shortRNA
 </th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align:center;">
-ncProSeq
+<td style="text-align:left;">
+Languages
 </td>
-<td style="text-align:center;">
-Python, Perl, R, Bash
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:center;">
-MINTmap
-</td>
-<td style="text-align:center;">
+<td style="text-align:left;">
+R
 Perl
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:center;">
-TAM 2.0
-</td>
-<td style="text-align:center;">
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:center;">
-SPORTS 1.0
-</td>
-<td style="text-align:center;">
-Perl, R
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:center;">
-OASIS 2
-</td>
-<td style="text-align:center;">
-Java, J2EE, mysql, Python, R, PHP, JavaScript
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:center;">
-exceRpt
-</td>
-<td style="text-align:center;">
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:center;">
-Prost!
-</td>
-<td style="text-align:center;">
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:center;">
-sRNAnalyzer
-</td>
-<td style="text-align:center;">
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:center;">
-sRNAtoolbox
-</td>
-<td style="text-align:center;">
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:center;">
-mirDeep
-</td>
-<td style="text-align:center;">
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:center;">
-DEUS
-</td>
-<td style="text-align:center;">
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-</tr>
-<tr>
-<td style="text-align:center;">
-AASRA
-</td>
-<td style="text-align:center;">
 Python
 </td>
-<td style="text-align:center;">
-NA
+<td style="text-align:left;">
+Perl
+R
 </td>
-<td style="text-align:center;">
-NA
+<td style="text-align:left;">
+Java
+R
 </td>
-<td style="text-align:center;">
-NA
+<td style="text-align:left;">
+R
+Bash
+Perl
 </td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
-</td>
-<td style="text-align:center;">
-NA
+<td style="text-align:left;">
+R
 </td>
 </tr>
 <tr>
-<td style="text-align:center;">
-shortRNA
+<td style="text-align:left;">
+Quality
+control
 </td>
-<td style="text-align:center;">
-R
+<td style="text-align:left;">
+✔
 </td>
-<td style="text-align:center;">
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Alignment/
+Mapping
+</td>
+<td style="text-align:left;">
+Bowtie
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Databases
+</td>
+<td style="text-align:left;">
+miRBase
+Rfam
+RepeatMasker
+User defined
+</td>
+<td style="text-align:left;">
+miRBase
+rRNA (NCBI)
+GtRNAdb
+piRNA
+Ensembl
+Rfam
+</td>
+<td style="text-align:left;">
+Gencode
+mirBase
+GtRNAdb
+circBase
+</td>
+<td style="text-align:left;">
+User defined
+</td>
+<td style="text-align:left;">
+Gencode
+GtRNAdb
+miRbase
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Normalization
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Differential
+analysis
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Functional
+analysis
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
 NA
 </td>
-<td style="text-align:center;">
-NA
+<td style="text-align:left;">
+✘
 </td>
-<td style="text-align:center;">
-NA
+<td style="text-align:left;">
+✔
 </td>
-<td style="text-align:center;">
-NA
+</tr>
+<tr>
+<td style="text-align:left;">
+Exploratory
+data
+analysis
 </td>
-<td style="text-align:center;">
-NA
+<td style="text-align:left;">
+✔
 </td>
-<td style="text-align:center;">
-NA
+<td style="text-align:left;">
+✔
 </td>
-<td style="text-align:center;">
-NA
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Adequate handling
+of post-transcriptional
+modifications
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Unannotated
+transcripts/
+Novel
+predictions
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Heirarchical
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+User
+interface
+</td>
+<td style="text-align:left;">
+CLI
+GUI
+</td>
+<td style="text-align:left;">
+CLI
+</td>
+<td style="text-align:left;">
+CLI
+GUI
+</td>
+<td style="text-align:left;">
+CLI
+</td>
+<td style="text-align:left;">
+CLI
+GUI
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Implementation
+</td>
+<td style="text-align:left;">
+Tool
+Webserver
+</td>
+<td style="text-align:left;">
+Tool
+</td>
+<td style="text-align:left;">
+Tool
+Webserver
+Docker
+</td>
+<td style="text-align:left;">
+Tool
+Conda
+</td>
+<td style="text-align:left;">
+R package
 </td>
 </tr>
 </tbody>
 </table>
-<!-- Look at this animation [@gganimate2017] !!!! Figure \@ref(fig:gganimatefig). -->
+</div>
+<div id="reads-assignment-to-features" class="section level2">
+<h2>Reads assignment to features</h2>
+<div class="figure" style="text-align: center"><span id="fig:seqAsn"></span>
+<img src="Deepak_Tanwar_BC2_files/figure-html/seqAsn-1.png" alt="&lt;b&gt;Read assignment&lt;/b&gt;" width="1372.8" />
+<p class="caption">
+Figure 4: <b>Read assignment</b>
+</p>
+</div>
+</div>
+<div id="transripts-abundance-plot" class="section level2">
+<h2>Transripts abundance plot</h2>
+<div class="figure" style="text-align: center"><span id="fig:gene"></span>
+<img src="Deepak_Tanwar_BC2_files/figure-html/gene-1.png" alt="&lt;b&gt;Transcript abundance in Kdm1a (example)&lt;/b&gt;" width="1372.8" />
+<p class="caption">
+Figure 5: <b>Transcript abundance in Kdm1a (example)</b>
+</p>
+</div>
 </div>
 </div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
+<ul>
+<li><p>Standalone R package for shortRNA-Seq data analysis.</p></li>
+<li><p>QC, alignment, differential analysis, and functional analysis within the package.</p></li>
+<li><p>Heirarchical: easily extendable to additional feature trees (for example Vault RNAs).</p></li>
+</ul>
 <div id="code" class="section level2">
 <h2>Code</h2>
-<p>The code is available from Github: <a href="github.com/mansuylab/shortRNA">mansuylab/shortRNA</a></p>
+<p>Github: <a href="github.com/mansuylab/shortRNA">mansuylab/shortRNA</a></p>
 </div>
 </div>
 <div id="references" class="section level1">

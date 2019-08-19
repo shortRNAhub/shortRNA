@@ -1,8 +1,9 @@
 graph TD
 
 subgraph 
-raw(FastQ or SRA)-->qc(QC)
-qc-->aln{Alignment}
+raw(FastQ or SRA)-->qc[QC]
+qc-->collapse[Collapse]
+collapse-->aln{Alignment}
 end
 
 style raw stroke:black

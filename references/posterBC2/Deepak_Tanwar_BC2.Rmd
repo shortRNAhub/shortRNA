@@ -22,7 +22,7 @@ author:
     affil: 3,4
   - name: Isabelle M. Mansuy
     affil: 4
-author_textsize: "50pt"
+author_textsize: "45pt"
 author_textcol: "#0b4545"
 
 #--Affiliations--#
@@ -44,7 +44,7 @@ primary_colour:	"#008080"
 secondary_colour:	"#0b4545"
 accent_colour:	"#cc0000"
 body_bgcol: "#ffffff"
-body_textsize: "45px"
+body_textsize: "25px"
 body_textcol: "#000000"
 
 #--Columns options--#
@@ -56,13 +56,13 @@ column_numbers:	3
 
 #--Sections options--#
 sectitle_textcol: "#ffffff"
-sectitle_textsize:	"65pt"
+sectitle_textsize:	"45pt"
 sectitle_bgcol: "#0b4545"
 sectitle_bordercol: "#0b4545"
 sectitle_borderwidth: "2mm"
 sectitle_boxshape: "4mm 0mm"
 sectitle2_textcol: "#0b4545"
-sectitle2_textsize:	"40pt"
+sectitle2_textsize:	"30pt"
 
 #--Link options--#
 link_col: "#0b4545"
@@ -78,34 +78,6 @@ bibliography: files/references.bib
 link-citations: yes
 ---
 
-<!-- CSS -->
-<style>
-#main-img-left {
- width: 23%;
- margin-bottom: 1.5%;
-}
-#main-img-center {
- width: 10%;
- margin-bottom: -0.5%;
-}
-#main-img-right {
- width: 7%;
-}
-#p.caption {
- margin-top: -20;
- margin-bottom: 0;
-}
-
-figure {
-    display: block;
-    -webkit-margin-before: 0em;
-    -webkit-margin-after: 0em;
-    -webkit-margin-start: 0px;
-    -webkit-margin-end: 0px;
-}
-</style>
-
-
 # Introduction
 
 Short RNAs, categorized as non-coding RNA molecules, are less than 200 nucleotides in length and play a vital role in the regulation of the genome. They have been implicated in a large number of biological processes and pathological conditions. Moreover, short RNAs are linked with development and disease such as cancer, Parkinson’s disease, Alzheimer’s disease, and prion disease. However, their study is hampered by a number of technical issues, including the bioinformatic analysis of short RNA sequencing data:
@@ -118,6 +90,31 @@ Short RNAs, categorized as non-coding RNA molecules, are less than 200 nucleotid
 
 4. There is still no consensus on the most appropriate normalization method for short-RNA-Seq data.
 
+### Example 1
+
+**The issue of post-transcriptional modifications:**
+
+tRNA-iMet-CAT-4 is transcribed from chrX, and as other tRNAs receives post-transcriptionally the 3' addition of the nucleotides CCA:
+
+... GATTGAAACCATCCTCTGCTT &emsp;&emsp;&nbsp;&rarr; <font color="red">aligns to multiple locations on the genome</font><br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&darr;<br>
+... GATTGAAACCATCCTCTGCTT**CCA** &nbsp;&rarr; <font color="red">does not align to the genome</font>
+
+
+to deal with this, researchers have often simply trimmed 3' CCAs before alignment, however this can often results in the read becoming ambiguous when instead it initially wasn't, as in the case above.
+One solution to this issue is to build a custom genome that is complemented with known, post-transcriptionally modified transcripts (see also 6)
+
+### Example 2
+
+<img src="files/02_tRNA.png" align="right"/>
+
+**The issue of ambiguity between related features:**
+tRNA typically have several copies across the genome - for instance tRNA-Ala-AGC has 23 nearly-identical copies. While a genome alignment will make most reads from such features ambiguous (i.e. multimapping), from a functional point of view it is irrelevant from which exact location they came from.
+
+This issue becomes even more critical with tRNA fragments, which often have conserved sequences across different tRNAs.
+
+One way to address this issue is to aggregate reads into functional equivalence classes, i.e. higher level than specific genes/transcripts.
+
 
 ## Objectives
 
@@ -126,108 +123,97 @@ Short RNAs, categorized as non-coding RNA molecules, are less than 200 nucleotid
 
 # Methods
 
-## Annotations or databases for alignment
+## Database sources
 
-Figure \@ref(fig:mm10DB) shows how the database for mm10 is organised.
-
-```{r, mm10DB, echo = FALSE, fig.align='center',fig.cap="<b>Databases used for mouse</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=3}
+```{r, mm10DB, echo = FALSE, fig.align='center',fig.cap="<b>Databases used for mouse</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=6}
 require(knitr)
 library(magick)
 library(grid)
 
-img <- image_read(path = "files/01_db_1.png")
+img <- image_read(path = "files/database.png")
 img%>%grid.raster()
 ```
 
-## Pipeline
+## Pipeline for data analysis
 
-```{r, pipeline, echo = FALSE, fig.align='center',fig.cap="<b>shortRNA-Seq pipeline</b>", fig.height= 15, message=FALSE, warning=FALSE}
-library(DiagrammeR)
-mermaid("
-graph TD
+```{r, pipeline, echo = FALSE, fig.align='center',fig.cap="<b>Pipeline for data analysis</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=8}
+require(knitr)
+library(magick)
+library(grid)
 
-subgraph 
-raw(FastQ or SRA)-->qc(QC)
-qc-->aln{Alignment}
-end
-
-style raw stroke:black
-style qc stroke:black
-style aln stroke:black
-
-
-subgraph 
-aln-->mu[Mapped reads]
-aln-->um[Unmapped reads]
-aln-->mmu[Multi-mapped reads]
-um-->rules[Rules to map]
-mmu-->rules[Rules to map]
-end
-
-style aln fill:MistyRose,stroke:black
-style mu fill:MistyRose,stroke:black
-style um fill:MistyRose,stroke:black
-style mmu fill:MistyRose,stroke:black
-style rules fill:MistyRose,stroke:black
-
-
-subgraph 
-rules-->norm[Normalization]
-mu-->norm[Normalization]
-norm-->da[Differential analysis]
-da-->fa[Functional analysis]
-end
-
-style norm fill:PaleTurquoise,stroke:black
-style da fill:PaleTurquoise,stroke:black
-style fa fill:PaleTurquoise,stroke:black
-
-
-subgraph 
-fa-->rep((Report))
-fa-->sa>Shiny App]
-end
-
-style rep fill:PeachPuff,stroke:black
-style sa fill:PeachPuff,stroke:black
-")
+img <- image_read(path = "files/Pipeline.png")
+img%>%grid.raster()
 ```
+
+## Tree structure
+
+```{r, tree, echo = FALSE, fig.align='center',fig.cap="<b>An example tree structre from tRNAs</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=8}
+require(knitr)
+library(magick)
+library(grid)
+
+img <- image_read(path = "files/tree.png")
+img%>%grid.raster()
+```
+
 
 # Results
 
 ## Comparison with other methods
-Table \@ref(tab:comparison) shows the comparison of shortRNA with other tools.
 
-```{r, comparison, message=FALSE, warning=FALSE, echo=FALSE, results='asis'}
+```{r, comparison, echo = FALSE, fig.align='center',fig.cap="<b>Read assignment</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=11.5}
+file <- readxl::read_excel("./files/Tools_comparison.xlsx", sheet = 2)
+library(plyr)
 library(kableExtra)
-library(icon)
 
-table <- data.frame(matrix(nrow = 13, ncol = 9))
-colnames(table) <- c("Tool", "Languages", "Quality control", "Alignment", "Databases", "Differential analysis",
-                     "Pathway analysis", "Exploratory analysis", "References")
+file <- t(file)
+colnames(file) <- file[1,]
+file <- file[-1,]
+file <- data.frame(Features = rownames(file), file, check.names = F)
+rownames(file) <- NULL
 
-table$Tool <- c("ncProSeq", "MINTmap", "TAM 2.0", "SPORTS 1.0", "OASIS 2", "exceRpt", "Prost!", 
-                 "sRNAnalyzer", "sRNAtoolbox", "mirDeep", "DEUS", "AASRA", "shortRNA")
-
-
-table$Languages <- c("Python, Perl, R, Bash", "Perl", "", "Perl, R", 
-                     "Java, J2EE, mysql, Python, R, PHP, JavaScript", "", "", "", "", "", "", "Python", "R")
-
-
-kable(x = table, format = "html", 
-      booktabs = T, 
-      align = "c",
-      full_width = FALSE,
-      font_size = 5,
-      caption = "Comparison of different available tools for shortRNA-Seq analysis.")
+file %>%
+kable("html") %>%
+  kable_styling(font_size = 16)
 ```
 
-<!-- Look at this animation [@gganimate2017] !!!! Figure \@ref(fig:gganimatefig). -->
+## Reads assignment to features
+
+```{r, seqAsn, echo = FALSE, fig.align='center',fig.cap="<b>Read assignment</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=4.5}
+require(knitr)
+library(magick)
+library(grid)
+
+img <- image_read(path = "files/03_seqs_asign.png")
+img%>%grid.raster()
+```
+
+
+## Transripts abundance plot
+
+```{r, gene, echo = FALSE, fig.align='center',fig.cap="<b>Transcript abundance in Kdm1a (example)</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=4.5}
+require(knitr)
+library(magick)
+library(grid)
+
+img <- image_read(path = "files/gene.png")
+img%>%grid.raster()
+```
+
 
 # Conclusion
 
+- Standalone R package for shortRNA-Seq data analysis.
+
+- QC, alignment, differential analysis, and functional analysis within the package.
+
+- Heirarchical: easily extendable to additional feature trees (for example Vault RNAs).
+
+
+
 
 ## Code
-The code is available from Github: [mansuylab/shortRNA](github.com/mansuylab/shortRNA)
+Github: [mansuylab/shortRNA](github.com/mansuylab/shortRNA)
+
 
 # References
