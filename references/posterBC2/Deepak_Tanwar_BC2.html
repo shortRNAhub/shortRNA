@@ -17,11 +17,11 @@ Font-awesome icons ie github or twitter
 Google fonts api stuff
 -->
 <link href='https://fonts.googleapis.com/css?family=Arial' rel='stylesheet'>
-<link href='https://fonts.googleapis.com/css?family=Palantino' rel='stylesheet'>
+<link href='https://fonts.googleapis.com/css?family=Arial' rel='stylesheet'>
 
 
 
-<title>shortRNA: a flexible framework for the analysis of short RNA sequencing data</title>
+<title>shortRNA: A flexible framework for the analysis of short RNA sequencing data applicable to studies on epigenetic inheritance</title>
 
 <script src="Deepak_Tanwar_BC2_files/kePrint-0.0.1/kePrint.js"></script>
 
@@ -37,7 +37,7 @@ padding: 0;
 }
 body {
 margin: 0;
-font-size: 25px;
+font-size: 27px;
 width: 45in;
 height: 38in;
 padding: 0;
@@ -87,7 +87,7 @@ transform: translateY(-50%);
 -webkit-transform: translateY(-50%);
 }
 #title {
-font-family: Palantino;
+font-family: Arial;
 }
 /* unvisited link */
 a:link {
@@ -142,7 +142,7 @@ padding-bottom: calc(38in * 0.01);
 }
 .poster_title h3 {
 color: #0b4545;
-font-size: 45pt;
+font-size: 60pt;
 margin: 0;
 border: 0;
 font-weight: normal;
@@ -299,9 +299,9 @@ font-size: 20pt;
 </div>
 <!-- Poster Title -->
 <div class= "poster_title">
-<h1 id="title">shortRNA: a flexible framework for the analysis of short RNA sequencing data</h1>
-<h3 id="author">Pierre-Luc Germain<sup>1,2,3</sup>, <u>Deepak K. Tanwar</u><sup>3,4</sup>, Isabelle M. Mansuy<sup>4</sup></h3><br>
-<h5 id="affiliation"><sup>1</sup> Institute for Neuroscience, Department of Health Sciences and Technology, ETH Zürich<br> <sup>2</sup> Statistical Bioinformatics Group, University of Zürich<br> <sup>3</sup> Statistical Bioinformatics Group, Swiss Institute of Bioinformatics<br> <sup>4</sup> Laboratory of Neuroepigenetics, Medical Faculty of the University of Zürich and Department of Health Sciences and Technology of the ETH Zürich</h5>
+<h1 id="title">shortRNA: A flexible framework for the analysis of short RNA sequencing data applicable to studies on epigenetic inheritance</h1>
+<h3 id="author">Pierre-Luc Germain<sup>†</sup><sup>1,2,3,4</sup>, <u>Deepak K. Tanwar</u><sup>†</sup><sup>1,2,3</sup>, Isabelle M. Mansuy<sup>1,2</sup></h3><br>
+<h5 id="affiliation"><sup>1</sup> Institute for Neuroscience, Department of Health Sciences and Technology, ETH Zürich<br> <sup>2</sup> Laboratory of Neuroepigenetics, Brain Research Inistitute, Medical Faculty of the University of Zürich and Institute for Neuroscience, Department of Health Sciences and Technology of the ETH Zürich<br> <sup>3</sup> Statistical Bioinformatics Group, Swiss Institute of Bioinformatics<br> <sup>4</sup> Statistical Bioinformatics Group, University of Zürich</h5>
 </div>
 <!-- Right Logo  -->
 <div class="logo_right">
@@ -323,16 +323,16 @@ font-size: 20pt;
 <div id="example-1" class="section level3">
 <h3>Example 1</h3>
 <p><strong>The issue of post-transcriptional modifications:</strong></p>
-<p>tRNA-iMet-CAT-4 is transcribed from chrX, and as other tRNAs receives post-transcriptionally the 3’ addition of the nucleotides CCA:</p>
+<p><strong>tRNA-iMet-CAT-4</strong> is transcribed from chrX, and as other tRNAs receives post-transcriptionally the 3’ addition of the nucleotides CCA:</p>
 <p>… GATTGAAACCATCCTCTGCTT    → <font color="red">aligns to multiple locations on the genome</font><br>
         ↓<br>
 … GATTGAAACCATCCTCTGCTT<strong>CCA</strong>  → <font color="red">does not align to the genome</font></p>
 <p>to deal with this, researchers have often simply trimmed 3’ CCAs before alignment, however this can often results in the read becoming ambiguous when instead it initially wasn’t, as in the case above.
 One solution to this issue is to build a custom genome that is complemented with known, post-transcriptionally modified transcripts (see also 6)</p>
+<p><img src="files/02_tRNA.png" align="right"/ width="400"></p>
 </div>
 <div id="example-2" class="section level3">
 <h3>Example 2</h3>
-<p><img src="files/02_tRNA.png" align="right"/></p>
 <p><strong>The issue of ambiguity between related features:</strong>
 tRNA typically have several copies across the genome - for instance tRNA-Ala-AGC has 23 nearly-identical copies. While a genome alignment will make most reads from such features ambiguous (i.e. multimapping), from a functional point of view it is irrelevant from which exact location they came from.</p>
 <p>This issue becomes even more critical with tRNA fragments, which often have conserved sequences across different tRNAs.</p>
@@ -345,39 +345,109 @@ tRNA typically have several copies across the genome - for instance tRNA-Ala-AGC
 </div>
 <div id="methods" class="section level1">
 <h1>Methods</h1>
+<p>shortRNA R package is an extension to the <strong>TreeSummarisedExperiment</strong> object.</p>
 <div id="database-sources" class="section level2">
 <h2>Database sources</h2>
-<div class="figure" style="text-align: center"><span id="fig:mm10DB"></span>
-<img src="Deepak_Tanwar_BC2_files/figure-html/mm10DB-1.png" alt="&lt;b&gt;Databases used for mouse&lt;/b&gt;" width="1372.8" />
-<p class="caption">
-Figure 1: <b>Databases used for mouse</b>
-</p>
-</div>
-</div>
-<div id="pipeline-for-data-analysis" class="section level2">
-<h2>Pipeline for data analysis</h2>
-<div class="figure" style="text-align: center"><span id="fig:pipeline"></span>
-<img src="Deepak_Tanwar_BC2_files/figure-html/pipeline-1.png" alt="&lt;b&gt;Pipeline for data analysis&lt;/b&gt;" width="1372.8" />
-<p class="caption">
-Figure 2: <b>Pipeline for data analysis</b>
-</p>
-</div>
+<figure>
+<center>
+<img src="files/database.png" width="500" style="display:block">
+<br>
+<figcaption>
+<b>Figure 1:</b> Databases used for mouse.
+</figcaption>
+</center>
+</figure>
+<!-- ```{r, mm10DB, echo = FALSE, fig.align='center',fig.cap="<b>Databases used for mouse</b>", fig.width= 5, message=FALSE, warning=FALSE, fig.height=5} -->
+<!-- require(knitr) -->
+<!-- library(magick) -->
+<!-- library(grid) -->
+<!-- img <- image_read(path = "files/database.png") -->
+<!-- img%>%grid.raster() -->
+<!-- ``` -->
+<p><br></p>
 </div>
 <div id="tree-structure" class="section level2">
 <h2>Tree structure</h2>
-<div class="figure" style="text-align: center"><span id="fig:tree"></span>
-<img src="Deepak_Tanwar_BC2_files/figure-html/tree-1.png" alt="&lt;b&gt;An example tree structre from tRNAs&lt;/b&gt;" width="1372.8" />
-<p class="caption">
-Figure 3: <b>An example tree structre from tRNAs</b>
-</p>
+<figure>
+<center>
+<img src="files/tree.png" width="1200" style="display:block">
+<br>
+<figcaption>
+<b>Figure 2:</b> An example tree structre from tRNAs.
+</figcaption>
+</center>
+</figure>
+<!-- ```{r, tree, echo = FALSE, fig.align='center',fig.cap="<b>An example tree structre from tRNAs</b>", fig.width= 12, message=FALSE, warning=FALSE, fig.height=8} -->
+<!-- require(knitr) -->
+<!-- library(magick) -->
+<!-- library(grid) -->
+<!-- img <- image_read(path = "files/tree.png") -->
+<!-- img%>%grid.raster() -->
+<!-- ``` -->
 </div>
+<div id="pipeline-for-data-analysis" class="section level2">
+<h2>Pipeline for data analysis</h2>
+<figure>
+<center>
+<img src="files/Pipeline.png" width="1000" style="display:block">
+<br>
+<figcaption>
+<b>Figure 3:</b> Pipeline for data analysis.
+</figcaption>
+</center>
+</figure>
+<!-- ```{r, pipeline, echo = FALSE, fig.align='center',fig.cap="<b>Pipeline for data analysis</b>", fig.width= 10, message=FALSE, warning=FALSE, fig.height=10} -->
+<!-- require(knitr) -->
+<!-- library(magick) -->
+<!-- library(grid) -->
+<!-- img <- image_read(path = "files/Pipeline.png") -->
+<!-- img%>%grid.raster() -->
+<!-- ``` -->
 </div>
 </div>
 <div id="results" class="section level1">
 <h1>Results</h1>
+<div id="reads-assignment-to-features" class="section level2">
+<h2>Reads assignment to features</h2>
+<figure>
+<center>
+<img src="files/03_seqs_asign.png" width="1000" style="display:block">
+<br>
+<figcaption>
+<b>Figure 4:</b> Reads assignment (sperm short RNA-Seq).
+</figcaption>
+</center>
+</figure>
+<!-- ```{r, seqAsn, echo = FALSE, fig.align='center',fig.cap="<b>Read assignment</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=4.5} -->
+<!-- require(knitr) -->
+<!-- library(magick) -->
+<!-- library(grid) -->
+<!-- img <- image_read(path = "files/03_seqs_asign.png") -->
+<!-- img%>%grid.raster() -->
+<!-- ``` -->
+</div>
+<div id="transripts-abundance-plot" class="section level2">
+<h2>Transripts abundance plot</h2>
+<figure>
+<center>
+<img src="files/gene.png" width="1000" style="display:block">
+<br>
+<figcaption>
+<b>Figure 4:</b> Transcript abundance in Kdm1a (example).
+</figcaption>
+</center>
+</figure>
+<!-- ```{r, gene, echo = FALSE, fig.align='center',fig.cap="<b>Transcript abundance in Kdm1a (example)</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=4.5} -->
+<!-- require(knitr) -->
+<!-- library(magick) -->
+<!-- library(grid) -->
+<!-- img <- image_read(path = "files/gene.png") -->
+<!-- img%>%grid.raster() -->
+<!-- ``` -->
+</div>
 <div id="comparison-with-other-methods" class="section level2">
 <h2>Comparison with other methods</h2>
-<table class="table" style="font-size: 16px; margin-left: auto; margin-right: auto;">
+<table class="table" style="font-size: 25px; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -406,22 +476,16 @@ shortRNA
 Languages
 </td>
 <td style="text-align:left;">
-R
-Perl
-Python
+R, Perl, Python
 </td>
 <td style="text-align:left;">
-Perl
-R
+Perl, R
 </td>
 <td style="text-align:left;">
-Java
-R
+Java, R
 </td>
 <td style="text-align:left;">
-R
-Bash
-Perl
+R, Bash, Perl
 </td>
 <td style="text-align:left;">
 R
@@ -474,32 +538,19 @@ Bowtie
 Databases
 </td>
 <td style="text-align:left;">
-miRBase
-Rfam
-RepeatMasker
-User defined
+miRBase, Rfam, RepeatMasker, User defined
 </td>
 <td style="text-align:left;">
-miRBase
-rRNA (NCBI)
-GtRNAdb
-piRNA
-Ensembl
-Rfam
+miRBase, rRNA (NCBI), GtRNAdb, piRNA, Ensembl, Rfam
 </td>
 <td style="text-align:left;">
-Gencode
-mirBase
-GtRNAdb
-circBase
+Gencode, mirBase, GtRNAdb, circBase
 </td>
 <td style="text-align:left;">
 User defined
 </td>
 <td style="text-align:left;">
-Gencode
-GtRNAdb
-miRbase
+Gencode, GtRNAdb, miRbase, piRNA precursors, User defined
 </td>
 </tr>
 <tr>
@@ -653,26 +704,43 @@ Heirarchical
 </tr>
 <tr>
 <td style="text-align:left;">
+isoMirs
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 User
 interface
 </td>
 <td style="text-align:left;">
-CLI
-GUI
+CLI, GUI
 </td>
 <td style="text-align:left;">
 CLI
 </td>
 <td style="text-align:left;">
-CLI
-GUI
+CLI, GUI
 </td>
 <td style="text-align:left;">
 CLI
 </td>
 <td style="text-align:left;">
-CLI
-GUI
+CLI, GUI
 </td>
 </tr>
 <tr>
@@ -680,20 +748,16 @@ GUI
 Implementation
 </td>
 <td style="text-align:left;">
-Tool
-Webserver
+Tool, Webserver
 </td>
 <td style="text-align:left;">
 Tool
 </td>
 <td style="text-align:left;">
-Tool
-Webserver
-Docker
+Tool, Webserver, Docker
 </td>
 <td style="text-align:left;">
-Tool
-Conda
+Tool, Conda
 </td>
 <td style="text-align:left;">
 R package
@@ -702,31 +766,14 @@ R package
 </tbody>
 </table>
 </div>
-<div id="reads-assignment-to-features" class="section level2">
-<h2>Reads assignment to features</h2>
-<div class="figure" style="text-align: center"><span id="fig:seqAsn"></span>
-<img src="Deepak_Tanwar_BC2_files/figure-html/seqAsn-1.png" alt="&lt;b&gt;Read assignment&lt;/b&gt;" width="1372.8" />
-<p class="caption">
-Figure 4: <b>Read assignment</b>
-</p>
-</div>
-</div>
-<div id="transripts-abundance-plot" class="section level2">
-<h2>Transripts abundance plot</h2>
-<div class="figure" style="text-align: center"><span id="fig:gene"></span>
-<img src="Deepak_Tanwar_BC2_files/figure-html/gene-1.png" alt="&lt;b&gt;Transcript abundance in Kdm1a (example)&lt;/b&gt;" width="1372.8" />
-<p class="caption">
-Figure 5: <b>Transcript abundance in Kdm1a (example)</b>
-</p>
-</div>
-</div>
 </div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
 <ul>
-<li><p>Standalone R package for shortRNA-Seq data analysis.</p></li>
+<li><p><strong>Standalone</strong> R package for shortRNA-Seq data analysis.</p></li>
+<li><p>Extension to the <strong>TreeSummarizedExperiment</strong> object.</p></li>
 <li><p>QC, alignment, differential analysis, and functional analysis within the package.</p></li>
-<li><p>Heirarchical: easily extendable to additional feature trees (for example Vault RNAs).</p></li>
+<li><p><strong>Heirarchical</strong>: easily extendable to additional feature trees (for example Vault RNAs).</p></li>
 </ul>
 <div id="code" class="section level2">
 <h2>Code</h2>

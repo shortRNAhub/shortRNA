@@ -4,8 +4,8 @@ poster_height: "38in"
 poster_width: "45in"
 
 #--Title--#
-title: "shortRNA: a flexible framework for the analysis of short RNA sequencing data"
-titletext_fontfamily: "Palantino"
+title: "shortRNA: A flexible framework for the analysis of short RNA sequencing data applicable to studies on epigenetic inheritance"
+titletext_fontfamily: "Arial"
 title_textsize: "75pt"
 titlebox_bgcol: "#008080"
 titlebox_bordercol: '#0b4545'
@@ -16,13 +16,13 @@ logoright_name: "files/shortRNA.png"
 
 #--Authors--#
 author:
-  - name: Pierre-Luc Germain
+  - name: Pierre-Luc Germain<sup>†</sup>
+    affil: 1,2,3,4
+  - name: <u>Deepak K. Tanwar</u><sup>†</sup>
     affil: 1,2,3
-  - name: <u>Deepak K. Tanwar</u>
-    affil: 3,4
   - name: Isabelle M. Mansuy
-    affil: 4
-author_textsize: "45pt"
+    affil: 1,2
+author_textsize: "60pt"
 author_textcol: "#0b4545"
 
 #--Affiliations--#
@@ -30,12 +30,12 @@ affiliation:
   - num: 1
     address: "Institute for Neuroscience, Department of Health Sciences and Technology, ETH Zürich"
   - num: 2
-    address: "Statistical Bioinformatics Group, University of Zürich"
+    address: "Laboratory of Neuroepigenetics, Brain Research Inistitute, Medical Faculty of the University of Zürich and Institute for Neuroscience, Department of Health Sciences and Technology of the ETH Zürich"
   - num: 3
     address: "Statistical Bioinformatics Group, Swiss Institute of Bioinformatics"
   - num: 4
-    address: "Laboratory of Neuroepigenetics, Medical Faculty of the University of Zürich and Department of Health Sciences and Technology of the ETH Zürich"
-affiliation_textsize: "40pt"
+    address: "Statistical Bioinformatics Group, University of Zürich"
+affiliation_textsize: "30px"
 affiliation_textcol: "#FFFFFF"
 
 #--Poster options--#
@@ -44,7 +44,7 @@ primary_colour:	"#008080"
 secondary_colour:	"#0b4545"
 accent_colour:	"#cc0000"
 body_bgcol: "#ffffff"
-body_textsize: "25px"
+body_textsize: "27px"
 body_textcol: "#000000"
 
 #--Columns options--#
@@ -78,6 +78,7 @@ bibliography: files/references.bib
 link-citations: yes
 ---
 
+
 # Introduction
 
 Short RNAs, categorized as non-coding RNA molecules, are less than 200 nucleotides in length and play a vital role in the regulation of the genome. They have been implicated in a large number of biological processes and pathological conditions. Moreover, short RNAs are linked with development and disease such as cancer, Parkinson’s disease, Alzheimer’s disease, and prion disease. However, their study is hampered by a number of technical issues, including the bioinformatic analysis of short RNA sequencing data:
@@ -94,7 +95,7 @@ Short RNAs, categorized as non-coding RNA molecules, are less than 200 nucleotid
 
 **The issue of post-transcriptional modifications:**
 
-tRNA-iMet-CAT-4 is transcribed from chrX, and as other tRNAs receives post-transcriptionally the 3' addition of the nucleotides CCA:
+**tRNA-iMet-CAT-4** is transcribed from chrX, and as other tRNAs receives post-transcriptionally the 3' addition of the nucleotides CCA:
 
 ... GATTGAAACCATCCTCTGCTT &emsp;&emsp;&nbsp;&rarr; <font color="red">aligns to multiple locations on the genome</font><br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&darr;<br>
@@ -104,9 +105,9 @@ tRNA-iMet-CAT-4 is transcribed from chrX, and as other tRNAs receives post-trans
 to deal with this, researchers have often simply trimmed 3' CCAs before alignment, however this can often results in the read becoming ambiguous when instead it initially wasn't, as in the case above.
 One solution to this issue is to build a custom genome that is complemented with known, post-transcriptionally modified transcripts (see also 6)
 
-### Example 2
+<img src="files/02_tRNA.png" align="right"/ width="400">
 
-<img src="files/02_tRNA.png" align="right"/>
+### Example 2
 
 **The issue of ambiguity between related features:**
 tRNA typically have several copies across the genome - for instance tRNA-Ala-AGC has 23 nearly-identical copies. While a genome alignment will make most reads from such features ambiguous (i.e. multimapping), from a functional point of view it is irrelevant from which exact location they came from.
@@ -123,46 +124,125 @@ One way to address this issue is to aggregate reads into functional equivalence 
 
 # Methods
 
+shortRNA R package is an extension to the **TreeSummarisedExperiment** object.
+
 ## Database sources
 
-```{r, mm10DB, echo = FALSE, fig.align='center',fig.cap="<b>Databases used for mouse</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=6}
-require(knitr)
-library(magick)
-library(grid)
+<figure>
+<center>
+  <img src="files/database.png" width="500" style="display:block">
+  <br>
+  <figcaption><b>Figure 1:</b> Databases used for mouse.</figcaption>
+</center>  
+</figure>
 
-img <- image_read(path = "files/database.png")
-img%>%grid.raster()
-```
+<!-- ```{r, mm10DB, echo = FALSE, fig.align='center',fig.cap="<b>Databases used for mouse</b>", fig.width= 5, message=FALSE, warning=FALSE, fig.height=5} -->
+<!-- require(knitr) -->
+<!-- library(magick) -->
+<!-- library(grid) -->
 
-## Pipeline for data analysis
+<!-- img <- image_read(path = "files/database.png") -->
+<!-- img%>%grid.raster() -->
+<!-- ``` -->
 
-```{r, pipeline, echo = FALSE, fig.align='center',fig.cap="<b>Pipeline for data analysis</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=8}
-require(knitr)
-library(magick)
-library(grid)
+<br>
 
-img <- image_read(path = "files/Pipeline.png")
-img%>%grid.raster()
-```
 
 ## Tree structure
 
-```{r, tree, echo = FALSE, fig.align='center',fig.cap="<b>An example tree structre from tRNAs</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=8}
-require(knitr)
-library(magick)
-library(grid)
+<figure>
+<center>
+  <img src="files/tree.png" width="1200" style="display:block">
+  <br>
+  <figcaption><b>Figure 2:</b> An example tree structre from tRNAs.</figcaption>
+</center>
+</figure>
 
-img <- image_read(path = "files/tree.png")
-img%>%grid.raster()
-```
+
+
+<!-- ```{r, tree, echo = FALSE, fig.align='center',fig.cap="<b>An example tree structre from tRNAs</b>", fig.width= 12, message=FALSE, warning=FALSE, fig.height=8} -->
+<!-- require(knitr) -->
+<!-- library(magick) -->
+<!-- library(grid) -->
+
+<!-- img <- image_read(path = "files/tree.png") -->
+<!-- img%>%grid.raster() -->
+<!-- ``` -->
+
+
+## Pipeline for data analysis
+
+<figure>
+<center>
+  <img src="files/Pipeline.png" width="1000" style="display:block">
+  <br>
+  <figcaption><b>Figure 3:</b> Pipeline for data analysis.</figcaption>
+</center>  
+</figure>
+
+
+
+
+<!-- ```{r, pipeline, echo = FALSE, fig.align='center',fig.cap="<b>Pipeline for data analysis</b>", fig.width= 10, message=FALSE, warning=FALSE, fig.height=10} -->
+<!-- require(knitr) -->
+<!-- library(magick) -->
+<!-- library(grid) -->
+
+<!-- img <- image_read(path = "files/Pipeline.png") -->
+<!-- img%>%grid.raster() -->
+<!-- ``` -->
 
 
 # Results
 
+
+## Reads assignment to features
+
+<figure>
+<center>
+  <img src="files/03_seqs_asign.png" width="1000" style="display:block">
+  <br>
+  <figcaption><b>Figure 4:</b> Reads assignment (sperm short RNA-Seq).</figcaption>
+</center>
+</figure>
+
+
+<!-- ```{r, seqAsn, echo = FALSE, fig.align='center',fig.cap="<b>Read assignment</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=4.5} -->
+<!-- require(knitr) -->
+<!-- library(magick) -->
+<!-- library(grid) -->
+
+<!-- img <- image_read(path = "files/03_seqs_asign.png") -->
+<!-- img%>%grid.raster() -->
+<!-- ``` -->
+
+
+## Transripts abundance plot
+
+<figure>
+<center>
+  <img src="files/gene.png" width="1000" style="display:block">
+  <br>
+  <figcaption><b>Figure 4:</b> Transcript abundance in Kdm1a (example).</figcaption>
+</center>
+</figure>
+
+<!-- ```{r, gene, echo = FALSE, fig.align='center',fig.cap="<b>Transcript abundance in Kdm1a (example)</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=4.5} -->
+<!-- require(knitr) -->
+<!-- library(magick) -->
+<!-- library(grid) -->
+
+<!-- img <- image_read(path = "files/gene.png") -->
+<!-- img%>%grid.raster() -->
+<!-- ``` -->
+
 ## Comparison with other methods
 
-```{r, comparison, echo = FALSE, fig.align='center',fig.cap="<b>Read assignment</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=11.5}
+```{r, comparison, echo = FALSE, fig.align='center',fig.cap="<b>Read assignment</b>", fig.width= 15, message=FALSE, warning=FALSE, fig.height=11.5, results='asis'}
 file <- readxl::read_excel("./files/Tools_comparison.xlsx", sheet = 2)
+
+file <- apply(file, 2, function(x)gsub(pattern = "\n", replacement = ", ", x = as.character(x)))
+
 library(plyr)
 library(kableExtra)
 
@@ -172,43 +252,24 @@ file <- file[-1,]
 file <- data.frame(Features = rownames(file), file, check.names = F)
 rownames(file) <- NULL
 
+
+
 file %>%
 kable("html") %>%
-  kable_styling(font_size = 16)
+  kable_styling(font_size = 25)
 ```
 
-## Reads assignment to features
-
-```{r, seqAsn, echo = FALSE, fig.align='center',fig.cap="<b>Read assignment</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=4.5}
-require(knitr)
-library(magick)
-library(grid)
-
-img <- image_read(path = "files/03_seqs_asign.png")
-img%>%grid.raster()
-```
-
-
-## Transripts abundance plot
-
-```{r, gene, echo = FALSE, fig.align='center',fig.cap="<b>Transcript abundance in Kdm1a (example)</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=4.5}
-require(knitr)
-library(magick)
-library(grid)
-
-img <- image_read(path = "files/gene.png")
-img%>%grid.raster()
-```
 
 
 # Conclusion
 
-- Standalone R package for shortRNA-Seq data analysis.
+- **Standalone** R package for shortRNA-Seq data analysis.
+
+- Extension to the **TreeSummarizedExperiment** object.
 
 - QC, alignment, differential analysis, and functional analysis within the package.
 
-- Heirarchical: easily extendable to additional feature trees (for example Vault RNAs).
-
+- **Heirarchical**: easily extendable to additional feature trees (for example Vault RNAs).
 
 
 
