@@ -31,28 +31,28 @@ Google fonts api stuff
 
 <style>
 @page {
-size: 45in 38in;
+size: 33in 46.8in;
 margin: 0;
 padding: 0;
 }
 body {
 margin: 0;
-font-size: 27px;
-width: 45in;
-height: 38in;
+font-size: 30px;
+width: 33in;
+height: 46.8in;
 padding: 0;
 text-align: justify;
 font-family: Arial;
 background-color: #ffffff;
 }
 .poster_wrap {
-width: 45in;
-height: 38in;
+width: 33in;
+height: 46.8in;
 padding: 0cm;
 }
 .title_container {
-width: 45in;
-height: calc(38in * 0.15);
+width: 33in;
+height: calc(46.8in * 0.15);
 overflow: hidden;
 background-color: #008080;
 border: 1cm solid #0b4545;
@@ -129,16 +129,16 @@ height: 100%;
 color: #000000
 }
 .poster_title h1 {
-font-size: 75pt;
+font-size: 80pt;
 margin: 0;
 border: 0;
 font-weight: normal;
 }
 .poster_body_wrap{
-width: 45in;
-height: calc(38in * 0.83);
-padding-top: calc(38in * 0.01);
-padding-bottom: calc(38in * 0.01);
+width: 33in;
+height: calc(46.8in * 0.83);
+padding-top: calc(46.8in * 0.01);
+padding-bottom: calc(46.8in * 0.01);
 }
 .poster_title h3 {
 color: #0b4545;
@@ -169,7 +169,7 @@ margin-bottom: 0;
 text-align: center;
 color: #ffffff;
 font-size: 45pt;
-border: 2mm solid #0b4545;
+border: 1mm solid #0b4545;
 background-color: #0b4545;
 border-radius: 4mm 0mm;
 margin-top: 2mm;
@@ -178,7 +178,7 @@ font-weight: normal;
 }
 .poster_body h2 {
 color: #0b4545;
-font-size: 30pt;
+font-size: 35pt;
 padding-left: 4mm;
 font-weight: normal;
 }
@@ -295,7 +295,7 @@ font-size: 20pt;
 <div class="title_container">
 <!-- Left Logo  -->
 <div class="logo_left">
-<img src= 'files/ethz.jpg' style="width: 80%">
+<img src= 'files/ethz.png' style="width: 80%">
 </div>
 <!-- Poster Title -->
 <div class= "poster_title">
@@ -305,7 +305,7 @@ font-size: 20pt;
 </div>
 <!-- Right Logo  -->
 <div class="logo_right">
-<img src=files/shortRNA.png style="width: 80%">
+<img src=files/baseplot.png style="width: 80%">
 </div>
 </div>
 
@@ -313,7 +313,7 @@ font-size: 20pt;
 <div class='poster_body'>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>Short RNAs, categorized as non-coding RNA molecules, are less than 200 nucleotides in length and play a vital role in the regulation of the genome. They have been implicated in a large number of biological processes and pathological conditions. Moreover, short RNAs are linked with development and disease such as cancer, Parkinson’s disease, Alzheimer’s disease, and prion disease. However, their study is hampered by a number of technical issues, including the bioinformatic analysis of short RNA sequencing data:</p>
+<p>Short RNAs, categorized as non-coding RNA molecules, are less than 200 nucleotides in length and play a vital role in the regulation of the genome. They have been implicated in a large number of biological processes and pathological conditions. Moreover, they are shown to be altered in different models of epigenetic inheritance <span class="citation">[<a href="#ref-Posner2019">1</a>–<a href="#ref-Gapp2014">3</a>]</span>. Short RNA studies are hampered by a number of technical issues, including the bioinformatic analysis of short RNA sequencing data:</p>
 <ol style="list-style-type: decimal">
 <li><p>Analysis methods are not simultaneously optimized towards all known short RNA types (e.g. miRNA, piRNA, rasiRNA, siRNA, snoRNA, tsRNA, tRFs, srRNA and U-RNA). On top of multiplying the work needed for an extensive analysis of the data, this can potentially create misassignment mistakes.</p></li>
 <li><p>Current methods either do not deal adequately with post-transcriptional modifications (for genome-based methods); or if they do (transcript-based methods), they do not deal with unannotated features.</p></li>
@@ -324,130 +324,106 @@ font-size: 20pt;
 <h3>Example 1</h3>
 <p><strong>The issue of post-transcriptional modifications:</strong></p>
 <p><strong>tRNA-iMet-CAT-4</strong> is transcribed from chrX, and as other tRNAs receives post-transcriptionally the 3’ addition of the nucleotides CCA:</p>
-<p>… GATTGAAACCATCCTCTGCTT    → <font color="red">aligns to multiple locations on the genome</font><br>
+<p>… TCCTCTGCTT    → <font color="red">aligns to multiple locations on the genome</font><br>
         ↓<br>
-… GATTGAAACCATCCTCTGCTT<strong>CCA</strong>  → <font color="red">does not align to the genome</font></p>
-<p>to deal with this, researchers have often simply trimmed 3’ CCAs before alignment, however this can often results in the read becoming ambiguous when instead it initially wasn’t, as in the case above.
-One solution to this issue is to build a custom genome that is complemented with known, post-transcriptionally modified transcripts (see also 6)</p>
+… TCCTCTGCTT<strong>CCA</strong>  → <font color="red">does not align to the genome</font></p>
+<p>To deal with this, researchers have often simply trimmed 3’ CCAs before alignment, however this can often results in the read becoming ambiguous when instead it initially wasn’t, as in the case above. One solution to this issue is to build a custom genome that is complemented with known, post-transcriptionally modified transcripts <span class="citation">[<a href="#ref-Hoffmann2017">4</a>]</span>.</p>
 <p><img src="files/02_tRNA.png" align="right"/ width="400"></p>
 </div>
 <div id="example-2" class="section level3">
 <h3>Example 2</h3>
 <p><strong>The issue of ambiguity between related features:</strong>
-tRNA typically have several copies across the genome - for instance tRNA-Ala-AGC has 23 nearly-identical copies. While a genome alignment will make most reads from such features ambiguous (i.e. multimapping), from a functional point of view it is irrelevant from which exact location they came from.</p>
-<p>This issue becomes even more critical with tRNA fragments, which often have conserved sequences across different tRNAs.</p>
-<p>One way to address this issue is to aggregate reads into functional equivalence classes, i.e. higher level than specific genes/transcripts.</p>
+tRNA typically have several copies across the genome - for instance tRNA-Ala-AGC has 23 nearly-identical copies. While a genome alignment will make most reads from such features ambiguous (i.e. multimapping), from a functional point of view it is irrelevant from which exact location they came from. This issue becomes even more critical with tRNA fragments, which often have conserved sequences across different tRNAs. One way to address this issue is to aggregate reads into functional equivalence classes, i.e. higher level than specific genes/transcripts.</p>
 </div>
-<div id="objectives" class="section level2">
-<h2>Objectives</h2>
-<p><strong><em>Because of these shortcomings, we developed a new analysis framework that addresses these issues using alternative nested equivalence classes over a customized annotation. We present this approach and package, and show how it can be used to redress biases in the quantification of both specific RNA as well as large RNA classes.</em></strong></p>
 </div>
+<div id="objectives" class="section level1">
+<h1>Objectives</h1>
+<p>Because of these shortcomings, we developed a new analysis framework that addresses these issues using alternative nested equivalence classes over a customized annotation. We present this approach and package, and show how it can be used to redress biases in the quantification of both specific RNA as well as large RNA classes.</p>
 </div>
 <div id="methods" class="section level1">
 <h1>Methods</h1>
-<p>shortRNA R package is an extension to the <strong>TreeSummarisedExperiment</strong> object.</p>
+<p>shortRNA R package is an extension to the <strong>TreeSummarised-Experiment</strong> object.</p>
 <div id="database-sources" class="section level2">
 <h2>Database sources</h2>
 <figure>
 <center>
-<img src="files/database.png" width="500" style="display:block">
+<img src="files/database.png" width="550" style="display:block">
 <br>
 <figcaption>
 <b>Figure 1:</b> Databases used for mouse.
 </figcaption>
 </center>
 </figure>
-<!-- ```{r, mm10DB, echo = FALSE, fig.align='center',fig.cap="<b>Databases used for mouse</b>", fig.width= 5, message=FALSE, warning=FALSE, fig.height=5} -->
-<!-- require(knitr) -->
-<!-- library(magick) -->
-<!-- library(grid) -->
-<!-- img <- image_read(path = "files/database.png") -->
-<!-- img%>%grid.raster() -->
-<!-- ``` -->
 <p><br></p>
 </div>
 <div id="tree-structure" class="section level2">
 <h2>Tree structure</h2>
 <figure>
 <center>
-<img src="files/tree.png" width="1200" style="display:block">
+<img src="files/tree.png" width="935" style="display:block">
 <br>
 <figcaption>
-<b>Figure 2:</b> An example tree structre from tRNAs.
+<b>Figure 2:</b> An example tree structure from tRNAs.
 </figcaption>
 </center>
 </figure>
-<!-- ```{r, tree, echo = FALSE, fig.align='center',fig.cap="<b>An example tree structre from tRNAs</b>", fig.width= 12, message=FALSE, warning=FALSE, fig.height=8} -->
-<!-- require(knitr) -->
-<!-- library(magick) -->
-<!-- library(grid) -->
-<!-- img <- image_read(path = "files/tree.png") -->
-<!-- img%>%grid.raster() -->
-<!-- ``` -->
 </div>
-<div id="pipeline-for-data-analysis" class="section level2">
-<h2>Pipeline for data analysis</h2>
+<div id="pipeline-for-short-rna-seq-data-analysis" class="section level2">
+<h2>Pipeline for short RNA-Seq data analysis</h2>
 <figure>
 <center>
-<img src="files/Pipeline.png" width="1000" style="display:block">
+<img src="files/Pipeline.png" width="950" style="display:block">
 <br>
 <figcaption>
 <b>Figure 3:</b> Pipeline for data analysis.
 </figcaption>
 </center>
 </figure>
-<!-- ```{r, pipeline, echo = FALSE, fig.align='center',fig.cap="<b>Pipeline for data analysis</b>", fig.width= 10, message=FALSE, warning=FALSE, fig.height=10} -->
-<!-- require(knitr) -->
-<!-- library(magick) -->
-<!-- library(grid) -->
-<!-- img <- image_read(path = "files/Pipeline.png") -->
-<!-- img%>%grid.raster() -->
-<!-- ``` -->
 </div>
 </div>
 <div id="results" class="section level1">
 <h1>Results</h1>
-<div id="reads-assignment-to-features" class="section level2">
-<h2>Reads assignment to features</h2>
+<div id="tree-based-read-assignment-recover-a-large-fraction-of-reads-considered-ambiguous-from-a-mapping-point-of-view" class="section level2">
+<h2>Tree-based read assignment recover a large fraction of reads considered ambiguous from a mapping point of view</h2>
 <figure>
 <center>
 <img src="files/03_seqs_asign.png" width="1000" style="display:block">
 <br>
 <figcaption>
-<b>Figure 4:</b> Reads assignment (sperm short RNA-Seq).
+<b>Figure 4:</b> Reads assignment (Sperm short RNA-Seq <span class="citation">[<a href="#ref-Gapp2014">3</a>]</span>).
 </figcaption>
 </center>
 </figure>
-<!-- ```{r, seqAsn, echo = FALSE, fig.align='center',fig.cap="<b>Read assignment</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=4.5} -->
-<!-- require(knitr) -->
-<!-- library(magick) -->
-<!-- library(grid) -->
-<!-- img <- image_read(path = "files/03_seqs_asign.png") -->
-<!-- img%>%grid.raster() -->
-<!-- ``` -->
 </div>
-<div id="transripts-abundance-plot" class="section level2">
-<h2>Transripts abundance plot</h2>
+<div id="transripts-abundance-plot-for-uniqely-mapping-fragments" class="section level2">
+<h2>Transripts abundance plot for uniqely mapping fragments</h2>
 <figure>
 <center>
-<img src="files/gene.png" width="1000" style="display:block">
+<img src="files/gene.png" width="950" style="display:block">
 <br>
 <figcaption>
-<b>Figure 4:</b> Transcript abundance in Kdm1a (example).
+<b>Figure 5:</b> Unique fragments abundance for a transcript (example).
 </figcaption>
 </center>
 </figure>
-<!-- ```{r, gene, echo = FALSE, fig.align='center',fig.cap="<b>Transcript abundance in Kdm1a (example)</b>", fig.width= 14.3, message=FALSE, warning=FALSE, fig.height=4.5} -->
-<!-- require(knitr) -->
-<!-- library(magick) -->
-<!-- library(grid) -->
-<!-- img <- image_read(path = "files/gene.png") -->
-<!-- img%>%grid.raster() -->
-<!-- ``` -->
+<p><br></p>
 </div>
-<div id="comparison-with-other-methods" class="section level2">
-<h2>Comparison with other methods</h2>
-<table class="table" style="font-size: 25px; margin-left: auto; margin-right: auto;">
+<div id="rna-biotype-and-their-proportions" class="section level2">
+<h2>RNA biotype and their proportions</h2>
+<figure>
+<center>
+<img src="files/read_prop.png" width="950" style="display:block">
+<br>
+<figcaption>
+<b>Figure 6:</b> Read proportions from samples (example).
+</figcaption>
+</center>
+</figure>
+</div>
+<div id="comparison-of-shortrna-with-other-methods" class="section level2">
+<h2>Comparison of shortRNA with other methods</h2>
+<p>We compared 20 published tools for 21 features.</p>
+<table class="table" style="font-size: 26px; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
 <th style="text-align:left;">
@@ -770,18 +746,32 @@ R package
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
 <ul>
-<li><p><strong>Standalone</strong> R package for shortRNA-Seq data analysis.</p></li>
+<li><p><strong>Standalone</strong> R package for short RNA-Seq data analysis.</p></li>
 <li><p>Extension to the <strong>TreeSummarizedExperiment</strong> object.</p></li>
-<li><p>QC, alignment, differential analysis, and functional analysis within the package.</p></li>
-<li><p><strong>Heirarchical</strong>: easily extendable to additional feature trees (for example Vault RNAs).</p></li>
+<li><p>QC, alignment, differential analysis, and functional analysis within package.</p></li>
+<li><p><strong>Heirarchical</strong>: could easily be extended to additional feature trees (for example Vault RNAs).</p></li>
 </ul>
-<div id="code" class="section level2">
-<h2>Code</h2>
+</div>
+<div id="code" class="section level1">
+<h1>Code</h1>
 <p>Github: <a href="github.com/mansuylab/shortRNA">mansuylab/shortRNA</a></p>
 </div>
-</div>
-<div id="references" class="section level1">
+<div id="references" class="section level1 unnumbered">
 <h1>References</h1>
+<div id="refs" class="references">
+<div id="ref-Posner2019">
+<p>1. Posner R, Toker IA, Antonova O, Star E, Anava S, Azmon E, et al. Neuronal small RNAs control behavior transgenerationally. Cell. 2019;177:1814–1826.e15. doi:<a href="https://doi.org/10.1016/j.cell.2019.04.029">10.1016/j.cell.2019.04.029</a>.</p>
+</div>
+<div id="ref-Bohacek2015">
+<p>2. Bohacek J, Mansuy IM. Molecular insights into transgenerational non-genetic inheritance of acquired behaviours. Nature Reviews Genetics. 2015;16:641–52. doi:<a href="https://doi.org/10.1038/nrg3964">10.1038/nrg3964</a>.</p>
+</div>
+<div id="ref-Gapp2014">
+<p>3. Gapp K, Jawaid A, Sarkies P, Bohacek J, Pelczar P, Prados J, et al. Implication of sperm RNAs in transgenerational inheritance of the effects of early trauma in mice. Nature Neuroscience. 2014;17:667–9. doi:<a href="https://doi.org/10.1038/nn.3695">10.1038/nn.3695</a>.</p>
+</div>
+<div id="ref-Hoffmann2017">
+<p>4. Hoffmann A, Fallmann J, Vilardo E, Mörl M, Stadler PF, Amman F. Accurate mapping of tRNA reads. Bioinformatics. 2017;34:1116–24. doi:<a href="https://doi.org/10.1093/bioinformatics/btx756">10.1093/bioinformatics/btx756</a>.</p>
+</div>
+</div>
 </div>
 </div>
 </div>
