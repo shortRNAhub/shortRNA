@@ -165,7 +165,7 @@ shortRNA R package is an extension to the **TreeSummarised-Experiment** object.
 
 <figure>
 <center>
-  <img src="files/03_seqs_asign.png" width="1000" style="display:block">
+  <img src="files/03_seqs_asign.png" width="950" style="display:block">
   <br>
   <figcaption><b>Figure 4:</b> Reads assignment (Sperm short RNA-Seq [@Gapp2014]).</figcaption>
 </center>
