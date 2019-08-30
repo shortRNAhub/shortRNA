@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta name="generator" content="pandoc" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+<!--
+Font-awesome icons ie github or twitter
+-->
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/brands.css" integrity="sha384-n9+6/aSqa9lBidZMRCQHTHKJscPq6NW4pCQBiMmHdUCvPN8ZOg2zJJTkC7WIezWv" crossorigin="anonymous">
+
+<!--
+Google fonts api stuff
+-->
+<link href='https://fonts.googleapis.com/css?family=Arial' rel='stylesheet'>
+<link href='https://fonts.googleapis.com/css?family=Arial' rel='stylesheet'>
+
+
+
+<title>shortRNA: A flexible framework for the analysis of short RNA sequencing data applicable to studies on epigenetic inheritance</title>
+
+<script src="Deepak_Tanwar_BC2_files/kePrint-0.0.1/kePrint.js"></script>
+
+
+
+
+<style>
+@page {
+size: 33in 46.8in;
+margin: 0;
+padding: 0;
+}
+body {
+margin: 0;
+font-size: 30px;
+width: 33in;
+height: 46.8in;
+padding: 0;
+text-align: justify;
+font-family: Arial;
+}
+.poster_wrap {
+width: 33in;
+height: 46.8in;
+padding: 0cm;
+}
+.title_container {
+width: 33in;
+height: calc(46.8in * 0.15);
+overflow: hidden;
+background-color: #008080;
+border: 1cm solid #0b4545;
+}
+.logo_left {
+float: left;
+width: 10%;
+height: 100%;
+background-color: #008080;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+.logo_right {
+float: right;
+width: 10%;
+height: 100%;
+background-color: #008080;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+.poster_title {
+text-align: center;
+position: relative;
+float: left;
+width: 80%;
+height: 100%;
+color: #ffffff;
+top: 50%;
+transform: translateY(-50%);
+-webkit-transform: translateY(-50%);
+}
+#title {
+font-family: Arial;
+}
+/* unvisited link */
+a:link {
+color: #0b4545;
+}
+/*
+*.mybreak {
+*  break-before: column;
+*}
+*/
+
+/* visited link */
+a:visited {
+color: #0b4545;
+}
+
+/* mouse over link */
+a:hover {
+color: #0b4545;
+}
+
+/* selected link */
+a:active {
+color: #0b4545;
+}
+.poster_body {
+-webkit-column-count: 3; /* Chrome, Safari, Opera */
+-moz-column-count: 3; /* Firefox */
+column-count: 3;
+-webkit-column-fill: auto;
+-moz-column-fill: auto;
+column-fill: auto;
+-webkit-column-rule-width: 1mm;
+-moz-column-rule-width: 1mm;
+column-rule-width: 1mm;
+-webkit-column-rule-style: dashed;
+-moz-column-rule-style: dashed;
+column-rule-style: dashed;
+-webkit-column-rule-color: #008080;
+-moz-column-rule-color: #008080;
+column-rule-color: #008080;
+width: 100%;
+height: 100%;
+color: #000000
+background-color: #ffffff;
+}
+.poster_title h1 {
+font-size: 80pt;
+margin: 0;
+border: 0;
+font-weight: normal;
+}
+.poster_body_wrap{
+width: 33in;
+height: calc(46.8in * 0.83);
+padding-top: calc(46.8in * 0.01);
+padding-bottom: calc(46.8in * 0.01);
+padding-left: 1cm;
+padding-right: 1cm;
+background-color: #ffffff;
+}
+.poster_title h3 {
+color: #0b4545;
+font-size: 60pt;
+margin: 0;
+border: 0;
+font-weight: normal;
+}
+.poster_title h3 > sup {
+  font-size: 35pt;
+  margin-left: 0.02em;
+}
+.poster_title h5 {
+color: #FFFFFF;
+font-size: ;
+margin: 0;
+border: 0;
+font-weight: normal;
+}
+img {
+margin-top: 2cm;
+margin-bottom: 0;
+}
+.section {
+  padding: 0.2em;
+}
+.poster_body h1 {
+text-align: center;
+color: #ffffff;
+font-size: 45pt;
+border: 1mm solid #0b4545;
+background-color: #0b4545;
+border-radius: 4mm 0mm;
+margin-top: 2mm;
+margin-bottom: 2mm;
+font-weight: normal;
+}
+.poster_body h2 {
+color: #0b4545;
+font-size: 35pt;
+padding-left: 4mm;
+font-weight: normal;
+}
+.span {
+width: 200%;
+}
+/* center align leaflet map,
+from https://stackoverflow.com/questions/52112119/center-leaflet-in-a-rmarkdown-document */
+.html-widget {
+margin: auto;
+position: sticky;
+margin-top: 2cm;
+margin-bottom: 2cm;
+}
+.leaflet.html-widget.html-widget-static-bound.leaflet-container.leaflet-touch.leaflet-fade-anim.leaflet-grab.leaflet-touch-drag.leaflet-touch-zoom {
+position: sticky;
+width: 100%;
+}
+pre.sourceCode.r {
+background-color: #dddddd40;
+border-radius: 4mm;
+padding: 4mm;
+width: 75%;
+/* align-items: center; */
+margin: auto;
+padding-left: 2cm;
+}
+code.sourceCode.r{
+background-color: transparent;
+font-size: 20pt;
+border-radius: 2mm;
+}
+.caption {
+font-size: 25pt;
+}
+.table caption {
+font-size: 25pt;
+padding-bottom: 3mm;
+
+}
+code {
+font-size: 1em;
+font-family: monospace;
+background-color: #0b454524;
+color: #008080;
+padding: 1.2mm;
+border-radius: 2mm;
+}
+.poster_title code {
+font-size: 1em;
+}
+table {
+font-size: 40px;
+margin: auto;
+border-top: 3px solid #666;
+border-bottom: 3px solid #666;
+}
+table thead th {
+border-bottom: 3px solid #ddd;
+}
+td {
+padding: 8px;
+}
+th {
+padding: 15px;
+}
+caption {
+margin-bottom: 10px;
+}
+.poster_body p {
+margin-right: 4mm;
+margin-left: 4mm;
+margin-top: 6mm;
+margin-bottom: 10mm;
+}
+.poster_body ol {
+margin-right: 4mm;
+margin-left: 4mm;
+}
+#ul {
+margin-right: 4mm;
+margin-left: 4mm;
+}
+.references p {
+font-size: 20pt;
+}
+.orcid img {
+  width: 1em;
+}
+</style>
+</head>
+<body>
+
+
+<div class="poster_wrap">
+<div class="title_container">
+<!-- Left Logo  -->
+<div class="logo_left">
+<img src= 'files/ethz.png' style="width: 80%">
+</div>
+<!-- Poster Title -->
+<div class= "poster_title">
+<h1 id="title">shortRNA: A flexible framework for the analysis of short RNA sequencing data applicable to studies on epigenetic inheritance</h1>
+<h3 id="author">Pierre-Luc Germain<sup>†</sup><sup>1,2,3,4</sup>, <u>Deepak K. Tanwar</u><sup>†</sup><sup>1,2,3</sup>, Isabelle M. Mansuy<sup>1,2</sup></h3><br>
+<h5 id="affiliation"><sup>1</sup> Institute for Neuroscience, Department of Health Sciences and Technology, ETH Zürich<br> <sup>2</sup> Laboratory of Neuroepigenetics, Brain Research Inistitute, Medical Faculty of the University of Zürich and Institute for Neuroscience, Department of Health Sciences and Technology of the ETH Zürich<br> <sup>3</sup> Statistical Bioinformatics Group, Swiss Institute of Bioinformatics<br> <sup>4</sup> Statistical Bioinformatics Group, University of Zürich</h5>
+</div>
+<!-- Right Logo  -->
+<div class="logo_right">
+<img src=files/baseplot.png style="width: 80%">
+</div>
+</div>
+
+<div class='poster_body_wrap'>
+<div class='poster_body'>
+<style>
+.mybreak {
+   break-before: column;
+}
+</style>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>Short RNAs, categorized as non-coding RNA molecules, are less than 200 nucleotides in length and play a vital role in the regulation of the genome. They have been implicated in a large number of biological processes and pathological conditions. Moreover, they are shown to be altered in different models of epigenetic inheritance<span class="citation"><sup><a href="#ref-Posner2019">1</a>–<a href="#ref-Gapp2014">3</a></sup></span>. Short RNA studies are hampered by several technical issues, including the bioinformatic analysis of short RNA sequencing data:</p>
+<ol style="list-style-type: decimal">
+<li><p>Analysis methods are not simultaneously optimized towards all known short RNA types (e.g. miRNA, piRNA, rasiRNA, siRNA, snoRNA, tsRNA, tRFs, srRNA and U-RNA). On top of multiplying the work needed for an extensive analysis of the data, this can potentially create misassignment mistakes.</p></li>
+<li><p>Current methods either do not deal adequately with post-transcriptional modifications (for genome-based methods); or if they do (transcript-based methods), they do not deal with unannotated features.</p></li>
+<li><p>Current methods do not adequately account for the hierarchical organization of the features one might want to quantify or test.</p></li>
+<li><p>There is still no consensus on the most appropriate normalization method for short-RNA-Seq data.</p></li>
+</ol>
+<div id="example-1" class="section level3">
+<h3>Example 1</h3>
+<p><strong>The issue of post-transcriptional modifications:</strong></p>
+<p><strong>tRNA-iMet-CAT-4</strong> is transcribed from chrX, and as other tRNAs receives post-transcriptionally the 3’ addition of the nucleotides CCA:</p>
+<p>… TCCTCTGCTT    → <font color="red">aligns to multiple locations on the genome</font><br>
+        ↓<br>
+… TCCTCTGCTT<strong>CCA</strong>  → <font color="red">does not align to the genome</font></p>
+<p>To deal with this, researchers have often simply trimmed 3’ CCAs before alignment, however, this can often result in the read becoming ambiguous when instead it initially wasn’t, as in the case above. One solution to this issue is to build a custom genome that is complemented with known, post-transcriptionally modified transcripts<span class="citation"><sup><a href="#ref-Hoffmann2017">4</a></sup></span>.</p>
+<p><img src="files/02_tRNA.png" align="right"/ width="400"></p>
+</div>
+<div id="example-2" class="section level3">
+<h3>Example 2</h3>
+<p><strong>The issue of ambiguity between related features:</strong>
+tRNA typically have several copies across the genome - for instance, tRNA-Ala-AGC has 23 nearly-identical copies. While a genome alignment will make most reads from such features ambiguous (i.e. multi-mapping), from a functional point of view it is irrelevant from which exact location they came from. This issue becomes even more critical with tRNA fragments, which often have conserved sequences across different tRNAs. One way to address this issue is to aggregate reads into functional equivalence classes, i.e. higher level than specific genes/transcripts.</p>
+</div>
+</div>
+<div id="objectives" class="section level1">
+<h1>Objectives</h1>
+<p>Because of these shortcomings, we developed a new analysis framework that addresses these issues using alternative nested equivalence classes over a customized annotation. We present this approach and package, and show how it can be used to redress biases in the quantification of both specific RNA as well as large RNA classes.</p>
+</div>
+<div id="methods" class="section level1">
+<h1>Methods</h1>
+<p>shortRNA R package is an extension to the <strong>TreeSummarised-Experiment</strong> object.</p>
+<div id="database-sources" class="section level2">
+<h2>Database sources</h2>
+<figure>
+<center>
+<img src="files/database.png" width="600" style="display:block">
+<br>
+<figcaption>
+<b>Figure 1:</b> Databases used for mouse.
+</figcaption>
+</center>
+</figure>
+</div>
+<div id="tree-structure" class="section level2 mybreak">
+<h2>Tree structure</h2>
+<figure>
+<center>
+<img src="files/tree1.png" width="935" style="display:block">
+<br>
+<figcaption>
+<b>Figure 2:</b> An example tree structure from miRNAs.
+</figcaption>
+</center>
+</figure>
+</div>
+<div id="pipeline-for-short-rna-seq-data-analysis" class="section level2">
+<h2>Pipeline for short RNA-Seq data analysis</h2>
+<figure>
+<center>
+<img src="files/Pipeline.png" width="950" style="display:block">
+<br>
+<figcaption>
+<b>Figure 3:</b> Pipeline for data analysis.
+</figcaption>
+</center>
+</figure>
+</div>
+</div>
+<div id="results" class="section level1">
+<h1>Results</h1>
+<div id="tree-based-reads-assignment-recovers-a-large-fraction-of-reads-considered-ambiguous-from-a-mapping-point-of-view" class="section level2">
+<h2>Tree-based reads assignment recovers a large fraction of reads considered ambiguous from a mapping point of view</h2>
+<figure>
+<center>
+<img src="files/03_seqs_asign.png" width="950" style="display:block">
+<br>
+<figcaption>
+<b>Figure 4:</b> Reads assignment (Sperm short RNA-Seq<span class="citation"><sup><a href="#ref-Gapp2014">3</a></sup></span>).
+</figcaption>
+</center>
+</figure>
+</div>
+<div id="transcripts-abundance-plot-for-uniquely-mapping-fragments" class="section level2">
+<h2>Transcripts abundance plot for uniquely mapping fragments</h2>
+<figure>
+<center>
+<img src="files/gene.png" width="950" style="display:block">
+<br>
+<figcaption>
+<b>Figure 5:</b> Unique fragments abundance for a transcript (example).
+</figcaption>
+</center>
+</figure>
+</div>
+<div id="rna-biotype-and-their-proportions" class="section level2 mybreak">
+<h2>RNA biotype and their proportions</h2>
+<figure>
+<center>
+<img src="files/read_prop.png" width="950" style="display:block">
+<br>
+<figcaption>
+<b>Figure 6:</b> Read proportions from samples (example).
+</figcaption>
+</center>
+</figure>
+</div>
+<div id="comparison-of-shortrna-with-other-methods" class="section level2">
+<h2>Comparison of shortRNA with other methods</h2>
+<p>We compared 20 published tools for 21 features.</p>
+<table class="table" style="font-size: 26px; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Features
+</th>
+<th style="text-align:left;">
+ncPro-Seq
+</th>
+<th style="text-align:left;">
+SPORTS 1.0
+</th>
+<th style="text-align:left;">
+exceRpt
+</th>
+<th style="text-align:left;">
+RAPID
+</th>
+<th style="text-align:left;">
+shortRNA
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Languages
+</td>
+<td style="text-align:left;">
+R, Perl, Python
+</td>
+<td style="text-align:left;">
+Perl, R
+</td>
+<td style="text-align:left;">
+Java, R
+</td>
+<td style="text-align:left;">
+R, Bash, Perl
+</td>
+<td style="text-align:left;">
+R
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Quality
+control
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Alignment/
+Mapping
+</td>
+<td style="text-align:left;">
+Bowtie
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Databases
+</td>
+<td style="text-align:left;">
+miRBase, Rfam, RepeatMasker, User defined
+</td>
+<td style="text-align:left;">
+miRBase, rRNA (NCBI), GtRNAdb, piRNA, Ensembl, Rfam
+</td>
+<td style="text-align:left;">
+Gencode, mirBase, GtRNAdb, circBase
+</td>
+<td style="text-align:left;">
+User defined
+</td>
+<td style="text-align:left;">
+Gencode, GtRNAdb, miRbase, piRNA precursors, User defined
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Normalization
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Differential
+analysis
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Functional
+analysis
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+NA
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Exploratory
+data
+analysis
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Adequate handling
+of post-transcriptional
+modifications
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Unannotated
+transcripts/
+Novel
+predictions
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✔
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Heirarchical
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+isoMirs
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✘
+</td>
+<td style="text-align:left;">
+✔
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+User
+interface
+</td>
+<td style="text-align:left;">
+CLI, GUI
+</td>
+<td style="text-align:left;">
+CLI
+</td>
+<td style="text-align:left;">
+CLI, GUI
+</td>
+<td style="text-align:left;">
+CLI
+</td>
+<td style="text-align:left;">
+CLI, GUI
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Implementation
+</td>
+<td style="text-align:left;">
+Tool, Webserver
+</td>
+<td style="text-align:left;">
+Tool
+</td>
+<td style="text-align:left;">
+Tool, Webserver, Docker
+</td>
+<td style="text-align:left;">
+Tool, Conda
+</td>
+<td style="text-align:left;">
+R package
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="conclusions" class="section level1">
+<h1>Conclusions</h1>
+<ul>
+<li><p><strong>Standalone</strong> R package for short RNA-Seq data analysis.</p></li>
+<li><p>Extension to the <strong>TreeSummarizedExperiment</strong> object.</p></li>
+<li><p>QC, alignment, differential analysis, and functional analysis within the package.</p></li>
+<li><p><strong>Hierarchical</strong>: could easily be extended to additional feature trees (for example Vault RNAs).</p></li>
+<li><p>shortRNA can be successfully implemented to <strong>investigate the role of short RNAs in epigenetic inheritance</strong> studies.</p></li>
+</ul>
+</div>
+<div id="code" class="section level1">
+<h1>Code</h1>
+<p>Github: <a href="github.com/mansuylab/shortRNA">mansuylab/shortRNA</a></p>
+</div>
+<div id="references" class="section level1 unnumbered">
+<h1>References</h1>
+<div id="refs" class="references">
+<div id="ref-Posner2019">
+<p>1. Posner, R. <em>et al.</em> Neuronal small RNAs control behavior transgenerationally. <em>Cell</em> <strong>177</strong>, 1814–1826.e15 (2019).</p>
+</div>
+<div id="ref-Bohacek2015">
+<p>2. Bohacek, J. &amp; Mansuy, I. M. Molecular insights into transgenerational non-genetic inheritance of acquired behaviours. <em>Nature Reviews Genetics</em> <strong>16</strong>, 641–652 (2015).</p>
+</div>
+<div id="ref-Gapp2014">
+<p>3. Gapp, K. <em>et al.</em> Implication of sperm RNAs in transgenerational inheritance of the effects of early trauma in mice. <em>Nature Neuroscience</em> <strong>17</strong>, 667–669 (2014).</p>
+</div>
+<div id="ref-Hoffmann2017">
+<p>4. Hoffmann, A. <em>et al.</em> Accurate mapping of tRNA reads. <em>Bioinformatics</em> <strong>34</strong>, 1116–1124 (2017).</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+
+
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+graph TD
+
+subgraph 
+raw(FastQ or SRA)-->qc[QC]
+qc-->collapse[Collapse]
+collapse-->aln{Alignment}
+end
+
+style raw stroke:black
+style qc stroke:black
+style aln stroke:black
+
+
+subgraph 
+aln-->mu[Mapped reads]
+aln-->um[Unmapped reads]
+aln-->mmu[Multi-mapped reads]
+um-->rules[Rules to map]
+mmu-->rules[Rules to map]
+end
+
+style aln fill:MistyRose,stroke:black
+style mu fill:MistyRose,stroke:black
+style um fill:MistyRose,stroke:black
+style mmu fill:MistyRose,stroke:black
+style rules fill:MistyRose,stroke:black
+
+
+subgraph 
+rules-->norm[Normalization]
+mu-->norm[Normalization]
+norm-->da[Differential analysis]
+da-->fa[Functional analysis]
+end
+
+style norm fill:PaleTurquoise,stroke:black
+style da fill:PaleTurquoise,stroke:black
+style fa fill:PaleTurquoise,stroke:black
+
+
+subgraph 
+fa-->rep((Report))
+fa-->sa>Shiny App]
+end
+
+style rep fill:PeachPuff,stroke:black
+style sa fill:PeachPuff,stroke:black
