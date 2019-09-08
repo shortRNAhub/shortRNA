@@ -21,7 +21,7 @@ Google fonts api stuff
 
 
 
-<title>shortRNA: A flexible framework for the analysis of short RNA sequencing data applicable to studies on epigenetic inheritance</title>
+<title>shortRNA: A flexible framework for the analysis of short RNA sequencing data</title>
 
 <script src="Deepak_Tanwar_BC2_files/kePrint-0.0.1/kePrint.js"></script>
 
@@ -30,27 +30,27 @@ Google fonts api stuff
 
 <style>
 @page {
-size: 33in 46.8in;
+size: 841mm 1189mm;
 margin: 0;
 padding: 0;
 }
 body {
 margin: 0;
 font-size: 30px;
-width: 33in;
-height: 46.8in;
+width: 841mm;
+height: 1189mm;
 padding: 0;
 text-align: justify;
 font-family: Arial;
 }
 .poster_wrap {
-width: 33in;
-height: 46.8in;
+width: 841mm;
+height: 1189mm;
 padding: 0cm;
 }
 .title_container {
-width: 33in;
-height: calc(46.8in * 0.15);
+width: 841mm;
+height: calc(1189mm * 0.15);
 overflow: hidden;
 background-color: #008080;
 border: 1cm solid #0b4545;
@@ -139,10 +139,10 @@ border: 0;
 font-weight: normal;
 }
 .poster_body_wrap{
-width: 33in;
-height: calc(46.8in * 0.83);
-padding-top: calc(46.8in * 0.01);
-padding-bottom: calc(46.8in * 0.01);
+width: 841mm;
+height: calc(1189mm * 0.83);
+padding-top: calc(1189mm * 0.01);
+padding-bottom: calc(1189mm * 0.01);
 padding-left: 1cm;
 padding-right: 1cm;
 background-color: #ffffff;
@@ -284,11 +284,11 @@ font-size: 20pt;
 <div class="title_container">
 <!-- Left Logo  -->
 <div class="logo_left">
-<img src= 'files/ethz.png' style="width: 80%">
+<img src= 'files/logo.png' style="width: 80%">
 </div>
 <!-- Poster Title -->
 <div class= "poster_title">
-<h1 id="title">shortRNA: A flexible framework for the analysis of short RNA sequencing data applicable to studies on epigenetic inheritance</h1>
+<h1 id="title">shortRNA: A flexible framework for the analysis of short RNA sequencing data</h1>
 <h3 id="author">Pierre-Luc Germain<sup>†</sup><sup>1,2,3,4</sup>, <u>Deepak K. Tanwar</u><sup>†</sup><sup>1,2,3</sup>, Isabelle M. Mansuy<sup>1,2</sup></h3><br>
 <h5 id="affiliation"><sup>1</sup> Institute for Neuroscience, Department of Health Sciences and Technology, ETH Zürich<br> <sup>2</sup> Laboratory of Neuroepigenetics, Brain Research Inistitute, Medical Faculty of the University of Zürich and Institute for Neuroscience, Department of Health Sciences and Technology of the ETH Zürich<br> <sup>3</sup> Statistical Bioinformatics Group, Swiss Institute of Bioinformatics<br> <sup>4</sup> Statistical Bioinformatics Group, University of Zürich</h5>
 </div>
@@ -307,7 +307,7 @@ font-size: 20pt;
 </style>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>Short RNAs, categorized as non-coding RNA molecules, are less than 200 nucleotides in length and play a vital role in the regulation of the genome. They have been implicated in a large number of biological processes and pathological conditions. Moreover, they are shown to be altered in different models of epigenetic inheritance<span class="citation"><sup><a href="#ref-Posner2019">1</a>–<a href="#ref-Gapp2014">3</a></sup></span>. Short RNA studies are hampered by several technical issues, including the bioinformatic analysis of short RNA sequencing data:</p>
+<p>Short RNAs, categorized as non-coding RNA molecules, are less than 200 nucleotides in length and play a vital role in the regulation of the genome. They have been implicated in a large number of biological processes and pathological conditions. With the advancement in high-throughput sequencing (HTS) techniques, it is now possible to sequence and study short RNAs<span class="citation"><sup><a href="#ref-Stark2019">1</a>,<a href="#ref-Mehta2014">2</a></sup></span>. However, short RNA studies are hampered by several technical issues, including the bioinformatic analysis of short RNA sequencing data:</p>
 <ol style="list-style-type: decimal">
 <li><p>Analysis methods are not simultaneously optimized towards all known short RNA types (e.g. miRNA, piRNA, rasiRNA, siRNA, snoRNA, tsRNA, tRFs, srRNA and U-RNA). On top of multiplying the work needed for an extensive analysis of the data, this can potentially create misassignment mistakes.</p></li>
 <li><p>Current methods either do not deal adequately with post-transcriptional modifications (for genome-based methods); or if they do (transcript-based methods), they do not deal with unannotated features.</p></li>
@@ -321,7 +321,7 @@ font-size: 20pt;
 <p>… TCCTCTGCTT    → <font color="red">aligns to multiple locations on the genome</font><br>
         ↓<br>
 … TCCTCTGCTT<strong>CCA</strong>  → <font color="red">does not align to the genome</font></p>
-<p>To deal with this, researchers have often simply trimmed 3’ CCAs before alignment, however, this can often result in the read becoming ambiguous when instead it initially wasn’t, as in the case above. One solution to this issue is to build a custom genome that is complemented with known, post-transcriptionally modified transcripts<span class="citation"><sup><a href="#ref-Hoffmann2017">4</a></sup></span>.</p>
+<p>To deal with this, researchers have often simply trimmed 3’ CCAs before alignment, however, this can often result in the read becoming ambiguous when instead it initially wasn’t, as in the case above. One solution to this issue is to build a custom genome that is complemented with known, post-transcriptionally modified transcripts<span class="citation"><sup><a href="#ref-Hoffmann2017">3</a></sup></span>.</p>
 <p><img src="files/02_tRNA.png" align="right"/ width="400"></p>
 </div>
 <div id="example-2" class="section level3">
@@ -353,10 +353,22 @@ tRNA typically have several copies across the genome - for instance, tRNA-Ala-AG
 <h2>Tree structure</h2>
 <figure>
 <center>
-<img src="files/tree1.png" width="935" style="display:block">
+<img src="files/tree1.png" width="835" style="display:block">
 <br>
 <figcaption>
 <b>Figure 2:</b> An example tree structure from miRNAs.
+</figcaption>
+</center>
+</figure>
+</div>
+<div id="reads-assignment-problem" class="section level2">
+<h2>Reads assignment problem</h2>
+<figure>
+<center>
+<img src="files/exmp.png" width="635" style="display:block">
+<br>
+<figcaption>
+<b>Figure 3:</b> It is hard to assign the reads when tRNAs have same sequence.
 </figcaption>
 </center>
 </figure>
@@ -365,10 +377,10 @@ tRNA typically have several copies across the genome - for instance, tRNA-Ala-AG
 <h2>Pipeline for short RNA-Seq data analysis</h2>
 <figure>
 <center>
-<img src="files/Pipeline.png" width="950" style="display:block">
+<img src="files/pipeline.png" width="735" style="display:block">
 <br>
 <figcaption>
-<b>Figure 3:</b> Pipeline for data analysis.
+<b>Figure 4:</b> Pipeline for data analysis.
 </figcaption>
 </center>
 </figure>
@@ -380,10 +392,10 @@ tRNA typically have several copies across the genome - for instance, tRNA-Ala-AG
 <h2>Tree-based reads assignment recovers a large fraction of reads considered ambiguous from a mapping point of view</h2>
 <figure>
 <center>
-<img src="files/03_seqs_asign.png" width="950" style="display:block">
+<img src="files/03_seqs_asign.png" width="735" style="display:block">
 <br>
 <figcaption>
-<b>Figure 4:</b> Reads assignment (Sperm short RNA-Seq<span class="citation"><sup><a href="#ref-Gapp2014">3</a></sup></span>).
+<b>Figure 5:</b> Reads assignment (Sperm short RNA-Seq<span class="citation"><sup><a href="#ref-Gapp2014">4</a></sup></span>).
 </figcaption>
 </center>
 </figure>
@@ -392,10 +404,10 @@ tRNA typically have several copies across the genome - for instance, tRNA-Ala-AG
 <h2>Transcripts abundance plot for uniquely mapping fragments</h2>
 <figure>
 <center>
-<img src="files/gene.png" width="950" style="display:block">
+<img src="files/gene.png" width="750" style="display:block">
 <br>
 <figcaption>
-<b>Figure 5:</b> Unique fragments abundance for a transcript (example).
+<b>Figure 6:</b> Unique fragments abundance for a transcript (example).
 </figcaption>
 </center>
 </figure>
@@ -407,14 +419,14 @@ tRNA typically have several copies across the genome - for instance, tRNA-Ala-AG
 <img src="files/read_prop.png" width="950" style="display:block">
 <br>
 <figcaption>
-<b>Figure 6:</b> Read proportions from samples (example).
+<b>Figure 7:</b> Read proportions from samples (Sperm short RNA-Seq<span class="citation"><sup><a href="#ref-Gapp2014">4</a></sup></span>).
 </figcaption>
 </center>
 </figure>
 </div>
 <div id="comparison-of-shortrna-with-other-methods" class="section level2">
 <h2>Comparison of shortRNA with other methods</h2>
-<p>We compared 20 published tools for 21 features.</p>
+<p>We compared 20 published tools for 23 features.</p>
 <table class="table" style="font-size: 26px; margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
@@ -742,7 +754,7 @@ R package
 <li><p>Extension to the <strong>TreeSummarizedExperiment</strong> object.</p></li>
 <li><p>QC, alignment, differential analysis, and functional analysis within the package.</p></li>
 <li><p><strong>Hierarchical</strong>: could easily be extended to additional feature trees (for example Vault RNAs).</p></li>
-<li><p>shortRNA can be successfully implemented to <strong>investigate the role of short RNAs in epigenetic inheritance</strong> studies.</p></li>
+<li><p>shortRNA can be successfully implemented to <strong>investigate the role of short RNAs</strong> in various studies.</p></li>
 </ul>
 </div>
 <div id="code" class="section level1">
@@ -752,17 +764,17 @@ R package
 <div id="references" class="section level1 unnumbered">
 <h1>References</h1>
 <div id="refs" class="references">
-<div id="ref-Posner2019">
-<p>1. Posner, R. <em>et al.</em> Neuronal small RNAs control behavior transgenerationally. <em>Cell</em> <strong>177</strong>, 1814–1826.e15 (2019).</p>
+<div id="ref-Stark2019">
+<p>1. Stark, R., Grzelak, M. &amp; Hadfield, J. RNA sequencing: The teenage years. <em>Nature Reviews Genetics</em> (2019). doi:<a href="https://doi.org/10.1038/s41576-019-0150-2">10.1038/s41576-019-0150-2</a></p>
 </div>
-<div id="ref-Bohacek2015">
-<p>2. Bohacek, J. &amp; Mansuy, I. M. Molecular insights into transgenerational non-genetic inheritance of acquired behaviours. <em>Nature Reviews Genetics</em> <strong>16</strong>, 641–652 (2015).</p>
-</div>
-<div id="ref-Gapp2014">
-<p>3. Gapp, K. <em>et al.</em> Implication of sperm RNAs in transgenerational inheritance of the effects of early trauma in mice. <em>Nature Neuroscience</em> <strong>17</strong>, 667–669 (2014).</p>
+<div id="ref-Mehta2014">
+<p>2. Mehta, J. P. Sequencing small RNA: Introduction and data analysis fundamentals. in <em>RNA mapping</em> 93–103 (Springer New York, 2014). doi:<a href="https://doi.org/10.1007/978-1-4939-1062-5_9">10.1007/978-1-4939-1062-5_9</a></p>
 </div>
 <div id="ref-Hoffmann2017">
-<p>4. Hoffmann, A. <em>et al.</em> Accurate mapping of tRNA reads. <em>Bioinformatics</em> <strong>34</strong>, 1116–1124 (2017).</p>
+<p>3. Hoffmann, A. <em>et al.</em> Accurate mapping of tRNA reads. <em>Bioinformatics</em> <strong>34</strong>, 1116–1124 (2017).</p>
+</div>
+<div id="ref-Gapp2014">
+<p>4. Gapp, K. <em>et al.</em> Implication of sperm RNAs in transgenerational inheritance of the effects of early trauma in mice. <em>Nature Neuroscience</em> <strong>17</strong>, 667–669 (2014).</p>
 </div>
 </div>
 </div>

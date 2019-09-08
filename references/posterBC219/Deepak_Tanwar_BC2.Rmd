@@ -1,17 +1,17 @@
 ---
 #--Poster dimension--#
-poster_height: "46.8in"
-poster_width: "33in"
+poster_height: "1189mm"
+poster_width: "841mm"
 
 #--Title--#
-title: "shortRNA: A flexible framework for the analysis of short RNA sequencing data applicable to studies on epigenetic inheritance"
+title: "shortRNA: A flexible framework for the analysis of short RNA sequencing data"
 titletext_fontfamily: "Arial"
 title_textsize: "80pt"
 titlebox_bgcol: "#008080"
 titlebox_bordercol: '#0b4545'
 titlebox_borderwidth:	"1cm"
 title_textcol: "#ffffff"
-logoleft_name: "files/ethz.png"
+logoleft_name: "files/logo.png"
 logoright_name: "files/baseplot.png"
 
 #--Authors--#
@@ -35,9 +35,9 @@ affiliation:
     address: "Statistical Bioinformatics Group, Swiss Institute of Bioinformatics"
   - num: 4
     address: "Statistical Bioinformatics Group, University of Zürich"
-affiliation_textsize: "30pt"
-authorextra_textsize: "40px"
+affiliation_textsize: "80pt"
 affiliation_textcol: "#FFFFFF"
+authorextra_textsize: "80px"
 
 #--Poster options--#
 font_family: "Arial"
@@ -89,7 +89,7 @@ csl: nature.csl
 
 # Introduction
 
-Short RNAs, categorized as non-coding RNA molecules, are less than 200 nucleotides in length and play a vital role in the regulation of the genome. They have been implicated in a large number of biological processes and pathological conditions. Moreover, they are shown to be altered in different models of epigenetic inheritance [@Posner2019; @Bohacek2015; @Gapp2014]. Short RNA studies are hampered by several technical issues, including the bioinformatic analysis of short RNA sequencing data:
+Short RNAs, categorized as non-coding RNA molecules, are less than 200 nucleotides in length and play a vital role in the regulation of the genome. They have been implicated in a large number of biological processes and pathological conditions. With the advancement in high-throughput sequencing (HTS) techniques, it is now possible to sequence and study short RNAs [@Stark2019; @Mehta2014]. However, short RNA studies are hampered by several technical issues, including the bioinformatic analysis of short RNA sequencing data:
 
 1. Analysis methods are not simultaneously optimized towards all known short RNA types (e.g. miRNA, piRNA, rasiRNA, siRNA, snoRNA, tsRNA, tRFs, srRNA and U-RNA). On top of multiplying the work needed for an extensive analysis of the data, this can potentially create misassignment mistakes.
 
@@ -144,20 +144,29 @@ shortRNA R package is an extension to the **TreeSummarised-Experiment** object.
 
 <figure>
 <center>
-  <img src="files/tree1.png" width="935" style="display:block">
+  <img src="files/tree1.png" width="835" style="display:block">
   <br>
   <figcaption><b>Figure 2:</b> An example tree structure from miRNAs.</figcaption>
 </center>
 </figure>
 
+## Reads assignment problem
+
+<figure>
+<center>
+  <img src="files/exmp.png" width="635" style="display:block">
+  <br>
+  <figcaption><b>Figure 3:</b> It is hard to assign the reads when tRNAs have same sequence.</figcaption>
+</center>
+</figure>
 
 ## Pipeline for short RNA-Seq data analysis
 
 <figure>
 <center>
-  <img src="files/Pipeline.png" width="950" style="display:block">
+  <img src="files/pipeline.png" width="735" style="display:block">
   <br>
-  <figcaption><b>Figure 3:</b> Pipeline for data analysis.</figcaption>
+  <figcaption><b>Figure 4:</b> Pipeline for data analysis.</figcaption>
 </center>  
 </figure>
 
@@ -169,9 +178,9 @@ shortRNA R package is an extension to the **TreeSummarised-Experiment** object.
 
 <figure>
 <center>
-  <img src="files/03_seqs_asign.png" width="950" style="display:block">
+  <img src="files/03_seqs_asign.png" width="735" style="display:block">
   <br>
-  <figcaption><b>Figure 4:</b> Reads assignment (Sperm short RNA-Seq [@Gapp2014]).</figcaption>
+  <figcaption><b>Figure 5:</b> Reads assignment (Sperm short RNA-Seq [@Gapp2014]).</figcaption>
 </center>
 </figure>
 
@@ -180,27 +189,27 @@ shortRNA R package is an extension to the **TreeSummarised-Experiment** object.
 
 <figure>
 <center>
-  <img src="files/gene.png" width="950" style="display:block">
+  <img src="files/gene.png" width="750" style="display:block">
   <br>
-  <figcaption><b>Figure 5:</b> Unique fragments abundance for a transcript (example).</figcaption>
+  <figcaption><b>Figure 6:</b> Unique fragments abundance for a transcript (example).</figcaption>
 </center>
 </figure>
 
 
-## RNA biotype and their proportions{.mybreak}
+## RNA biotype and their proportions {.mybreak}
 
 <figure>
 <center>
   <img src="files/read_prop.png" width="950" style="display:block">
   <br>
-  <figcaption><b>Figure 6:</b> Read proportions from samples (example).</figcaption>
+  <figcaption><b>Figure 7:</b> Read proportions from samples (Sperm short RNA-Seq [@Gapp2014]).</figcaption>
 </center>
 </figure>
 
 
 ## Comparison of shortRNA with other methods
 
-We compared 20 published tools for 21 features.
+We compared 20 published tools for 23 features.
 
 ```{r, comparison, echo = FALSE, message=FALSE, warning=FALSE, fig.height=11.5, results='asis'}
 file <- readxl::read_excel("./files/Tools_comparison.xlsx", sheet = 2)
@@ -223,7 +232,6 @@ kable("html") %>%
 ```
 
 
-
 # Conclusions
 
 - **Standalone** R package for short RNA-Seq data analysis.
@@ -234,12 +242,11 @@ kable("html") %>%
 
 - **Hierarchical**: could easily be extended to additional feature trees (for example Vault RNAs).
 
-- shortRNA can be successfully implemented to **investigate the role of short RNAs in epigenetic inheritance** studies.
+- shortRNA can be successfully implemented to **investigate the role of short RNAs** in various studies.
 
 
 # Code
 
 Github: [mansuylab/shortRNA](github.com/mansuylab/shortRNA)
-
 
 # References
