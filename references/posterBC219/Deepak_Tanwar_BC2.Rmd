@@ -72,7 +72,7 @@ reference_textsize: "15px"
 #--Standard Options--#
 output: 
   posterdown::posterdown_html:
-    self_contained: false
+    self_contained: true
     pandoc_args: --mathjax
     highlight: tango
     number_sections: false
