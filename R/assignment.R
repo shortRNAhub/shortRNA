@@ -1,69 +1,118 @@
-#' assignReads
-#'
-#' Assigns each read to one or more of possible sources.
-#'
-#' @param sources A data.frame of possible sources, as produced by the findOverlap function.
-#' @param rules A list of assignment rules; defaults to `defaultAssignRules()`.
-#' @param nthreads The number of threads to use; default to detected cores -1 if the parallel package is installed.
-#'
-#' @return A data.frame of assigned sources.
-#'
-#' @export
-assignReads <- function(sources, rules=defaultAssignRules(), trees=list(), nthreads=NULL){
+.srcsCols <-  function() c("seq", "cigar", "read.strand", "overlap", "startInFeature", 
+                           "distanceToFeatureEnd", "transcript_id", "transcript_type", 
+                           "transcript.strand", "gene_id", "transcript.length" )
+
+.assignSingletons <- function(x){
+  if(nrow(x)==0) return(NULL)
+  x$status <- "unknown"
+  x$status[x$cigar=="*"] <- "unmapped"
+  x$status[!is.na(x$transcript_id)] <- "unique"
+  x$status[!x$validType] <- "invalid"
+  x
+}
+
+assignReads <- function(sources, rules=defaultAssignRules(), tree=NULL, BP=NULL, 
+                        nthreads=min(parallel::detectCores()-1,8)){
   library(data.table)
-  if(!is(sources, "data.table")) sources <- data.table(sources,stringsAsFactors=F)
-
-  nn <- c("seq", "cigar", "chrPos", "strandRead", "strandFeature", "posInFeature", 
-         "overlap", "percentOverlap", "transcript_id", "gene_id", "transcript_type")
-  if(!all(colnames(sources)==nn)) stop(paste("`sources` should have exactly the following column names:", paste(nn,collapse=", ")))
-  nn <- c(nn, "length", "validType", "status")
+  library(BiocParallel)
+  library(futile.logger)
+  sources <- as.data.frame(sources, stringsAsFactors=FALSE)
   
-  sources$length <- sapply(sources$seq, FUN=nchar)
-
-  # we check which feature types are valid with the overlaping reads
-  sources$validType <- sapply(split(sources,1:nrow(sources),drop=F),rules=rules,FUN=.validateFeatureType)
-  # in the case of primary piRNA, invalid still gets assigned to the precursor
-  sources[which(sources$validType & sources$transcript_type=="piRNA_precursor"),"transcript_type"] <- "primary_piRNA"
-  sources[which(!sources$validType & sources$transcript_type=="piRNA_precursor"),"validType"] <- TRUE
-  
-  DEBUG <- TRUE
-  
-  if(DEBUG){
-    par <- NULL
-  }else{
-    par <- .checkPara(nthreads)
-  }
-  
-  if(is.null(par)){
-    sources <- as.data.frame(rbindlist(lapply(split(sources,sources$seq,drop=F), rules=rules, DEBUG=DEBUG, FUN=function(sources,rules,DEBUG){ 
-      a <- tryCatch(assignRead(sources,rules),
-        error = function(e){
-          if(DEBUG){
-            print("ERROR trying to assign:")
-            print(sources)
-          }
-          stop(e)
-        }
-      )
-    })))
-    colnames(sources) <- nn
-  }else{
-    fns <- c("assignRead", ".validateFeatureType", ".aggSources", ".agCigar", ".disambiguate_miRNAs", ".disambiguate_tRNA", "defaultAssignRules")
-    sources <- foreach(x=split(sources,sources$seq,drop=F), .export=fns) %dopar% {
-      res <- as.data.frame(assignRead(x,rules))
-      names(res) <- nn
-      res
+  if(!is.null(tree) && !is(tree, "list")){
+    if(is.character(tree)){
+      flog.debug("Converting tree to list of paths")
+      tree <- strsplit(tree, "/", fixed=TRUE)
+    }else{
+      stop("Not yet supported")
     }
-    sources <- as.data.frame(rbindlist(sources))
-    stopCluster(par)
   }
+  
+  if(rules$sameStrand=="auto"){
+    st <- .strandedness(sources, rules)
+    rules$sameStrand <- st$rule
+    if(st$revert){
+      sources$read.strand <- factor(as.character(sources$read.strand),c("+","-"))
+      levels(sources$read.strand) <- c("-","+")
+    }
+  }
+  
+  if(is.null(BP))
+    BP <- MulticoreParam( nthreads, 
+                          log=flog.threshold() %in% c("TRACE","DEBUG"),
+                          progressbar=flog.threshold() %in% c("TRACE","DEBUG","INFO"), 
+                          threshold=flog.threshold() )
+  
+  flog.debug("Reformating sources data.frame")
+  nn <- c(.srcsCols(),"chr", "read.start", "read.end")
+  
+  if(!all(nn %in% colnames(sources))) 
+    .fstop(paste("`sources` should have exactly the following column names:", 
+                 paste(nn,collapse=", ")))
+  sources$chrPos <- paste0( as.character(sources$chr), ":", sources$read.start )
+  sources$chr <- NULL
+  sources$read.start <- NULL
+  sources$read.end <- NULL
+  
+  flog.debug("Calculating length of sequences")
+  sources$length <- sapply(sources$seq, FUN=nchar)
+  
+  flog.info("Dealing with easy assignments...")
+  
+  out <- list()
+  ii <- split(seq_len(nrow(sources)), sources$seq)
+  # assign reads with a single overlap
+  if(length(w <- which(sapply(ii,length)==1))>0){
+    out <- c(out, list(.assignSingletons(sources[unlist(ii[w]),,drop=FALSE])))
+    ii <- ii[-w]
+  }
+  
+  # pass sequences that have no overlap
+  allUnknown <- sapply(ii, y=is.na(sources$transcript_id), FUN=function(x,y) all(y[x]))
+  if(length(w <- which(allUnknown))>0){
+    x2 <- sources[sapply(ii[w],FUN=function(x) x[1]),]
+    x2$status <- "unknown"
+    x2$readstrand <- "*"
+    x2$chrPos <- paste0("ambiguous (",sapply(ii[w],length),")")
+    out <- c(out, list(x2))
+    ii <- ii[-w]
+  }
+  
+  # When there are valid overlaps, we eliminate invalid ones
+  ii <- lapply(ii, FUN=function(x){
+    if(length(w <- which(sources$validType[x]))>0) x <- x[w]
+    x
+  })
+  if(rules$prioritizeKnown){
+    # If there is overlap with known features, ignore mappings with no overlap
+    allUnknown <- sapply(ii, y=is.na(sources$transcript_id), FUN=function(x,y) all(y[x]))
+    ii <- lapply(ii, y=!is.na(sources$transcript_id), FUN=function(x,y){
+      if(length(w <- which(y[x]))>0) x <- x[w]
+      x
+    })
+  }
+  
+  # assign reads with a single overlap
+  if(length(w <- which(sapply(ii,length)==1))>0){
+    out <- c(out, list(.assignSingletons(sources[unlist(ii[w]),,drop=FALSE])))
+    ii <- ii[-w]
+  }
+  sources <- sources[unlist(ii),]
+  
+  flog.info("Launching disambiguation")
+  
+  ii <- split(seq_len(nrow(sources)), sources$seq)
+  sources <- bplapply( ii, rules=rules, BPPARAM=BP, FUN=function(x,rules){
+    tryCatch( assignRead(sources[x,,drop=FALSE],rules,tree=tree), 
+              error=function(e) .fstop(e, sources[x,,drop=FALSE]))
+  })
+  
+  sources <- as.data.frame(rbindlist(c(out, sources), fill=TRUE))
   row.names(sources) <- sources[,1]
   sources <- sources[,-1]
-  sources$validType <- NULL
-  
-  .recastSources(sources)
-  
+  sources
 }
+
+
 
 #' assignRead
 #'
@@ -71,20 +120,24 @@ assignReads <- function(sources, rules=defaultAssignRules(), trees=list(), nthre
 #'
 #' @param sources A data.frame of possible sources for the read (i.e., a subset of the `sources` slot of a shortRNAexp object).
 #' @param rules A list of assignment rules; defaults to `defaultAssignRules()`.
+#' @param tree An eventual feature tree, as a list (named by transcript id) of paths (character vectors)
 #'
 #' @return A vector including the following variables: seq, cigar, chrPos, strandRead, strandFeature, posInFeature, overlap, percentOverlap, transcript_id, gene_id, transcript_type, status
 #'
 #' @export
-assignRead <- function(sources, rules=defaultAssignRules()){
-    nn <- c("seq", "cigar", "chrPos", "strandRead", "strandFeature", "posInFeature", 
-         "overlap", "percentOverlap", "transcript_id", "gene_id", "transcript_type", "length", "validType")
-    if(!all(nn %in% names(sources))) stop(paste("`sources` should have at least the following column names:", paste(nn,collapse=", ")))
+assignRead <- function(sources, rules=defaultAssignRules(), tree=NULL){
+    nn <- c(.srcsCols(), "length", "validType")
+    if(!all(nn %in% colnames(sources))) 
+      .fstop(paste("`sources` should have at least the following column names:", 
+                   paste(nn,collapse=", ")), sources)
     
     # if there are multiple mapping locations,
     # we first disambiguate each location before working on each
     nloc <- length(unique(sources$chrPos))
     if(nloc>1 & nloc<nrow(sources)){
-        sources <- rbindlist(lapply(split(sources,sources$chrPos,drop=F),rules=rules, FUN=assignRead))
+        sources <- lapply( split(sources,sources$chrPos,drop=F), rules=rules, 
+                           tree=tree, FUN=assignRead)
+        sources <- data.table:::as.data.frame.data.table(data.table::rbindlist(sources))
     }
 
     # we eliminate overlaps for which the sequence is incompatible with the feature:
@@ -125,30 +178,32 @@ assignRead <- function(sources, rules=defaultAssignRules()){
     }
 
     if(nrow(sources)>1 & rules$prioritizeKnown){
-        # if in the rules, we prioritize known over unknown sources; in other words,
-        # if a read maps to multiple location and some of these overlap with a feature,
-        # we eliminate those alignments that do not overlap any feature
-        known <- !is.na(sources$transcript_id) & !is.na(sources$gene_id)
-        if(all(!known)){
-            # there is no overlap with known features, so we can report this
-            sources <- sources[1,,drop=F]
-            if(nloc>1) sources$chrPos <- "ambiguous"
-            sources$status <- "unknown"
-            return(sources)
-        }else{
-            # there are some known features overlapping, so we eliminate the 
-            # alignments without known features
-            sources <- sources[which(known),,drop=F]
-        }
+      # if in the rules, we prioritize known over unknown sources; in other words,
+      # if a read maps to multiple location and some of these overlap with a feature,
+      # we eliminate those alignments that do not overlap any feature
+      known <- !is.na(sources$transcript_id) & !is.na(sources$gene_id) & 
+                !is.na(sources$transcript.length)
+      if(all(!known)){
+        # there is no overlap with known features, so we can report this
+        if(nloc>1) sources$chrPos <- .setAmbiguousLocation(sources$chrPos)
+        sources <- sources[1,,drop=F]
+        sources$status <- "unknown"
+        return(sources)
+      }else{
+        # there are some known features overlapping, so we eliminate the 
+        # alignments without known features
+        sources <- sources[which(known),,drop=F]
+      }
     }
     
+    # we eliminate locations on pseudo-chromosomes when there is a 'real'
+    # location for the same feature
+    sources <- .removeRedundantPseudoChr(sources)
+    
     # if there are still multiple locations, we consider location ambiguous:
-    if(length(unique(sources$chrPos))>1){
-      # we eliminate locations on pseudo-chromosomes when there is a 'real'
-      # location for the same feature
-      # TO DO
-      sources$chrPos <- "ambiguous"
-    }
+    if(length(unique(sources$chrPos))>1)
+      sources$chrPos <- .setAmbiguousLocation(sources$chrPos)
+
     sources <- sources[!duplicated(sources),]
   
     # we check if the sequence could be a secondary piRNA
@@ -190,8 +245,18 @@ assignRead <- function(sources, rules=defaultAssignRules()){
     }
 
     # if all overlaps are of the same type, we check if we can find a common meta-feature
-    if(all(sources$transcript_type %in% c("miRNA", "miRNA_hairpin"))) return(.disambiguate_miRNAs(sources))
-    if(all(sources$transcript_type %in% c("pseudo_tRNA","tRNA")))   return(.disambiguate_tRNA(sources, rules))    
+    if(!is.null(tree) && all(sources$transcript_id %in% names(tree))){
+      t2 <- unlist(tree[sources$transcript_id])
+      a <- sapply(unique(t2), tt=table(t2), n=nrow(sources), FUN=function(x,tt,n) tt[x]==n)
+      a <- unique(t2)[a]
+      if(length(a)>0){
+        sources$transcript_id <- paste(sort(unique(sources$transcript_id)),collapse=";")
+        sources$gene_id <- paste0(paste(a,collapse="/"),"/ambiguous")
+        return(.aggSources(sources, addStatus="metaUnique"))
+      }
+    }
+    #if(all(sources$transcript_type %in% c("miRNA", "miRNA_hairpin"))) return(.disambiguate_miRNAs(sources))
+    #if(all(sources$transcript_type %in% c("pseudo_tRNA","tRNA")))   return(.disambiguate_tRNA(sources, rules))    
     
     # if all the overlaps point to the same feature, we're done:
     if(length(unique(sources$gene_id))==1){
@@ -206,11 +271,17 @@ assignRead <- function(sources, rules=defaultAssignRules()){
     return(sources)
 }
 
-check_miRNA <- function(src, length=20:23, minOverlap=12){
+.setAmbiguousLocation <- function(pos){
+  pos <- unique(pos)
+  if(length(pos)>=3) return("ambiguous")
+  return(paste0("ambiguous (",paste(pos,collapse="; "),")"))
+}
+
+check_miRNA <- function(src, length=20:23, minOverlap=12, fallback="miRNA_precursor"){
     if(nrow(src)>1) src <- src[1,,drop=F]
-    if(!(src$length %in% length)) return(FALSE)
-    if(src$overlap < minOverlap) return(FALSE)
-    return(TRUE)
+    valid <- src$length %in% length &&
+              src$overlap >= minOverlap
+    ifelse(valid, TRUE, fallback)
 }
 
 .disambiguate_miRNAs <- function(sources){
@@ -231,8 +302,6 @@ check_miRNA <- function(src, length=20:23, minOverlap=12){
     if(length(unique(sources$chrPos))>1) sources$chrPos <- "ambiguous"
     sources$cigar <- .agCigar(sources$cigar)
     sources$overlap <- max(sources$overlap,na.rm=T)
-    sources$percentOverlap <- max(sources$percentOverlap,na.rm=T)
-    sources$posInFeature <- ifelse(length(unique(sources$posInFeature))==1,sources$posInFeature[[1]],NA_integer_)
     sources <- aggregate(sources[,-1],by=list(seq=sources$seq),maxN=maxN,FUN=function(x,maxN){
         if(is.character(x)){
             x <- unique(x)
@@ -245,11 +314,11 @@ check_miRNA <- function(src, length=20:23, minOverlap=12){
     if(!is.null(addStatus)) sources$status <- addStatus
     return(sources)
 }
-
-
 # src should be a single-row data.frame of sources
 .validateFeatureType <- function(src, rules){
-    if(src[["transcript_type"]] %in% names(rules$typeValidation)) return(rules$typeValidation[[src[["transcript_type"]]]](src))
+  tt <- as.character(src[["transcript_type"]])
+    if(tt %in% names(rules$typeValidation))
+      return(rules$typeValidation[[tt]](src))
     return(TRUE)
 }
 
@@ -348,11 +417,13 @@ check_miRNA <- function(src, length=20:23, minOverlap=12){
 #' @param type Type of sequence signature to check for. Either "primary" (default), "seconday" or "any".
 #' @param allowRevComp Logical; whether to allow a sequence to match the signature with its reverse complement.
 #' @param size Integer vector indicating the possible sizes (default 26:32).
+#' @param fallback Eventual fallback transcript type when conditions are not met. 
+#' Defaults to "piRNA_precursor". Use `fallback=FALSE` to set to invalid overlap.
 #' 
 #' @return A logical vector
 #'
 #' @export
-checkPiRNA <- function(seqs, type="primary", allowRevComp=FALSE, size=26:32){
+checkPiRNA <- function(seqs, type="primary", allowRevComp=FALSE, size=26:32, fallback="piRNA_precursor"){
     seqs <- as.character(seqs)
     type <- match.arg(type, c("primary","secondary","any"))
     sl <- sapply(seqs, FUN=nchar)
@@ -373,10 +444,11 @@ checkPiRNA <- function(seqs, type="primary", allowRevComp=FALSE, size=26:32){
             sp <- sapply(strsplit(seqs,""),FUN=function(x){x[[10]]=="A"})
         }
     }
-    return(switch(type,
+    valid <- switch(type,
         any=( sl %in% size & (pp | sp) ),
         primary=( sl %in% size & pp ),
-        secondary=( sl %in% size & sp ) ))
+        secondary=( sl %in% size & sp ) )
+    ifelse(valid, TRUE, fallback)
 }
 
 
@@ -386,26 +458,25 @@ checkPiRNA <- function(seqs, type="primary", allowRevComp=FALSE, size=26:32){
 #'
 #' @export
 defaultAssignRules <- function(){
-    return(list(    overlapBy=0.5,
-                    sameStrand="prioritize", # either 'require', 'prioritize', or 'any'
-                    prioritizeKnown=FALSE,
-                    typeValidation=list(
-                        primary_piRNA=function(x){ checkPiRNA(x$seq, type="primary") },
-                        secondary_piRNA=function(x){ checkPiRNA(x$seq, type="secondary") },
-                        miRNA=function(x){ check_miRNA(x, length=20:23, minOverlap=12) }
-                    ),
-                    tRF=list(gtRNAdb="prioritize", # either 'require', 'prioritize', or 'any'
-                            types=list(
-                            "tRNA_5p_half"=function(x){ x$posInFeature %in% -1:1 & x$length %in% 30:34 },
-                            #"tRNA_3p_half"=function(x){ x$posInFeature>=(x$feature_length-x$length-4) & x$length >= 38 & x$length <= 50 },
-                            "tRNA_3p_half"=function(x){ x$posInFeature>=35 & x$length >= 38 & x$length <= 50 & grepl("CCA$",x$seq)},
-                            "tRNA_5p_fragment"=function(x){ x$posInFeature <5 & x$length < 30 },
-                            #"tRNA_3p_fragment"=function(x){ x$posInFeature>30 & (x$feature_length-x$posInFeature-x$length)<10  },
-                            "tRNA_3p_fragment"=function(x){ x$posInFeature>35 }
-                    )),
-                    highPriorityTypes=c("miRNA","tRNA","tRNAp","Mt_tRNA","snRNA","snoRNA","antisense","piRNA_precursor"),
-                    lowPriorityTypes=c("precursor")
-        ))
+  return(list(    overlapBy=0.5,
+                  sameStrand="prioritize", # either 'require', 'prioritize', or 'any' or 'auto' $
+                  # (auto will prioritize if bias > 70%, and will require if bias > 90%)
+                  prioritizeKnown=TRUE,
+                  typeValidation=list(
+                    primary_piRNA=function(x){ checkPiRNA(x$seq, type="primary") },
+                    secondary_piRNA=function(x){ checkPiRNA(x$seq, type="secondary") },
+                    miRNA=function(x){ check_miRNA(x, length=20:23, minOverlap=12) }
+                  ),
+                  tRF=list(gtRNAdb="prioritize", # either 'require', 'prioritize', or 'any'
+                           types=list(
+                             "tRNA_5p_half"=function(x){ x$startInFeature %in% -1:1 & x$length %in% 30:34 },
+                             "tRNA_3p_half"=function(x){ x$distanceToFeatureEnd %in% -1:1 & x$length >= 34 & x$length <= 50 & grepl("CCA$",x$seq) },
+                             "tRNA_5p_fragment"=function(x){ x$startInFeature <5 & x$length < 30 },
+                             "tRNA_3p_fragment"=function(x){ x$distanceToFeatureEnd<5 & x$length < 50  }
+                           )),
+                  highPriorityTypes=c("miRNA","tRNA","tRNAp","Mt_tRNA","snRNA","snoRNA","antisense","piRNA_precursor"),
+                  lowPriorityTypes=c("precursor","longRNA")
+  ))
 }
 
 
@@ -439,7 +510,7 @@ tRFtype <- function(srcs, rules=defaultAssignRules()){
     if(rules$tRF$gtRNAdb=="require"){
         if(length(unique(srcs$transcript_type))>1)  return("tRNA;pseudo_tRNA")
     }
-    srcs2 <- srcs[grep("^tRNA",srcs$location),,drop=F]
+    srcs2 <- srcs[grep("^tRNA",srcs$chrPos),,drop=F]
     if(nrow(srcs2)>0){
         srcs <- srcs2
     }else{
@@ -459,4 +530,74 @@ tRFtype <- function(srcs, rules=defaultAssignRules()){
     if(all(grepl("5p",a))) return("tRNA_5p_fragment")
     if(all(grepl("3p",a))) return("tRNA_3p_fragment")  
     return("tRNA_fragment")
+}
+
+
+getOverlapValidity <- function(sources, rules=defaultAssignRules()){
+  w <- which(sources$transcript_type=="piRNA_precursor")
+  if(length(w)>0){
+    if(is.factor(sources$transcript_type) && 
+       !("primary_piRNA" %in% levels(sources$transcript_type)))
+      levels(sources$transcript_type) <- c(levels(sources$transcript_type), "primary_piRNA")
+    sources[w,"transcript_type"] <- "primary_piRNA"
+  }
+  toValidate <- which(sources$transcript_type %in% names(rules$typeValidation))
+  if(length(toValidate)==0){
+    sources$validType <- TRUE
+    return(sources)
+  }
+  s1 <- sources[-toValidate,]
+  s1$validType <- TRUE
+  sources <- sources[toValidate,,drop=FALSE]
+  sources$transcript_type <- as.character(sources$transcript_type)
+  sources$validType <- sapply(seq_len(nrow(sources)), FUN=function(i) .validateFeatureType(sources[i,], rules))
+  w <- which(!(sources$validType %in% c(FALSE,TRUE)))
+  if(length(w)>0){
+    flog.debug("Changing the transcript type of invalid overlaps providing a fallback type.")
+    sources$transcript_type[w] <- sources$validType[w]
+    sources[w,] <- .getValidity(sources[w,,drop=FALSE], rules)
+  }
+  if(nrow(s1)>0) sources <- rbind(s1, sources)
+  sources$validType <- as.logical(sources$validType)
+  return(sources)
+}
+
+.strandedness <- function(sources, rules){
+  revert <- FALSE
+  flog.debug("Estimating strand match ratio")
+  sbias <- sum(sources$transcript.strand==sources$read.strand,na.rm=T)/sum(!is.na(sources$transcript.strand))
+  if(sbias>0.9){
+    rules$sameStrand <- 'require'
+    flog.info(paste("Strand bias",round(sbias,2),"; requiring reads and transcripts to be on the same strand."))
+  }else{
+    if(sbias>0.7){
+      rules$sameStrand <- 'prioritize'
+      flog.info(paste("Strand bias",round(sbias,2),"; prioritizing overlaps on the same strand."))
+    }
+  }
+  if(sbias<0.3){
+    revert <- TRUE
+    if(sbias<0.1){
+      rules$sameStrand <- 'require'
+      flog.info(paste("Strand bias",round(sbias,2),"; requiring reads and transcripts to be on different strands."))
+    }else{
+      rules$sameStrand <- 'prioritize'
+      flog.info(paste("Strand bias",round(sbias,2),"; prioritizing overlaps on different strands."))
+    }
+  }
+  return(list(rule=rules$sameStrand, revert=revert))
+}
+
+
+.removeRedundantPseudoChr <- function(sources){
+  if(length(unique(sources$chrPos))>1){
+    isPseudo <- grepl("^pseudoChr_",sources$chr)
+    i <- unlist(lapply(split(seq_len(nrow(sources)), gsub("-","_",sources$transcript_id)), 
+                       FUN=function(x){
+                         if(!all(isPseudo[x])) return(x[!isPseudo[x]])
+                         x
+                       }))
+    sources <- sources[i,,drop=FALSE]
+  }
+  sources
 }
