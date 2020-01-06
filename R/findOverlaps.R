@@ -19,9 +19,13 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=FALSE, nbthreads=NU
     library(BiocParallel)
   })
   
-  bp <- .getPara(nbthreads)
+  if(is.null(nbthreads) || nbthreads==1){
+    bp <- SerialParam()
+  }else{
+    bp <- MulticoreParam(nbthreads, progressbar = TRUE)
+  }
   
-  # convert bam to GRanges
+  # load bam as GAlignments
   param <- ScanBamParam(what=c("cigar", "seq"))
   bam <- readGAlignments(bamFile, param = param)
   bam <- as(bam, "GRangesList")
@@ -41,27 +45,33 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=FALSE, nbthreads=NU
   strands <- .ext_rlelist(OV@second, strand)
   negative_features <- which(strands=="-")
   posInFeature <- matrix( NA_integer_, ncol=2, nrow=length(OV))
+  # flag spliced alignments
   toResolve <- elementNROWS(OV@first)>1 | elementNROWS(OV@second)>1
   
-  w <- which(!toResolve)
-  re <- unlist(OV@first[w,])
-  fe <- unlist(OV@second[w,])
-  posInFeature[w,1] <- start(re)-start(fe)
-  posInFeature[w,2] <- end(fe)-end(re)
-  w <- intersect(w, negative_features)
-  posInFeature[w,1:2] <- posInFeature[w,2:1]
+  if(any(!toResolve)){
+    # unspliced
+    w <- which(!toResolve)
+    re <- unlist(OV@first[w,])
+    fe <- unlist(OV@second[w,])
+    posInFeature[w,1] <- start(re)-start(fe)
+    posInFeature[w,2] <- end(fe)-end(re)
+    w <- intersect(w, negative_features)
+    posInFeature[w,1:2] <- posInFeature[w,2:1]
+    rm(fe,re)
+  }
   
-  rm(ov1,ov2)
-  
-  w <- which(toResolve)
-  posInFeature[w,] <- t(bpmapply( FUN=.posInFeature, 
-                                  read=OV@first[w,],
-                                  feature=OV@second[w,], 
-                                  Rd=Rdiff[w],
-                                  oi=OVinter[w],
-                                  BPPARAM=bp ))
-  w <- intersect(w,negative_features)
-  posInFeature[w,1:2] <- posInFeature[w,2:1]
+  if(any(toResolve)){
+    # spliced
+    w <- which(toResolve)
+    posInFeature[w,] <- t(bpmapply( FUN=.posInFeature, 
+                                    read=OV@first[w,],
+                                    feature=OV@second[w,], 
+                                    Rd=Rdiff[w],
+                                    oi=OVinter[w],
+                                    BPPARAM=bp ))
+    w <- intersect(w,negative_features)
+    posInFeature[w,1:2] <- posInFeature[w,2:1]
+  }
   
   rm(Rdiff)
   
@@ -85,6 +95,7 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=FALSE, nbthreads=NU
      )
   rm(OV, OVinter)
   
+  # add alignments that did not overlap anything
   nonOV <- suppressWarnings( subsetByOverlaps( bam, 
                                                annotation, 
                                                invert=TRUE, 
