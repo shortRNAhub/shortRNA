@@ -81,7 +81,7 @@ getAnnotationFiles <- function(org="mm10", destination=getwd()){
       )
     }
     if(org=="hg38"){
-        ff <- list( c("http://www.smallrnagroup.uni-mainz.de/piRNAclusterDB/homo_sapiens/proTRAC_normal_ovary_generic/BED_files.zip", file.path(destination,"piRNAs.clusters.zip")),
+        ff <- list( #c("http://www.smallrnagroup.uni-mainz.de/piRNAclusterDB/homo_sapiens/proTRAC_normal_ovary_generic/BED_files.zip", file.path(destination,"piRNAs.clusters.zip")),
                     c("ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/gencode.v28.tRNAs.gtf.gz",file.path(destination,"gencode.tRNAs.gtf.gz")),
                     c("ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_28/gencode.v28.chr_patch_hapl_scaff.annotation.gtf.gz", file.path(destination,"gencode.features.gtf.gz")),
                     c("ftp://mirbase.org/pub/mirbase/CURRENT/mature.fa.gz", file.path(destination,"mirbase.fa.gz")),
@@ -91,15 +91,15 @@ getAnnotationFiles <- function(org="mm10", destination=getwd()){
         
         srcs <- sapply(ff,FUN=function(x){ download.file(x[[1]],ifelse(length(x)>1,x[[2]],NULL)); return(x[[1]]) })
         
-        unzip(file.path(destination,"piRNAs.clusters.zip"),exdir=destination)
-        e <- read.delim(file.path(destination,"homo_sapiens","proTRAC_normal_ovary_generic","piRNA_clusters.BED"),header=F,skip=1,stringsAsFactors=F)
-        e$name <- sapply(as.character(e$V4),FUN=function(x){ x <- strsplit(x,"|",fixed=T)[[1]]; paste0("locus",x[length(x)])})
-        e$score <- 0
-        e$strand <- "*"
-        e$strand[grep("mono:minus",e$V4)] <- "-"
-        e$strand[grep("mono:plus",e$V4)] <- "+"
-        write.table(e[,-4],file.path(destination,"piRNA.clusters.bed"),col.names=F,row.names=F,sep="\t",quote=F)
-        unlink(file.path(destination,"homo_sapiens/proTRAC_normal_ovary_generic"),T)
+        # unzip(file.path(destination,"piRNAs.clusters.zip"),exdir=destination)
+        # e <- read.delim(file.path(destination,"homo_sapiens","proTRAC_normal_ovary_generic","piRNA_clusters.BED"),header=F,skip=1,stringsAsFactors=F)
+        # e$name <- sapply(as.character(e$V4),FUN=function(x){ x <- strsplit(x,"|",fixed=T)[[1]]; paste0("locus",x[length(x)])})
+        # e$score <- 0
+        # e$strand <- "*"
+        # e$strand[grep("mono:minus",e$V4)] <- "-"
+        # e$strand[grep("mono:plus",e$V4)] <- "+"
+        # write.table(e[,-4],file.path(destination,"piRNA.clusters.bed"),col.names=F,row.names=F,sep="\t",quote=F)
+        # unlink(file.path(destination,"homo_sapiens/proTRAC_normal_ovary_generic"),T)
         
         untar(file.path(destination,"gtRNAdb.tar.gz"), exdir=destination)
         fa <- readRNAStringSet(file.path(destination,"mirbase.fa.gz"),"fasta")
@@ -109,7 +109,7 @@ getAnnotationFiles <- function(org="mm10", destination=getwd()){
         return( list(features.gtf=file.path(destination,"gencode.features.gtf.gz"),
                     mirbase.fa=file.path(destination,"hg38.mature.miRNAs.fa"),
                     mirbase.gtf=file.path(destination,"mirbase.gtf"),
-                    pi_precursors=file.path(destination,"piRNA.clusters.bed"),
+                  #  pi_precursors=file.path(destination,"piRNA.clusters.bed"),
                     gtRNAdb.fa=file.path(destination,"hg38-tRNAs.fa"),
                     gtRNAdb.bed=file.path(destination,"hg38-tRNAs.bed"),
                     tRNA.gtf=file.path(destination,"gencode.tRNAs.gtf.gz"),
@@ -151,7 +151,7 @@ prepareAnnotation <- function( species=NULL,
                                destination=getwd(), 
                                description="", 
                                includeIsomirs=TRUE,
-                               resolveSplicing=getDefaultShortTypes(),
+                               resolveSplicing=defaultAssignRules()$highPriorityTypes,
                                unresolvedLevel="gene" ){
     if( (is.null(species) && is.null(filelist)) ||
         (!is.null(species) && !is.null(filelist))
