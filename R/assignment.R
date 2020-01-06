@@ -56,8 +56,10 @@ assignReads <- function(sources, rules=defaultAssignRules(), tree=NULL, BP=NULL,
   flog.debug("Calculating length of sequences")
   sources$length <- sapply(sources$seq, FUN=nchar)
   
-  flog.info("Dealing with easy assignments...")
+  if(!("validType" %in% colnames(sources)))
+    sources <- getOverlapValidity(sources, rules)
   
+  flog.info("Dealing with easy assignments...")
   out <- list()
   ii <- split(seq_len(nrow(sources)), sources$seq)
   # assign reads with a single overlap
