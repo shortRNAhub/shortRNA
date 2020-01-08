@@ -1,0 +1,60 @@
+graph TD
+
+mm10(mm10)-->tRNA[tRNA]
+mm10-->miRNA[miRNA]
+mm10-->piRNA[piRNA]
+mm10-->circRNA[circRNA]
+mm10-->rRNA[rRNA]
+mm10-->RNA[longRNA]
+
+style mm10 stroke:black
+
+subgraph 
+tRNA-->GtRNA[GtRNAdb]
+tRNA-->GetRNA[Gencode]
+end
+
+style tRNA fill:MistyRose,stroke:black,font-size:24px
+style GtRNA fill:MistyRose,stroke:black
+style GetRNA fill:MistyRose,stroke:black
+
+
+subgraph 
+miRNA-->mirBase[mirBase]
+miRNA-->GemiRNA[Gencode]
+end
+
+style miRNA fill:PaleTurquoise,stroke:black
+style mirBase fill:PaleTurquoise,stroke:black
+style GemiRNA fill:PaleTurquoise,stroke:black
+
+
+subgraph 
+piRNA-->piRc[piRNA<br>cluster]
+end
+
+style piRNA fill:HoneyDew,stroke:black
+style piRc fill:HoneyDew,stroke:black
+
+
+subgraph 
+rRNA-->rrRNA
+end
+
+style rRNA fill:PeachPuff,stroke:black
+style rrRNA fill:PeachPuff,stroke:black
+
+
+subgraph 
+circRNA-->circBase[circBase]
+end
+
+style circRNA fill:LightSteelBlue,stroke:black
+style circBase fill:LightSteelBlue,stroke:black
+
+subgraph 
+RNA-->gencode[Gencode]
+end
+
+style RNA fill:Plum,stroke:black
+style gencode fill:Plum,stroke:black

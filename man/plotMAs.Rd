@@ -5,8 +5,8 @@
 \title{plotMAs}
 \usage{
 plotMAs(o, normalized = TRUE, type = NULL, status = c("unknown",
-  "ambiguous", "unique"), absfc = FALSE, samples = NULL, average = FALSE,
-  ...)
+  "ambiguous", "unique"), absfc = FALSE, samples = NULL,
+  average = FALSE, ...)
 }
 \arguments{
 \item{o}{An object of class shortRNAexp}

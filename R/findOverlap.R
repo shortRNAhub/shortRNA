@@ -4,24 +4,22 @@
 #'
 #' @param bamFile A character vector of path to BAM file.
 #' @param featureAnnotation A GRanges object as produced by prepareAnnotation function.
-#' @param overlapBy Minimum proportion of the read inside the overlapping feature, ranging between 0 and 1 (default: 0.5).
+#' @param ignoreStrand Logical; whether to ignore strand when searching for overlaps (default TRUE)
 #' 
 #' @return A dataframe.
 #' @export
-
-
-# Function to calculate overlap -----
-
-findoverlaps.bam.featureAnnotation <- function(bamFile, featureAnnotation, overlapBy = 50, ignoreStrand = TRUE){
+findoverlaps.bam.featureAnnotation <- function(bamFile, featureAnnotation, ignoreStrand = TRUE){
   
-  suppressPackageStartupMessages(library(GenomicAlignments))
-  suppressPackageStartupMessages(library(GenomicRanges))
-  suppressPackageStartupMessages(library(Rsamtools))
+  suppressPackageStartupMessages({
+    library(GenomicAlignments)
+    library(GenomicRanges)
+    library(Rsamtools)
+  })
   
   # convert bam to GRanges
   param <- ScanBamParam(what=c("cigar", "pos", "seq"))
-  b <- readGAlignments(bamFile, param = param)
-  bam <- GRanges(b)
+  bam <- readGAlignments(bamFile, param = param)
+  bam <- GRanges(bam)
   
   # Finding overlaps
   overlap <- suppressWarnings(findOverlaps(bam, featureAnnotation, ignore.strand = ignoreStrand))
@@ -45,10 +43,6 @@ findoverlaps.bam.featureAnnotation <- function(bamFile, featureAnnotation, overl
   
   m$featureWidth <- apply(m, 1, function(x) as.numeric(x['endFeature']) - as.numeric(x['startFeature']) + 1)
   
-  m <- m[m$percentOverlap >= overlapBy,]
-  m$chrPos <- paste(m[,1], m[,7], sep = ":")
-  
-  
   # Non overlapping reads
   nonOverlapRead <- data.frame(bam[-overlap@from,], stringsAsFactors = F)
   colnames(nonOverlapRead) <- paste0(colnames(nonOverlapRead), "Read")
@@ -62,6 +56,7 @@ findoverlaps.bam.featureAnnotation <- function(bamFile, featureAnnotation, overl
   
   # Final table
   m <- rbind(m, nonOverlapRead)
+  m$chrPos <- paste(m[,1], m[,7], sep = ":")
   
   columns <- c("seqRead", "cigarRead", "chrPos", "strandRead", "strandFeature", "posInFeature", 
                "overlap", "percentOverlap", "transcript_idFeature", "gene_idFeature",

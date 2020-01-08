@@ -136,3 +136,27 @@ normalizeCounts <- function(counts, normParams){
         return(x)
     }
 }
+
+
+
+#' Conditional Quantile Normalization (CQN)
+#'
+#' @author Deepak Tanwar (tanward@ethz.ch)
+#'
+#' @import cqn cqn
+#'
+#' @seealso cqn cqn
+#'
+#' @param IDs A GEO sample accession or SRA run accession, `GSM...` or `GSE...` or `SRX...` or `SRR...` or `SRP....`. Multiple IDs input is possible.
+#' @param sqlfile A SQL database of SRAdb. If not provides, it will be downloaded from internet.
+#' @param nParallel No. of processes for dumping fastq files. Default: 4
+#' @param suppGEO If supplementary GEO files to be downloaded. Default: TRUE
+#'
+#' @return A Directory/ directories with the same name as ID/ IDs and downloaded data in it (or log file if data is not availabls via SRAdb).
+#'
+#' @examples
+#' \dontrun{
+#'
+#' }
+#' @export
+# cqnSR <- function()

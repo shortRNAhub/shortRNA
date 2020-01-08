@@ -1,0 +1,91 @@
+---
+title: "shortRNA"
+author:
+- name: Pierre-Luc Germain
+  affiliation: ETH Zürich
+  email: germain@hifo.uzh.ch
+- name: Deepak Tanwar
+  affiliation: ETH Zürich
+package: shortRNA
+output:
+  BiocStyle::html_document
+abstract: |
+  Description of your vignette
+vignette: |
+  %\VignetteIndexEntry{shortRNA}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Getting started
+
+To enable the _Bioconductor_ style in your R Markdown vignette you need to include the following in the `DESCRIPTION` file:
+
+    VignetteBuilder: knitr
+    Suggests: BiocStyle, knitr, rmarkdown
+
+
+# Loading library
+```{r}
+library(shortRNA)
+```
+
+# Preprocessing and alignment
+
+## Collapse the fastq files
+Assuming we have already removed adapter sequences, we first collapse the fastq files:
+```{r, eval=FALSE}
+fastqFiles <- list.files(pattern="fastq\.gz$")
+collapseFastq(fastqFiles)
+```
+
+`collapseFastq` ^[function to be changed to work from within R] extracts unique reads and their counts from (**adapter-trimmed**) fastq files, and save the contents in `.seqcounts files`. 
+
+## Sequence count matrix
+```{r, eval = F}
+seqcountsFiles <- list.files(pattern="seqcounts$")
+collapsed2countMatrix(seqcountsFiles, "seqcounts.matrix")
+```
+
+`collapsed2countMatrix` ^[function to be changed to work from within R] creates a count matrix from a list of `.seqcounts files`.
+
+
+## Alignment
+```{r, eval = F}
+seqcounts2fasta("seqcounts.matrix", "seqs.fasta")
+shortRNAexp_align("seqs.fasta", "aligned.bam", nthreads=4)
+```
+
+`seqcounts2fasta` ^[**Error:** function not found!]
+
+`shortRNAexp_align` ^[function to be changed to work from within R] performs 2 step alignment with `bowtie` and `STAR`. This would be adapted with `Rsubread` alignmemt.
+
+### A note on the alignment procedure
+
+The alignment procedure is based on a customized genome that includes, on top of the normal (in this case mm10) genome, additional sequences of 'modified RNAs', such as, isomirs from canonical miRNAs and post-transcriptionally modified tRNAs. This therefore combines the advantages of both a genome-based alignment with an alignment on known transcripts. One advantage of this method is that post-transcriptional modifications, instead of being a roadblock to alignment and hence sequence identification, is actually used to distinguish sequences. One consequence is that many reads will align to multiple locations, but this ‘synonymy’ is handled through feature nesting (see below), which is anyway needed given the frequent multiple alignment of short RNAs.
+
+This alignment wrapper function works in two steps, and on an in:
+
+1. It attempts to align end-to-end reads (adapter trimming should have been performed beforehand) without mismatches using `bowtie1`, accepting multiple similar-quality hits (`--best` `--strata` `-m` 1000).
+
+2. Reads that fail to align are then aligned with `STAR` to allow for soft clipping. 
+
+> _Alignment is currently not stranded, which might be preferable given the reported incompleteness/ inconsistencies in strand-specificity of Illumina short RNA protocols, but we could eventually try to make use of this information in later versions_ ^[how?].
+
+**Once this double alignment procedure is over, we parse the alignements and extract all potential source genomic features for each sequences (requires a prepared elements bedfile):**
+
+```{r, eval=FALSE}
+shortRNAexp_parseBam("aligned.bam", "elements.bed", outputfile="seqs.srcs")
+```
+
+**Any interesction (of at least 50% of the read) with any genomic feature is reported, and will be considered for sequence assignment (below).**
+
+
+`shortRNAexp_parseBam` ^[function to be changed to work from within R] ^[Not exactly sure about this one.]
+
+
+# Session info {.unnumbered}
+
+```{r sessionInfo, echo=FALSE}
+devtools::session_info()
+```

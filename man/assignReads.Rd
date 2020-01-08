@@ -4,7 +4,9 @@
 \alias{assignReads}
 \title{assignReads}
 \usage{
-assignReads(sources, rules = defaultAssignRules(), nthreads = NULL)
+
+assignReads(sources, rules = defaultAssignRules(), trees = list(),
+  nthreads = NULL)
 }
 \arguments{
 \item{sources}{A data.frame of possible sources, as produced by the findOverlap function.}

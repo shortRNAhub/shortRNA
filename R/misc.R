@@ -1,12 +1,14 @@
 ## Function to check for the no. of cores and for parallel processing
-.checkPara <- function(ncores = NULL, maxCores = 8){
-  if(!is.null(ncores)){
-    if(ncores == 1)	return(NULL)
+.checkPara <- function(ncores = NULL, maxCores = 8) {
+  if (!is.null(ncores)) {
+    if (ncores == 1) {
+      return(NULL)
+    }
   }
-  if(tryCatch(require("doParallel", character.only = TRUE), error = function(e) FALSE)){
+  if (tryCatch(require("doParallel", character.only = TRUE), error = function(e) FALSE)) {
     library(doParallel)
-    if(is.null(ncores))	ncores <- min(detectCores()-1, maxCores)
-    if(ncores > 1){
+    if (is.null(ncores)) ncores <- min(detectCores() - 1, maxCores)
+    if (ncores > 1) {
       cl <- makeForkCluster(nnodes = ncores, outfile = "")
       registerDoParallel(cl)
       return(cl)
@@ -27,30 +29,34 @@
 #' @return The total number of frames in the layout.
 #'
 #' @export
-autoLayout <- function(nb, byrow = FALSE){
+autoLayout <- function(nb, byrow = FALSE) {
   nc <- ceiling(sqrt(nb))
-  nr <- ceiling(nb/nc)
+  nr <- ceiling(nb / nc)
   layout(matrix(1:(nr * nc), nrow = nr, byrow = byrow))
-  return(nr*nc)
+  return(nr * nc)
 }
 
 
 
 ## Funtion for calculating GC content in sequence
-.gcContents <- function(x){
-  sapply(as.character(x),FUN=function(x){
-    x <- strsplit(x,"",fixed=T)[[1]]
-    sum(x %in% c("G","C"))/length(x)
+.gcContents <- function(x) {
+  sapply(as.character(x), FUN = function(x) {
+    x <- strsplit(x, "", fixed = T)[[1]]
+    sum(x %in% c("G", "C")) / length(x)
   })
 }
 
 
 # finds the longest common substring
-LCS <- function(x){
-    a <- sapply(as.character(x), split="", fixed=T, FUN=strsplit)
-    a <- sapply(a,mm=min(sapply(a,length)),FUN=function(x,mm){ x[1:mm] })
-    w <- which(!apply(a,1,FUN=function(x){ length(unique(x))==1 }))[1]
-    paste(a[1:w,1],collapse="")
+LCS <- function(x) {
+  a <- sapply(as.character(x), split = "", fixed = T, FUN = strsplit)
+  a <- sapply(a, mm = min(sapply(a, length)), FUN = function(x, mm) {
+    x[1:mm]
+  })
+  w <- which(!apply(a, 1, FUN = function(x) {
+    length(unique(x)) == 1
+  }))[1]
+  paste(a[1:w, 1], collapse = "")
 }
 
 
@@ -66,44 +72,46 @@ LCS <- function(x){
 #'
 #' @export
 
-capitalizeRead <- function(read, cigar, indels = FALSE){
-  if(is.na(cigar) | !grepl("S|H|X|I", cigar)) return(read)
+capitalizeRead <- function(read, cigar, indels = FALSE) {
+  if (is.na(cigar) | !grepl("S|H|X|I", cigar)) {
+    return(read)
+  }
   read <- toupper(as.character(read))
-  cigar <- .splitCigar(cigar)    ## Please see the .splitCigar function below
-  read <- strsplit(read,"", fixed = T)[[1]]
-  if(any(read == "-")){
+  cigar <- .splitCigar(cigar) ## Please see the .splitCigar function below
+  read <- strsplit(read, "", fixed = T)[[1]]
+  if (any(read == "-")) {
     indels <- FALSE
     hyph <- which(read == "-")
     read <- read[-hyph]
-  } else{
+  } else {
     hyph <- NULL
   }
-  pos <- as.numeric(cigar[,2])
-  for(i in 1:nrow(cigar)){
+  pos <- as.numeric(cigar[, 2])
+  for (i in 1:nrow(cigar)) {
     x1 <- ifelse(i == 1, 1, sum(pos[1:(i - 1)]))
-    if(cigar[i,1] %in% c("H", "S", "X", "I")){
+    if (cigar[i, 1] %in% c("H", "S", "X", "I")) {
       x <- x1:(x1 + pos[i])
       read[x] <- tolower(read[x])
-    } else{
-      if(indels & cigar[i, 1] == "D"){
-        read <- c(read[1:(x1-1)], rep("-", pos[i]), read[x1:length(read)])
+    } else {
+      if (indels & cigar[i, 1] == "D") {
+        read <- c(read[1:(x1 - 1)], rep("-", pos[i]), read[x1:length(read)])
       }
     }
   }
-  if(!is.null(hyph)) .rehyphenate(read, hyph)     ## Please see the .rehypernate function below
-  return(paste(read,collapse=""))
+  if (!is.null(hyph)) .rehyphenate(read, hyph) ## Please see the .rehypernate function below
+  return(paste(read, collapse = ""))
 }
 
 
 
 ## Function to split the cigar string.
 ### This is used in `capitalizeRead` function
-.splitCigar <- function(cigar){
+.splitCigar <- function(cigar) {
   cigar <- as.character(cigar)
   p <- gregexpr("([0-9]*[MSXIH])", cigar)[[1]]
-  cigar <- strsplit(cigar, "", fixed=T)[[1]]
+  cigar <- strsplit(cigar, "", fixed = T)[[1]]
   p <- as.numeric(p) + attr(p, "match.length") - 1
-  t(sapply(1:length(p), cigar=cigar, p=p, FUN=function(x, p, cigar) {
+  t(sapply(1:length(p), cigar = cigar, p = p, FUN = function(x, p, cigar) {
     c(cigar[p[x]], paste(cigar[(ifelse(x == 1, 1, p[x - 1] + 1)):as.numeric(p[x] - 1)], collapse = ""))
   }))
 }
@@ -112,18 +120,27 @@ capitalizeRead <- function(read, cigar, indels = FALSE){
 ## Function to rehypernate the read
 ### This is used in `capitalizeRead` function
 
-.rehyphenate <- function(r, h){
+.rehyphenate <- function(r, h) {
   r2 <- r
-  for(f in h){
-    if(length(r2) < f){
+  for (f in h) {
+    if (length(r2) < f) {
       r2 <- c(r2[1:(f - 1)], "-")
-    }else{
-      if(f == 1){
+    } else {
+      if (f == 1) {
         r2 <- c("-", r2)
-      }else {
-        r2 <- c(r2[1:(f-1)], "-", r2[f:(length(r2))])
+      } else {
+        r2 <- c(r2[1:(f - 1)], "-", r2[f:(length(r2))])
       }
     }
   }
   r2
+}
+
+# use instead of `stop` to log the error and traceback
+.fstop <- function(x, object=NULL){
+  futile.logger::flog.error(x)
+  futile.logger::flog.trace(traceback(4))
+  if(!is.null(object)) 
+    futile.logger::flog.trace("Offending object:", object, capture=TRUE)
+  stop(x)
 }
