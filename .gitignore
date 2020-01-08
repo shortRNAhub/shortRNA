@@ -1,3 +1,5 @@
 extdata
 .Rproj.user
 .httr-oauth
+.Rproj
+.Rbuildignore

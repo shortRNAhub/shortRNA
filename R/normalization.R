@@ -156,7 +156,7 @@ normalizeCounts <- function(counts, normParams){
 #'
 #' @examples
 #' \dontrun{
-#' 
+#'
 #' }
 #' @export
-cqnSR <- function()
+# cqnSR <- function()

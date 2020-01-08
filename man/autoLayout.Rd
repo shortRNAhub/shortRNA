@@ -2,7 +2,6 @@
 % Please edit documentation in R/misc.R, R/plotting.R
 \name{autoLayout}
 \alias{autoLayout}
-\alias{autoLayout}
 \title{autoLayout}
 \usage{
 autoLayout(nb, byrow = FALSE)

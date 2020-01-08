@@ -135,3 +135,12 @@ capitalizeRead <- function(read, cigar, indels = FALSE) {
   }
   r2
 }
+
+# use instead of `stop` to log the error and traceback
+.fstop <- function(x, object=NULL){
+  futile.logger::flog.error(x)
+  futile.logger::flog.trace(traceback(4))
+  if(!is.null(object)) 
+    futile.logger::flog.trace("Offending object:", object, capture=TRUE)
+  stop(x)
+}

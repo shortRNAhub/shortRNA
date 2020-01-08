@@ -1,41 +1,51 @@
-#' collapseFastq
+#' fastq2SeqCountMatrix
 #'
-#' Extract unique reads and their counts from (adapter-trimmed) fastq files, and save the contents in .seqcounts files.
+#' Collapses a set of `.fastq` (or `fastq.gz`) files to a matrix of counts per
+#'  unique sequence.
 #'
-#' @param files A character vector of path to fastq (or fastq.gz) files.
-#' @param minLength The minimum length for a read to be considered (default 15).
-#' @param maxLength The maximum length for a read to be considered (default 49).
-#' @param shell Shell executable, default 'bash'.
-
+#' @param files A character vector containing the path to each fastq file.
+#' @param minLength The minimum length for a sequence to be included (def. 15)
+#' @param maxLength The maximum length for a sequence to be included (default
+#'  Inf, i.e. no maximum)
+#' @param discardBelowCount Discard sequences that appear less than this number 
+#' of times across all samples. The default value is 2, which means that 
+#' sequences that appear only once are discarded.
 #'
+#' @return a matrix, with unique sequences as rows and samples (i.e. file 
+#' basenames) as column.
+#' 
 #' @export
-collapseFastq <- function(files, minLength = 15, maxLength = 49, shell = "bash") {
-  p <- paste0(path.package("shortRNA"), "/collapse.sh")
-  f2 <- sapply(files, FUN = function(x) {
-    paste0(gsub("\\.fastq$", "", gsub("\\.gz$", "", x)), ".seqcounts")
-  })
-  cmds <- paste(shell, p, files, f2, minLength, maxLength)
-  for (f in cmds) {
-    print(f)
-    system(f)
-  }
+fastq2SeqCountMatrix <- function( files, 
+                                  minLength=15, 
+                                  maxLength=Inf, 
+                                  discardBelowCount=2   ){
+    library(Biostrings)
+    library(plyr)
+    fe <- sapply(files, FUN=file.exists)
+    if(!all(fe)){
+        stop(paste( "Could not find the following input file(s): \n",
+                    paste(files[which(!fe)], collapse=" \n ")))
+    }
+    l <- lapply(files, minl=minLength, maxl=maxLength, FUN=function(x, minl, maxl){
+        x <- readDNAStringSet(x, use.names=F, format="fastq")
+        x <- as.character(x)
+        nc <- sapply(x,nchar)
+        x <- x[which(nc>=minl & nc<=maxl)]
+        x <- table(x)
+        data.frame( seq=names(x), count=as.numeric(x), stringsAsFactors = F)
+    })
+    nn <- gsub("\\.fastq$", "", gsub("\\.gz$", "", basename(files)))
+    names(l) <- nn
+    for(i in 1:length(l)) names(l[[i]])[2] <- nn[i]
+    df <- join_all(l, by="seq", type="full", match="first")
+    row.names(df) <- df$seq
+    df$seq <- NULL
+    df <- as.matrix(df)
+    df[which(is.na(df))] <- 0
+    df <- df[which(rowSums(df, na.rm=T)>=discardBelowCount),]
+    df[order(row.names(df)),]
 }
 
-#' collapsed2countMatrix
-#'
-#' Creates a count matrix from a list of .seqcounts files
-#'
-#' @param seqcounts.files A character vector of path to .seqcounts files (i.e. files produced by `collapseFastq`).
-#' @param output.file Path to the file where the output matrix will be saved.
-#' @param shell Shell executable, default 'bash'.
-
-#'
-#' @export
-collapsed2countMatrix <- function(seqcounts.files, output.file, shell = "bash") {
-  cmd <- paste0(shell, " ", path.package("shortRNA"), "/collapsed2countMatrix.sh ", paste(seqcounts.files, collapse = " "), " > ", output.file)
-  print(cmd)
-  system(cmd)
-}
 
 #' shortRNAexp_align
 #'
