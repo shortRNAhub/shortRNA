@@ -150,3 +150,22 @@ indexRsubread <- function(fastaGenome = NULL,
 alignShortRNA <- function(fastq, index) {
   nBestLocations <- 1000
 }
+
+
+#' Run `lapply` function in parallel, if possible.
+#' @author Deepak Tanwar (tanward@ethz.ch)
+#'
+#' @import parallel
+#'
+#' @seealso parallel
+#'
+#' @param any parameters for `lapply` or `mclapply`
+#' @return A `list`.
+#'
+#' @export
+mylapply <- function(...) {
+  if(require(parallel) && .Platform$OS.type == "unix")
+    mclapply(..., mc.cores = detectCores(), mc.preschedule = F)
+  else
+    lapply(...)
+}

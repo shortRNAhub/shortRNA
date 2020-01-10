@@ -4,8 +4,7 @@
 \alias{getAggCounts}
 \title{getAggCounts}
 \usage{
-getAggCounts(o, type = NULL, ambiguous = is.null(type),
-  normalized = FALSE)
+getAggCounts(o, type = NULL, ambiguous = is.null(type), normalized = FALSE)
 }
 \arguments{
 \item{o}{An object of class shortRNAexp}

@@ -4,9 +4,17 @@
 \alias{shortRNAexp_align}
 \title{shortRNAexp_align}
 \usage{
-shortRNAexp_align(fasta, outputfile, bowtie1index, starindex,
-  bowtie1 = "bowtie", star = "STAR", samtools = "samtools",
-  m = 1000, nthreads = 4)
+shortRNAexp_align(
+  fasta,
+  outputfile,
+  bowtie1index,
+  starindex,
+  bowtie1 = "bowtie",
+  star = "STAR",
+  samtools = "samtools",
+  m = 1000,
+  nthreads = 4
+)
 }
 \arguments{
 \item{fasta}{Path to a fasta file containing the unique reads.}

@@ -4,10 +4,19 @@
 \alias{runDEA}
 \title{runDEA}
 \usage{
-runDEA(o, formula = NULL, groups = NULL, method = "edgeR",
-  types = NULL, normalizeByType = FALSE, replicates = NULL,
-  forceGLM = FALSE, coef = NULL, filterFun = function(x) {     sum(x
-  > 20) > 2 }, ...)
+runDEA(
+  o,
+  formula = NULL,
+  groups = NULL,
+  method = "edgeR",
+  types = NULL,
+  normalizeByType = FALSE,
+  replicates = NULL,
+  forceGLM = FALSE,
+  coef = NULL,
+  filterFun = function(x) {     sum(x > 20) > 2 },
+  ...
+)
 }
 \arguments{
 \item{o}{An object of class shortRNAexp}

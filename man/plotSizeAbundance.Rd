@@ -4,10 +4,18 @@
 \alias{plotSizeAbundance}
 \title{plotSizeAbundance}
 \usage{
-plotSizeAbundance(o, type = NULL, status = c("unknown", "ambiguous",
-  "unique"), normalized = TRUE, plotLengthFrequencies = TRUE,
-  onlyDetectedInAll = FALSE, dolog10 = FALSE, agFun = sum,
-  plotLegend = NULL, ...)
+plotSizeAbundance(
+  o,
+  type = NULL,
+  status = c("unknown", "ambiguous", "unique"),
+  normalized = TRUE,
+  plotLengthFrequencies = TRUE,
+  onlyDetectedInAll = FALSE,
+  dolog10 = FALSE,
+  agFun = sum,
+  plotLegend = NULL,
+  ...
+)
 }
 \arguments{
 \item{o}{An object of class shortRNAexp}

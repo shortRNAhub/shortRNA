@@ -4,15 +4,18 @@
 \alias{findoverlaps.bam.featureAnnotation}
 \title{findoverlaps.bam.featureAnnotation}
 \usage{
-findoverlaps.bam.featureAnnotation(bamFile, featureAnnotation,
-  overlapBy = 0.5)
+findoverlaps.bam.featureAnnotation(
+  bamFile,
+  featureAnnotation,
+  ignoreStrand = TRUE
+)
 }
 \arguments{
 \item{bamFile}{A character vector of path to BAM file.}
 
 \item{featureAnnotation}{A GRanges object as produced by prepareAnnotation function.}
 
-\item{overlapBy}{Minimum proportion of the read inside the overlapping feature, ranging between 0 and 1 (default: 0.5).}
+\item{ignoreStrand}{Logical; whether to ignore strand when searching for overlaps (default TRUE)}
 }
 \value{
 A dataframe.

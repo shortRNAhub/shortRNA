@@ -4,9 +4,16 @@
 \alias{shortRNAexp}
 \title{shortRNAexp}
 \usage{
-shortRNAexp(seqcounts, alignments, annotation, phenoData = NULL,
-  description = NA_character_, rules = defaultAssignRules(),
-  keepAllSrcs = TRUE, do.aggregate = TRUE)
+shortRNAexp(
+  seqcounts,
+  alignments,
+  annotation,
+  phenoData = NULL,
+  description = NA_character_,
+  rules = defaultAssignRules(),
+  keepAllSrcs = TRUE,
+  do.aggregate = TRUE
+)
 }
 \arguments{
 \item{seqcounts}{Either a numeric matrix (with samples as columns and short sequences as rows) or the path to such a file.}

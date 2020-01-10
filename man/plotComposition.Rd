@@ -4,8 +4,15 @@
 \alias{plotComposition}
 \title{plotComposition}
 \usage{
-plotComposition(o, exclude = NULL, include = NULL,
-  normalized = FALSE, abridged = TRUE, scale = TRUE, ...)
+plotComposition(
+  o,
+  exclude = NULL,
+  include = NULL,
+  normalized = FALSE,
+  abridged = TRUE,
+  scale = TRUE,
+  ...
+)
 }
 \arguments{
 \item{o}{An object of class shortRNAexp}

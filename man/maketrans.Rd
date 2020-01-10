@@ -19,5 +19,4 @@ Makes a given color transparent.
 }
 \examples{
 maketrans("black")
-
 }

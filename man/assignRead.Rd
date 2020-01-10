@@ -4,12 +4,14 @@
 \alias{assignRead}
 \title{assignRead}
 \usage{
-assignRead(sources, rules = defaultAssignRules())
+assignRead(sources, rules = defaultAssignRules(), tree = NULL)
 }
 \arguments{
 \item{sources}{A data.frame of possible sources for the read (i.e., a subset of the `sources` slot of a shortRNAexp object).}
 
 \item{rules}{A list of assignment rules; defaults to `defaultAssignRules()`.}
+
+\item{tree}{An eventual feature tree, as a list (named by transcript id) of paths (character vectors)}
 }
 \value{
 A vector including the following variables: seq, cigar, chrPos, strandRead, strandFeature, posInFeature, overlap, percentOverlap, transcript_id, gene_id, transcript_type, status
