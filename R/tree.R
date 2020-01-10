@@ -261,7 +261,7 @@ addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", r
   }, mc.preschedule = FALSE, mc.cores = cores)
 }
 
-.treeToData(tree = longRNA.gencode, cores = 4)
+# .treeToData(tree = longRNA.gencode, cores = 4)
 
 # Combine two `data.frame` into one ----
 
