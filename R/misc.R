@@ -134,5 +134,19 @@ capitalizeRead <- function(read, cigar, indels = FALSE){
   futile.logger::flog.trace(traceback(4))
   if(!is.null(object)) 
     futile.logger::flog.trace("Offending object:", object, capture=TRUE)
-  stop(x)
+  stop(x, call.=FALSE)
+}
+
+
+
+.fcheck <- function(x, fatal=TRUE, object=NULL){
+  cmd <- deparse(substitute(x))
+  object <- tryCatch( object, error=function(e) NULL)
+  x <- tryCatch( x, error=function(e) .fstop(paste0("Error in `", cmd, "`: ", e$message)))
+  msg <- paste0("(",cmd,") = ", x)
+  if(x || !fatal){
+    futile.logger::flog.trace(msg)
+    return(x)
+  }
+  .fstop(msg, object=object)
 }
