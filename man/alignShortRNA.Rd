@@ -2,25 +2,38 @@
 % Please edit documentation in R/functionsDKT.R
 \name{alignShortRNA}
 \alias{alignShortRNA}
-\title{Read Bismark coverage files containing methylated and unmethylated read counts for CpG loci and create DGEList.}
+\title{Alignment using Rsubread}
 \usage{
-alignShortRNA(fastq, index)
+alignShortRNA(
+  fastq,
+  fastq2 = NULL,
+  index,
+  nBestLocations = 100,
+  nThreads = parallel::detectCores() - 1,
+  GTF = NULL,
+  ...
+)
 }
 \arguments{
-\item{files}{character vector of file names.}
+\item{fastq}{character vector of file names.}
 
-\item{nParallel}{numeric value of how many cores to be used for reading files. Important when reading files with data.table package.}
+\item{fastq2}{in case the sequencing is paired-end.}
 
-\item{verbose}{logical. If TRUE, read progress messages are send to standard output.}
+\item{index}{path to the Rsubread index}
+
+\item{nThreads}{numeric value of how many cores to be used for alignment.}
+
+\item{GTF}{path to the GTF file.}
+
+\item{...}{other parameters specific to `Rsubread`.}
+
+\item{numeric}{value specifying the maximal number of equally-best mapping locations that will be reported for a multi-mapping read.}
 }
 \value{
-A `DGEList`.
+Stores a `BAM` file.
 }
 \description{
-Read Bismark coverage files containing methylated and unmethylated read counts for CpG loci and create DGEList.
-}
-\examples{
-dge.files <- ReadBismark2DGE(files = files, sample.names = names, data.table = T, nParallel = 8)
+Alignment using Rsubread
 }
 \seealso{
 Rsubread
