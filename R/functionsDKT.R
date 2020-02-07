@@ -167,13 +167,16 @@ indexRsubread <- function(fastaGenome = NULL,
 #' @param index path to the Rsubread index
 #' @param numeric value specifying the maximal number of equally-best mapping locations that will be reported for a multi-mapping read.
 #' @param GTF path to the GTF file.
+#' @param outDir output directory. Default: current working directory
+#' @param outFile basename of the output file. Default: basename of input file
+#' @param mode function to be used from Rsubread package for performing alignment. Default: align
 #' @param ... other parameters specific to `Rsubread`.
 #' @return Stores a `BAM` file.
 #'
 #' @export
 alignShortRNA <- function(fastq, fastq2 = NULL, index, nBestLocations = 100,
                           nThreads = parallel::detectCores() - 1, GTF = NULL,
-                          ...) {
+                          outDir = getwd(), outFile = NULL, mode = "align", ...) {
   gtfOption <- NULL
   if (!is.null(GTF)) {
     gtfOption <- TRUE
@@ -181,13 +184,34 @@ alignShortRNA <- function(fastq, fastq2 = NULL, index, nBestLocations = 100,
     gtfOption <- FALSE
   }
 
+  out <- NULL
+  if (!is.null(outFile)) {
+    out <- paste0(outDir, "/", outFile, ".bam")
+  } else {
+    o <- gsub(pattern = ".f.*", replacement = "", x = basename(fastq))
+    out <- paste0(outDir, "/", o, ".bam")
+  }
+
   library(Rsubread)
   library(parallel)
-  Rsubread::subjunc(
-    index = index, readfile1 = fastq, readfile2 = fastq2,
-    nthreads = detectCores() - 1, sortReadsByCoordinates = TRUE,
-    annot.ext = GTF, isGTF = gtfOption, ...
-  )
+
+  if (mode == "align") {
+    align(
+      index = index, readfile1 = fastq, readfile2 = fastq2,
+      nBestLocations = nBestLocations, output_file = out,
+      nthreads = detectCores() - 1, sortReadsByCoordinates = TRUE,
+      annot.ext = GTF, isGTF = gtfOption, ...
+    )
+  } else if (mode == "subjunc") {
+    subjunc(
+      index = index, readfile1 = fastq, readfile2 = fastq2,
+      nBestLocations = nBestLocations, output_file = out,
+      nthreads = detectCores() - 1, sortReadsByCoordinates = TRUE,
+      annot.ext = GTF, isGTF = gtfOption, ...
+    )
+  } else {
+    stop("Please provide one option: align or subjunc!")
+  }
 }
 
 

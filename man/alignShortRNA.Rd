@@ -11,6 +11,9 @@ alignShortRNA(
   nBestLocations = 100,
   nThreads = parallel::detectCores() - 1,
   GTF = NULL,
+  outDir = getwd(),
+  outFile = NULL,
+  mode = "align",
   ...
 )
 }
@@ -24,6 +27,12 @@ alignShortRNA(
 \item{nThreads}{numeric value of how many cores to be used for alignment.}
 
 \item{GTF}{path to the GTF file.}
+
+\item{outDir}{output directory. Default: current working directory}
+
+\item{outFile}{basename of the output file. Default: basename of input file}
+
+\item{mode}{function to be used from Rsubread package for performing alignment. Default: align}
 
 \item{...}{other parameters specific to `Rsubread`.}
 
