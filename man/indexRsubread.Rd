@@ -10,6 +10,8 @@ indexRsubread(
   gencodeRelease = "M18",
   outPath = getwd(),
   basename = "refRsubread",
+  extraFasta = NULL,
+  gzExtra = FALSE,
   ...
 )
 }
@@ -24,6 +26,10 @@ indexRsubread(
 
 \item{basename}{Basename for the Rsubread index.}
 
+\item{extraFasta}{`vector`. Additional fasta files location.}
+
+\item{gzExtra}{if additional fasta files are gzip. Default: FALSE.}
+
 \item{...}{Other options for `Rsubread::buildindex()`.}
 }
 \value{
@@ -31,6 +37,9 @@ indexRsubread(
 }
 \description{
 Build index for Rsubread
+}
+\examples{
+indexRsubread(fastaGenome = "../test/reference.fa.gz", basename = "../test/reference")
 }
 \seealso{
 Rsubread

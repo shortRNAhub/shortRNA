@@ -19,7 +19,7 @@
 #   n1 <- ldply(n, data.frame)
 #   return(data.frame(RNA, n1, stringsAsFactors = F))
 # }
-# 
+#
 # fastaToTree <- function(fasta) {
 #   library(Biostrings)
 #   library(data.tree)
@@ -30,7 +30,7 @@
 #   tree.df <- as.Node(df)
 #   return(list(df = df, tree = tree.df))
 # }
-# 
+#
 
 # Build index for Rsubread from `fasta` file ----
 
@@ -57,17 +57,19 @@
 #' @param gencodeRelease Release of the genome to be downloaded.
 #' @param outPath Output direcory where genome is downloaded and index is build.
 #' @param basename Basename for the Rsubread index.
+#' @param extraFasta `vector`. Additional fasta files location.
+#' @param gzExtra if additional fasta files are gzip. Default: FALSE.
 #' @param ... Other options for `Rsubread::buildindex()`.
 #'
 #' @return **index** for aligning fastq files with Rsubread.
 #' \dontrun{
 #' @examples
 #' indexRsubread(fastaGenome = "../test/reference.fa.gz", basename = "../test/reference")
-#' }
 #' @export
 indexRsubread <- function(fastaGenome = NULL,
                           refGenome = "mm10", gencodeRelease = "M18",
                           outPath = getwd(), basename = "refRsubread",
+                          extraFasta = NULL, gzExtra = FALSE,
                           ...) {
   library(Rsubread)
   library(R.utils)
@@ -80,21 +82,23 @@ indexRsubread <- function(fastaGenome = NULL,
   } else {
     # If not provided
     message(
-      paste0("As the `fasta` file is not provided via fastaGenome, ", 
-            refGenome, " will be dowloaded and index will be build from GENCODE version ",
-            gencodeRelease, ".")
+      paste0(
+        "As the `fasta` file is not provided via fastaGenome, ",
+        refGenome, " will be dowloaded and index will be build from GENCODE version ",
+        gencodeRelease, "."
+      )
     )
 
     # Various checks
     if (!grepl(pattern = "hg19|hg38|mm9|mm10", x = refGenome)) {
       stop("Please provide path to the `fasta` file! This function can only build indexes without a `fasta` file for mm9, mm10, hg19 or hg38, or from a `fasta file`!")
     }
-    if (grepl(pattern = "hg[0-9][0-9]", x = refGenome) & 
-        !grepl(pattern = "[0-9][0-9]", x = gencodeRelease)) {
+    if (grepl(pattern = "hg[0-9][0-9]", x = refGenome) &
+      !grepl(pattern = "[0-9][0-9]", x = gencodeRelease)) {
       stop("Please see: https://www.gencodegenes.org/human/releases.html")
     }
     if (grepl(pattern = "mm[0-9]|mm[0-9][0-9]", x = refGenome) &
-        !grepl(pattern = "M[0-9]|M[0-9][0-9]", x = gencodeRelease)) {
+      !grepl(pattern = "M[0-9]|M[0-9][0-9]", x = gencodeRelease)) {
       stop("Please see: https://www.gencodegenes.org/mouse/releases.html")
     }
 
@@ -122,12 +126,28 @@ indexRsubread <- function(fastaGenome = NULL,
     n <- str[length(str)]
     fa <- paste0(outPath, "/", n)
     message("...downloading file...\n")
+    system(paste("mkdir -p", outPath))
     download.file(url = ftp, destfile = fa)
     message("...file downloaded...\n\n...building index for Rsubread...\n")
 
+    genomeFasta <- NULL
+    # Extra fasta
+    if (!is.null(extraFasta)) {
+      if (gzExtra) {
+        system(paste0("cat ", fa, " ", paste(extraFasta, collapse = " "), " > ", outPath, "/genome.fa.gz"))
+        genomeFasta <- paste(outPath, "genome.fa.gz", sep = "/")
+      } else {
+        tmp <- as.character(sapply(extraFasta, gzip))
+        system(paste0("cat ", fa, " ", paste(tmp, collapse = " "), " > ", outPath, "/genome.fa.gz"))
+        genomeFasta <- paste(outPath, "genome.fa.gz", sep = "/")
+      }
+    } else {
+      genomeFasta <- fa
+    }
+
     # Index building
-    buildindex(basename = basename, reference = gunzip(fa), ...)
-    gzip(gsub(pattern = "\\.gz$", "", fa))
+    buildindex(basename = paste(outPath, basename, sep = "/"), reference = genomeFasta, ...)
+    # gzip(gsub(pattern = "\\.gz$", "", fa))
   }
 }
 
@@ -149,24 +169,25 @@ indexRsubread <- function(fastaGenome = NULL,
 #' @param GTF path to the GTF file.
 #' @param ... other parameters specific to `Rsubread`.
 #' @return Stores a `BAM` file.
-#' 
+#'
 #' @export
-alignShortRNA <- function(fastq, fastq2 = NULL, index, nBestLocations = 100, 
+alignShortRNA <- function(fastq, fastq2 = NULL, index, nBestLocations = 100,
                           nThreads = parallel::detectCores() - 1, GTF = NULL,
                           ...) {
-  
   gtfOption <- NULL
-  if(!is.null(GTF)){
-    gtfOption <- TRUE  
-  } else{
+  if (!is.null(GTF)) {
+    gtfOption <- TRUE
+  } else {
     gtfOption <- FALSE
   }
-  
+
   library(Rsubread)
   library(parallel)
-  Rsubread::subjunc(index = index, readfile1 = fastq, readfile2 = fastq2, 
-                    nthreads = detectCores() -1, sortReadsByCoordinates = TRUE, 
-                    annot.ext = GTF, isGTF = gtfOption, ...)
+  Rsubread::subjunc(
+    index = index, readfile1 = fastq, readfile2 = fastq2,
+    nthreads = detectCores() - 1, sortReadsByCoordinates = TRUE,
+    annot.ext = GTF, isGTF = gtfOption, ...
+  )
 }
 
 
@@ -182,8 +203,9 @@ alignShortRNA <- function(fastq, fastq2 = NULL, index, nBestLocations = 100,
 #'
 #' @export
 mylapply <- function(...) {
-  if(require(parallel) && .Platform$OS.type == "unix")
+  if (require(parallel) && .Platform$OS.type == "unix") {
     mclapply(..., mc.cores = detectCores(), mc.preschedule = F)
-  else
+  } else {
     lapply(...)
+  }
 }
