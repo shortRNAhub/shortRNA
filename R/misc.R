@@ -132,6 +132,7 @@ capitalizeRead <- function(read, cigar, indels = FALSE){
 .fstop <- function(x, object=NULL){
   futile.logger::flog.error(x)
   futile.logger::flog.trace(traceback(4))
+  object <- futile.logger::ftry(object, error=function(x) NULL)
   if(!is.null(object)) 
     futile.logger::flog.trace("Offending object:", object, capture=TRUE)
   stop(x, call.=FALSE)
@@ -141,12 +142,31 @@ capitalizeRead <- function(read, cigar, indels = FALSE){
 
 .fcheck <- function(x, fatal=TRUE, object=NULL){
   cmd <- deparse(substitute(x))
-  object <- tryCatch( object, error=function(e) NULL)
-  x <- tryCatch( x, error=function(e) .fstop(paste0("Error in `", cmd, "`: ", e$message)))
+  x <- tryCatch( x, 
+                 warning=function(w) futile.logger::flog.warn(w), 
+                 error=function(e) .fstop(paste0("Error in `", cmd, "`: ", e$message))
+                )
   msg <- paste0("(",cmd,") = ", x)
   if(x || !fatal){
     futile.logger::flog.trace(msg)
     return(x)
   }
-  .fstop(msg, object=object)
+  .fstop(msg, object=tryCatch( object, error=function(e) NULL))
 }
+
+
+.fstop <- function(x, object=NULL){
+  cmd <- deparse(substitute(x))
+  x <- futile.logger::ftry(x, error=function(e) stop(e$message, call.=TRUE))
+  if(!is.null(x) && length(x)==1 && is.logical(x)){
+    if(x) return(invisible(TRUE))
+    x <- paste0("(",cmd,") == ", x)
+  }
+  futile.logger::flog.error(x)
+  futile.logger::flog.trace(traceback(4))
+  object <- futile.logger::ftry(object, error=function(e) NULL)
+  if(!is.null(object)) 
+    futile.logger::flog.trace("Offending object:", object, capture=TRUE)
+  stop(x, call.=FALSE)
+}
+
