@@ -557,7 +557,7 @@ getOverlapValidity <- function(sources, rules=defaultAssignRules()){
   if(length(w)>0){
     flog.debug("Changing the transcript type of invalid overlaps providing a fallback type.")
     sources$transcript_type[w] <- sources$validType[w]
-    sources[w,] <- .getValidity(sources[w,,drop=FALSE], rules)
+    sources[w,] <- getOverlapValidity(sources[w,,drop=FALSE], rules)
   }
   if(nrow(s1)>0) sources <- rbind(s1, sources)
   sources$validType <- as.logical(sources$validType)
