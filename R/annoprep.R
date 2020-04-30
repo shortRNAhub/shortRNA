@@ -236,7 +236,7 @@ prepareAnnotation <- function(species = NULL,
   if (!is.null(species)) {
     filelist <- getAnnotationFiles(species, destination = destination)
   }
-  ff <- c("features.gtf", "mirbase.gtf", "gtRNAdb.fa", "gtRNAdb.bed", "tRNA.gtf")
+  ff <- c("features.gtf", "mirbase.gtf", "gtRNAdb.fa", "gtRNAdb.bed", "tRNA.gtf", "pi_precursors.gtf")
   if (!is.list(filelist) || !all(ff %in% names(filelist))) {
     stop(paste("`filelist` should be a list with the following elements:", paste(ff, collapse = ", ")))
   }
@@ -308,7 +308,7 @@ prepareAnnotation <- function(species = NULL,
   ))
 
   # piRNAs
-  if ("pi_precursors" %in% names(filelist) && !is.na(filelist$pi_precursors.gtf)) {
+  if ("pi_precursors.gtf" %in% names(filelist) && !is.na(filelist$pi_precursors.gtf)) {
     pirnas <- import(filelist$pi_precursors.gtf)
     if ("type" %in% names(pirnas@elementMetadata)) {
       pirnas <- pirnas[which(pirnas$type == "transcript"), c("transcript_id", "gene_id", "transcript_type")]
@@ -387,7 +387,7 @@ prepareAnnotation <- function(species = NULL,
   }
 
   g <- g[, meta]
-  if ("pi_precursors" %in% names(filelist) && !is.na(filelist$pi_precursors.gtf)) {
+  if ("pi_precursors.gtf" %in% names(filelist) && !is.na(filelist$pi_precursors.gtf)) {
     g2 <- suppressWarnings(c(mirs, trnas, pirnas))
   } else {
     g2 <- suppressWarnings(c(mirs, trnas))
