@@ -4,8 +4,13 @@
 \alias{getFeatureSeqs}
 \title{getFeatureSeqs}
 \usage{
-getFeatureSeqs(o, feature, exact = TRUE, allowAmbiguous = FALSE,
-  ignore.case = TRUE)
+getFeatureSeqs(
+  o,
+  feature,
+  exact = TRUE,
+  allowAmbiguous = FALSE,
+  ignore.case = TRUE
+)
 }
 \arguments{
 \item{o}{An object of class shortRNAexp}

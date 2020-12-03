@@ -4,8 +4,14 @@
 \alias{shortRNAexp_parseBam}
 \title{shortRNAexp_parseBam}
 \usage{
-shortRNAexp_parseBam(bam, elements, outputfile = NULL, shell = "bash",
-  samtools = "samtools", bedtools = "bedtools")
+shortRNAexp_parseBam(
+  bam,
+  elements,
+  outputfile = NULL,
+  shell = "bash",
+  samtools = "samtools",
+  bedtools = "bedtools"
+)
 }
 \arguments{
 \item{bam}{Path to the sorted bam file.}

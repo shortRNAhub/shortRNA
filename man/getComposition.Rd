@@ -4,8 +4,13 @@
 \alias{getComposition}
 \title{getComposition}
 \usage{
-getComposition(o, abridged = FALSE, exclude = c("unknown",
-  "ambiguous"), normalized = FALSE, scale = TRUE)
+getComposition(
+  o,
+  abridged = FALSE,
+  exclude = c("unknown", "ambiguous"),
+  normalized = FALSE,
+  scale = TRUE
+)
 }
 \arguments{
 \item{o}{An object of class shortRNAexp}

@@ -9,11 +9,9 @@ autoLayout(nb, byrow = FALSE)
 autoLayout(nb, byrow = FALSE)
 }
 \arguments{
-\item{nb}{Minimum number of frames}
+\item{nb}{minimum number of panels}
 
 \item{byrow}{Whether to fill frames by row instead of by column (default FALSE, i.e. fill by column)}
-
-\item{nb}{minimum number of panels}
 }
 \value{
 The total number of frames in the layout.

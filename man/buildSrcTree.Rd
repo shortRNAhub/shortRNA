@@ -13,7 +13,7 @@ buildSrcTree(a, metatypes = NULL, clusters = NULL)
 `transcript_type` in `a` to meta-types. If omitted, will be built
 using pre-built grouping scheme.}
 
-\item{clusters}{An optional named vector linking different values of 
+\item{clusters}{An optional named vector linking different values of
 `transcript_id` or `gene_id` in `a` to clusters.}
 }
 \value{

@@ -4,8 +4,13 @@
 \alias{checkPiRNA}
 \title{checkPiRNA}
 \usage{
-checkPiRNA(seqs, type = "primary", allowRevComp = FALSE,
-  size = 26:32)
+checkPiRNA(
+  seqs,
+  type = "primary",
+  allowRevComp = FALSE,
+  size = 26:32,
+  fallback = "piRNA_precursor"
+)
 }
 \arguments{
 \item{seqs}{A character vector of sequences}
@@ -15,6 +20,9 @@ checkPiRNA(seqs, type = "primary", allowRevComp = FALSE,
 \item{allowRevComp}{Logical; whether to allow a sequence to match the signature with its reverse complement.}
 
 \item{size}{Integer vector indicating the possible sizes (default 26:32).}
+
+\item{fallback}{Eventual fallback transcript type when conditions are not met. 
+Defaults to "piRNA_precursor". Use `fallback=FALSE` to set to invalid overlap.}
 }
 \value{
 A logical vector

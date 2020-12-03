@@ -4,8 +4,14 @@
 \alias{plotFeatureCoverage}
 \title{plotFeatureCoverage}
 \usage{
-plotFeatureCoverage(o, feature, exact = TRUE, includeAmbiguous = TRUE,
-  logCounts = FALSE, main = "")
+plotFeatureCoverage(
+  o,
+  feature,
+  exact = TRUE,
+  includeAmbiguous = TRUE,
+  logCounts = FALSE,
+  main = ""
+)
 }
 \arguments{
 \item{o}{An object of class shortRNAexp}

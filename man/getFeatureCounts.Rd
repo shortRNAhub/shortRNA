@@ -4,8 +4,13 @@
 \alias{getFeatureCounts}
 \title{getFeatureCounts}
 \usage{
-getFeatureCounts(o, feature, exact = TRUE, normalized = FALSE,
-  allowAmbiguous = FALSE)
+getFeatureCounts(
+  o,
+  feature,
+  exact = TRUE,
+  normalized = FALSE,
+  allowAmbiguous = FALSE
+)
 }
 \arguments{
 \item{o}{An object of class shortRNAexp}

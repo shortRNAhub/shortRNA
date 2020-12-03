@@ -4,8 +4,13 @@
 \alias{checkSizeSelection}
 \title{checkSizeSelection}
 \usage{
-checkSizeSelection(o, type = NULL, status = c("unknown", "invalid",
-  "ambiguous", "unique"), trim = TRUE, onlyDetectedInAll = TRUE)
+checkSizeSelection(
+  o,
+  type = NULL,
+  status = c("unknown", "invalid", "ambiguous", "unique"),
+  trim = TRUE,
+  onlyDetectedInAll = TRUE
+)
 }
 \arguments{
 \item{o}{An object of class shortRNAexp}

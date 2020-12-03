@@ -4,25 +4,41 @@
 \alias{prepareAnnotation}
 \title{prepareAnnotation}
 \usage{
-prepareAnnotation(species = NULL, filelist = NULL,
-  destination = getwd(), description = "", includeIsomirs = TRUE)
+prepareAnnotation(
+  species = NULL,
+  filelist = NULL,
+  destination = getwd(),
+  description = "",
+  includeIsomirs = TRUE,
+  resolveSplicing = defaultAssignRules()$highPriorityTypes,
+  unresolvedLevel = "gene"
+)
 }
 \arguments{
-\item{species}{The species for automatic fetching and creation of the annotation. 
+\item{species}{The species for automatic fetching and creation of the annotation.
 See `?getAnnotationFiles` for the supported species/assemblies.}
 
-\item{filelist}{A list of named feature files, as produced by 'getAnnotationFiles', indicating the necessary files. 
-The following slots are required: 
+\item{filelist}{A list of named feature files, as produced by 'getAnnotationFiles', indicating the necessary files.
+The following slots are required:
 'features.gtf','features.gtf','mirbase.gtf','gtRNAdb.fa','gtRNAdb.bed','tRNA.gtf'; the 'pi_precursors' is optional.}
 
 \item{destination}{The destination folder for the files (defaults to current working directory)}
 
 \item{description}{An optional character vector containing a description of the annotation (default empty)}
+
+\item{resolveSplicing}{A character vector indicating for which RNA types to
+consider splicing when calculating overlaps and position within transcript,
+or a logical indicating whether to do so for all transcripts. By default,
+this is done only for short RNAs (see `getDefaultShortTypes()`), since it is
+often unimportant whether reads coming from long RNAs stem from precursors or
+from processed RNAs. Doing it for all transcripts will increase computing
+time, while disabling it entirely will yield imperfect overlaps and positions
+within spliced transcripts.}
 }
 \value{
-A GRanges object, and produces modified fasta files.
+A GRangesList object, and produces modified fasta files.
 }
 \description{
-Prepares an annotation GRanges and modified miRNA/tRNA sequences for a given organism. 
+Prepares an annotation GRanges and modified miRNA/tRNA sequences for a given organism.
 Either `filelist` or `species` should be provided.
 }

@@ -4,8 +4,14 @@
 \alias{removeCorrelatedFeatures}
 \title{removeCorrelatedFeatures}
 \usage{
-removeCorrelatedFeatures(counts, o, cort = 0.6, cvt = 0.1, minmc = 5,
-  minmdiff = 1)
+removeCorrelatedFeatures(
+  counts,
+  o,
+  cort = 0.6,
+  cvt = 0.1,
+  minmc = 5,
+  minmdiff = 1
+)
 }
 \arguments{
 \item{counts}{A count matrix from which to remove correlated subfeatures.}

@@ -4,9 +4,13 @@
 \alias{calcNormFactors.shortRNAexp}
 \title{calcNormFactors.shortRNAexp}
 \usage{
-calcNormFactors.shortRNAexp(object, method = "TMM",
-  normalizeOnType = NULL, normalizeOnStatus = c("unknown", "ambiguous",
-  "unique"), ...)
+calcNormFactors.shortRNAexp(
+  object,
+  method = "TMM",
+  normalizeOnType = NULL,
+  normalizeOnStatus = c("unknown", "ambiguous", "unique"),
+  ...
+)
 }
 \arguments{
 \item{object}{An object of class shortRNAexp}

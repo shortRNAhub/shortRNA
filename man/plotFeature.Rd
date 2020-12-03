@@ -4,12 +4,24 @@
 \alias{plotFeature}
 \title{plotFeature}
 \usage{
-plotFeature(o, feature = NULL, sequences = NULL, exact = TRUE,
-  normalized = TRUE, aggregated = FALSE, plotType = "barplot",
-  proportion = FALSE, plotLegend = TRUE, dolog = plotType !=
-  "barplot", main = feature, ylab = NULL, allowAmbiguous = FALSE,
-  alignSeqs = !aggregated, barplotLayout = matrix(c(1, 2, 2), nrow =
-  1), ...)
+plotFeature(
+  o,
+  feature = NULL,
+  sequences = NULL,
+  exact = TRUE,
+  normalized = TRUE,
+  aggregated = FALSE,
+  plotType = "barplot",
+  proportion = FALSE,
+  plotLegend = TRUE,
+  dolog = plotType != "barplot",
+  main = feature,
+  ylab = NULL,
+  allowAmbiguous = FALSE,
+  alignSeqs = !aggregated,
+  barplotLayout = matrix(c(1, 2, 2), nrow = 1),
+  ...
+)
 }
 \arguments{
 \item{o}{An object of class shortRNAexp}

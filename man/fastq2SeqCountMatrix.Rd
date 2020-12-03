@@ -4,8 +4,12 @@
 \alias{fastq2SeqCountMatrix}
 \title{fastq2SeqCountMatrix}
 \usage{
-fastq2SeqCountMatrix(files, minLength = 15, maxLength = Inf,
-  discardBelowCount = 2)
+fastq2SeqCountMatrix(
+  files,
+  minLength = 15,
+  maxLength = Inf,
+  discardBelowCount = 2
+)
 }
 \arguments{
 \item{files}{A character vector containing the path to each fastq file.}
