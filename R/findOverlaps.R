@@ -5,18 +5,20 @@
 #'
 #' @param bamFile A character vector of path to BAM file.
 #' @param annotation An object of class `GRangesList`, as produced by `prepareAnnotation()`.
-#' @param ignoreStrand Logical; whether to ignore strand when searching for overlaps (default FALSE)
+#' @param ignoreStrand Logical; whether to ignore strand when searching for overlaps. By
+#' default, strand is ignored and considered later on at the read assignment stage.
 #' @param nbthreads A positive integer indicating the number of threads to use. 
 #' Defaults to `min(c(8, bpworkers()))`.
 #' 
 #' @return A data.table.
 #' @export
-overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=FALSE, nbthreads=NULL){
+overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NULL){
   suppressPackageStartupMessages({
     library(GenomicAlignments)
     library(GenomicFeatures)
     library(data.table)
     library(BiocParallel)
+    library(futile.logger)
   })
   
   if(is.null(nbthreads) || nbthreads==1){
@@ -32,6 +34,13 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=FALSE, nbthreads=NU
   bam@elementMetadata$seq <- as.character(bam@elementMetadata$seq)
   
   message(paste(length(bam), "alignments loaded, searching for overlaps..."))
+  
+  if( any(grepl("^chr", seqlevels(annotation)))!=any(grepl("^chr", seqlevels(bam))) ){
+    message("There appear to be a chromosome naming convention mismatch between the alignment and the annotation. Will attempt to resolve...")
+    seqlevels(annotation) <- gsub("^chr","",seqlevels(annotation))
+    seqlevels(bam) <- gsub("^chr","",seqlevels(bam))
+  }
+
   
   suppressWarnings({
     OV <- findOverlapPairs(bam, annotation, ignore.strand=ignoreStrand)

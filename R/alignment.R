@@ -26,7 +26,7 @@ fastq2SeqCountMatrix <- function( files,
         stop(paste( "Could not find the following input file(s): \n",
                     paste(files[which(!fe)], collapse=" \n ")))
     }
-    l <- lapply(files, minl=minLength, maxl=maxLength, FUN=function(x, minl, maxl){
+    l <- bplapply(files, minl=minLength, maxl=maxLength, BPPARAM=MulticoreParam(8), FUN=function(x, minl, maxl){
         x <- readDNAStringSet(x, use.names=F, format="fastq")
         x <- as.character(x)
         nc <- sapply(x,nchar)
