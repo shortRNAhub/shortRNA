@@ -15,37 +15,35 @@
 #' basenames) as column.
 #' 
 #' @export
-fastq2SeqCountMatrix <- function(files,
-                                 minLength = 15,
-                                 maxLength = Inf,
-                                 discardBelowCount = 2) {
-  library(Biostrings)
-  library(plyr)
-  fe <- sapply(files, FUN = file.exists)
-  if (!all(fe)) {
-    stop(paste(
-      "Could not find the following input file(s): \n",
-      paste(files[which(!fe)], collapse = " \n ")
-    ))
-  }
-  l <- mylapply(files, minl = minLength, maxl = maxLength, FUN = function(x, minl, maxl) {
-    x <- readDNAStringSet(x, use.names = F, format = "fastq")
-    x <- as.character(x)
-    nc <- sapply(x, nchar)
-    x <- x[which(nc >= minl & nc <= maxl)]
-    x <- table(x)
-    data.frame(seq = names(x), count = as.numeric(x), stringsAsFactors = F)
-  })
-  nn <- gsub("\\.fastq$", "", gsub("\\.gz$", "", basename(files)))
-  names(l) <- nn
-  for (i in 1:length(l)) names(l[[i]])[2] <- nn[i]
-  df <- join_all(l, by = "seq", type = "full", match = "first")
-  row.names(df) <- df$seq
-  df$seq <- NULL
-  df <- as.matrix(df)
-  df[which(is.na(df))] <- 0
-  df <- df[which(rowSums(df, na.rm = T) >= discardBelowCount), ]
-  df[order(row.names(df)), ]
+fastq2SeqCountMatrix <- function( files, 
+                                  minLength=15, 
+                                  maxLength=Inf, 
+                                  discardBelowCount=2   ){
+    library(Biostrings)
+    library(plyr)
+    fe <- sapply(files, FUN=file.exists)
+    if(!all(fe)){
+        stop(paste( "Could not find the following input file(s): \n",
+                    paste(files[which(!fe)], collapse=" \n ")))
+    }
+    l <- bplapply(files, minl=minLength, maxl=maxLength, BPPARAM=MulticoreParam(8), FUN=function(x, minl, maxl){
+        x <- readDNAStringSet(x, use.names=F, format="fastq")
+        x <- as.character(x)
+        nc <- sapply(x,nchar)
+        x <- x[which(nc>=minl & nc<=maxl)]
+        x <- table(x)
+        data.frame( seq=names(x), count=as.numeric(x), stringsAsFactors = F)
+    })
+    nn <- gsub("\\.fastq$", "", gsub("\\.gz$", "", basename(files)))
+    names(l) <- nn
+    for(i in 1:length(l)) names(l[[i]])[2] <- nn[i]
+    df <- join_all(l, by="seq", type="full", match="first")
+    row.names(df) <- df$seq
+    df$seq <- NULL
+    df <- as.matrix(df)
+    df[which(is.na(df))] <- 0
+    df <- df[which(rowSums(df, na.rm=T)>=discardBelowCount),]
+    df[order(row.names(df)),]
 }
 
 

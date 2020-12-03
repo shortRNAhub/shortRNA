@@ -73,7 +73,7 @@ assignReads <- function(sources, rules=defaultAssignRules(), tree=NULL, BP=NULL,
   if(length(w <- which(allUnknown))>0){
     x2 <- sources[sapply(ii[w],FUN=function(x) x[1]),]
     x2$status <- "unknown"
-    x2$readstrand <- "*"
+    x2$read.strand <- "*"
     x2$chrPos <- paste0("ambiguous (",sapply(ii[w],length),")")
     out <- c(out, list(x2))
     ii <- ii[-w]
@@ -535,6 +535,13 @@ tRFtype <- function(srcs, rules=defaultAssignRules()){
 }
 
 
+#' getOverlapValidity
+#'
+#' @param sources the output of overlapWithTx2
+#' @param rules 
+#'
+#' @return Data table (same format as `sources`)
+#' @export
 getOverlapValidity <- function(sources, rules=defaultAssignRules()){
   w <- which(sources$transcript_type=="piRNA_precursor")
   if(length(w)>0){
