@@ -4,14 +4,15 @@
 \alias{overlapWithTx2}
 \title{overlapWithTx2}
 \usage{
-overlapWithTx2(bamFile, annotation, ignoreStrand = FALSE, nbthreads = NULL)
+overlapWithTx2(bamFile, annotation, ignoreStrand = TRUE, nbthreads = NULL)
 }
 \arguments{
 \item{bamFile}{A character vector of path to BAM file.}
 
 \item{annotation}{An object of class `GRangesList`, as produced by `prepareAnnotation()`.}
 
-\item{ignoreStrand}{Logical; whether to ignore strand when searching for overlaps (default FALSE)}
+\item{ignoreStrand}{Logical; whether to ignore strand when searching for overlaps. By
+default, strand is ignored and considered later on at the read assignment stage.}
 
 \item{nbthreads}{A positive integer indicating the number of threads to use. 
 Defaults to `min(c(8, bpworkers()))`.}
