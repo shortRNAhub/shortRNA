@@ -538,11 +538,12 @@ tRFtype <- function(srcs, rules=defaultAssignRules()){
 #' getOverlapValidity
 #'
 #' @param sources the output of overlapWithTx2
-#' @param rules 
+#' @param rules a named list of assignment rules
+#' @param tryFallback Logical; whether to test the fallback type.
 #'
 #' @return Data table (same format as `sources`)
 #' @export
-getOverlapValidity <- function(sources, rules=defaultAssignRules()){
+getOverlapValidity <- function(sources, rules=defaultAssignRules(), tryFallback=TRUE){
   w <- which(sources$transcript_type=="piRNA_precursor")
   if(length(w)>0){
     if(is.factor(sources$transcript_type) && 
@@ -563,8 +564,12 @@ getOverlapValidity <- function(sources, rules=defaultAssignRules()){
   w <- which(!(sources$validType %in% c(FALSE,TRUE)))
   if(length(w)>0){
     flog.debug("Changing the transcript type of invalid overlaps providing a fallback type.")
-    sources$transcript_type[w] <- sources$validType[w]
-    sources[w,] <- getOverlapValidity(sources = sources[w,,drop=FALSE], rules = rules)
+    if(tryFallback){
+      sources$transcript_type[w] <- sources$validType[w]
+      sources[w,] <- getOverlapValidity(sources = sources[w,,drop=FALSE], rules = rules, tryFallback=FALSE)
+    }else{
+      sources$validType[w] <- FALSE
+    }
   }
   if(nrow(s1)>0) sources <- rbind(s1, sources)
   sources$validType <- as.logical(sources$validType)
