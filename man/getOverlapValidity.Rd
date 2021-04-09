@@ -4,12 +4,14 @@
 \alias{getOverlapValidity}
 \title{getOverlapValidity}
 \usage{
-getOverlapValidity(sources, rules = defaultAssignRules())
+getOverlapValidity(sources, rules = defaultAssignRules(), tryFallback = TRUE)
 }
 \arguments{
 \item{sources}{the output of overlapWithTx2}
 
-\item{rules}{}
+\item{rules}{a named list of assignment rules}
+
+\item{tryFallback}{Logical; whether to test the fallback type.}
 }
 \value{
 Data table (same format as `sources`)
