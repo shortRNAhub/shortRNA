@@ -170,15 +170,34 @@ fastaToTree <- function(file, root) {
 #' testTreeUnassigned <- FindNode(node = mm10$tree, name = "Unassigned")
 #' }
 #' @export
-addReadsFeatures <- function(tree, 
-                             mappedFeaturesDF, 
-                             featuresCol = "Features", 
+addReadsFeatures <- function(tree,
+                             mappedFeaturesDF,
+                             featuresCol = "Features",
                              readsCol = "Reads") {
   library(data.tree)
   library(plyr)
+  library(future.apply)
+  plan(multisession)
+  
+  mappedFeaturesDF <- mappedFeaturesDF[, c(readsCol, featuresCol)]
+  rownames(mappedFeaturesDF) <- NULL
+  
+  
+  mappedFeaturesDF <- ldply(
+    future_apply(mappedFeaturesDF, 1, function(x) {
+      s <- x[1]
+      t <- x[2]
+      t <- strsplit(t, ";")[[1]]
+      suppressWarnings(data.frame(Reads = s, Features = t))
+    })
+  )
+  
+  readsCol <- "Reads"
+  featuresCol <- "Features"
   
   mappedFeaturesDF.split <- split(mappedFeaturesDF, mappedFeaturesDF[, readsCol])
-  tmp <- lapply(mappedFeaturesDF.split, function(x) {
+  
+  tmp <- future_lapply(mappedFeaturesDF.split, function(x) {
     notFound <- data.frame(matrix(ncol = 2, nrow = 0), stringsAsFactors = FALSE)
     colnames(notFound) <- colnames(x)
     
@@ -209,11 +228,11 @@ addReadsFeatures <- function(tree,
     
     if (length(p) == 0) {
       parent <- NULL
-    } else if(length(p) == 1){
+    } else if (length(p) == 1) {
       ca <- p[[1]]
       ca <- ca[max(na.omit(match(ca, p[[1]])))]
       parent <- ca
-    } 
+    }
     else {
       ca <- p[[1]]
       for (i in 2:length(p)) {
@@ -228,18 +247,21 @@ addReadsFeatures <- function(tree,
     return(list(parent = parent, notAssigned = notFound))
   })
   
-  reads <- lapply(tmp, function(x) x[[1]])
+  reads <- future_lapply(tmp, function(x) x[[1]])
   reads <- ldply(compact(reads))
   
   if (nrow(reads) > 0) {
     colnames(reads) <- colnames(mappedFeaturesDF)
-    for (i in 1:nrow(reads)) {
-      FindNode(node = tree, name = reads$Features[i])$AddChild(reads$Reads[i])
-    }
+    
+    future_apply(reads, 1, function(x) FindNode(node = tree, name = x[2])$AddChild(x[1]))
+    
+    # for (i in 1:nrow(reads)) {
+    #   FindNode(node = tree, name = reads$Features[i])$AddChild(reads$Reads[i])
+    # }
   }
   
-  notFound <- lapply(tmp, function(x) x[[2]])
-  notFound <- ldply(compact(notFound))[,-1]
+  notFound <- future_lapply(tmp, function(x) x[[2]])
+  notFound <- ldply(compact(notFound))[, -1]
   if (nrow(notFound) > 0) {
     # notFound <- ldply(compact(notFound))[, -1, drop=FALSE]
     notFound$pathString <- paste("Unassigned", notFound[, featuresCol], notFound[, readsCol], sep = "/")
@@ -255,7 +277,6 @@ addReadsFeatures <- function(tree,
   
   return(tree)
 }
-
 
 # Save tree children as separate data objects ----
 .treeToData <- function(tree, cores = detectCores() - 2) {
