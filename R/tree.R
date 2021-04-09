@@ -174,15 +174,20 @@ addReadsFeatures <- function(tree,
                              mappedFeaturesDF,
                              featuresCol = "Features",
                              readsCol = "Reads") {
+  # Libraries
   library(data.tree)
   library(plyr)
   library(future.apply)
+  
+  # Parallel processing of apply functions
   plan(multisession)
   
+  # Taking only the desired columns
   mappedFeaturesDF <- mappedFeaturesDF[, c(readsCol, featuresCol)]
   rownames(mappedFeaturesDF) <- NULL
   
-  
+  # Some reads are mapped to multiple features: example - AAAA overlaps with tRNA-xxx;tRNA-yyy. 
+  # So, splitting them into 2 lines in a dataframe: AAAA tRNA-xxx and AAAA tRNA-yyy
   mappedFeaturesDF <- ldply(
     future_apply(mappedFeaturesDF, 1, function(x) {
       s <- x[1]
@@ -192,12 +197,17 @@ addReadsFeatures <- function(tree,
     })
   )
   
+  # As the columns were renamed, making sure to use them later in the code
   readsCol <- "Reads"
   featuresCol <- "Features"
   
+  # Split the dataframe into list of dataframe based on sequences
   mappedFeaturesDF.split <- split(mappedFeaturesDF, mappedFeaturesDF[, readsCol])
   
+  # Finding nodes for all the sequences
   tmp <- future_lapply(mappedFeaturesDF.split, function(x) {
+    
+    # A dataframe for storing not found reads
     notFound <- data.frame(matrix(ncol = 2, nrow = 0), stringsAsFactors = FALSE)
     colnames(notFound) <- colnames(x)
     
@@ -226,14 +236,15 @@ addReadsFeatures <- function(tree,
       }
     }
     
-    if (length(p) == 0) {
+    
+    if (length(p) == 0) { # If read do not exist
       parent <- NULL
-    } else if (length(p) == 1) {
+    } else if (length(p) == 1) { # in case of 1 parent
       ca <- p[[1]]
       ca <- ca[max(na.omit(match(ca, p[[1]])))]
       parent <- ca
     }
-    else {
+    else { # In case of multiple parents
       ca <- p[[1]]
       for (i in 2:length(p)) {
         if (i != length(p)) {
@@ -244,15 +255,19 @@ addReadsFeatures <- function(tree,
       }
       parent <- ca
     }
+    
+    # Return features that were found and not found
     return(list(parent = parent, notAssigned = notFound))
   })
   
+  # Found ones
   reads <- future_lapply(tmp, function(x) x[[1]])
   reads <- ldply(compact(reads))
   
   if (nrow(reads) > 0) {
     colnames(reads) <- colnames(mappedFeaturesDF)
     
+    # Find node and add sequence
     future_apply(reads, 1, function(x) FindNode(node = tree, name = x[2])$AddChild(x[1]))
     
     # for (i in 1:nrow(reads)) {
@@ -260,10 +275,10 @@ addReadsFeatures <- function(tree,
     # }
   }
   
+  # Not found ones
   notFound <- future_lapply(tmp, function(x) x[[2]])
-  notFound <- ldply(compact(notFound))[, -1]
+  notFound <- ldply(compact(notFound), .id = NULL)
   if (nrow(notFound) > 0) {
-    # notFound <- ldply(compact(notFound))[, -1, drop=FALSE]
     notFound$pathString <- paste("Unassigned", notFound[, featuresCol], notFound[, readsCol], sep = "/")
     tree$AddChildNode(child = as.Node(notFound))
   }
@@ -275,8 +290,11 @@ addReadsFeatures <- function(tree,
   # expr <- paste0(.objToString(tree), "$", a)
   # eval(parse(text = expr))$AddChild(mappedFeaturesDF[i, readsCol])
   
+  # Return the new tree with added sequences
   return(tree)
 }
+
+
 
 # Save tree children as separate data objects ----
 .treeToData <- function(tree, cores = detectCores() - 2) {
