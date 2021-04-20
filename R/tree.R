@@ -188,9 +188,14 @@ addReadsFeatures <- function(tree,
   names(featuresPerRead) <- mappedFeaturesDF[, readsCol]
   
   featuresPerRead.single <- featuresPerRead[lengths(featuresPerRead) == 1]
-  featuresPerRead.multi <- featuresPerRead[lengths(featuresPerRead) > 1]
+  # featuresPerRead.single$test <- "trf"
   
-  featuresPerRead.multi$TESTSEQ <- c("tRNA1", "tRNA2")
+  featuresPerRead.notFound <- compact(lapply(featuresPerRead.single, function(x) .not_found(feature = x, tree)))
+  
+  featuresPerRead.single <- featuresPerRead.single[!names(featuresPerRead.single) %in% names(featuresPerRead.notFound)]
+  
+  featuresPerRead.multi <- featuresPerRead[lengths(featuresPerRead) > 1]
+  # featuresPerRead.multi$TESTSEQ <- c("tRNA1", "tRNA2")
   
   find_parent <- .find_parent(featuresList = featuresPerRead.multi, tree = tree)
   
@@ -205,8 +210,13 @@ addReadsFeatures <- function(tree,
   }
   
   # Not found ones
+  notFound_single <- ldply(featuresPerRead.notFound)
+  colnames(notFound_single) <- c("seq", "feature")
+  
   notFound <- future_lapply(find_parent, function(x) x[[2]])
   notFound <- ldply(compact(notFound), .id = NULL)
+  notFound <- rbind(notFound, notFound_single)
+  
   if (nrow(notFound) > 0) {
     notFound$pathString <- paste("Unassigned", notFound[, "feature"], notFound[, "seq"], sep = "/")
     tree$AddChildNode(child = as.Node(notFound))
@@ -246,7 +256,6 @@ addReadsFeatures <- function(tree,
       }
     }
     
-    
     parent <- vector()
     
     if (length(p) == 0) { # If read do not exist
@@ -270,6 +279,14 @@ addReadsFeatures <- function(tree,
     # Return features that were found and not found
     return(list(parent = parent, notAssigned = notFound))
   })
+}
+
+
+
+.not_found <- function(feature, tree){
+  if (is.null(FindNode(node = tree, name = feature))) {
+    return(feature)
+  }
 }
 
 
