@@ -4,16 +4,26 @@
 \alias{tRFtype}
 \title{tRFtype}
 \usage{
-tRFtype(srcs, rules = defaultAssignRules())
+tRFtype(
+  srcs,
+  rules = list(tRNA_internal_fragment = function(x) {     TRUE }, tRNA_5p_fragment =
+    function(x) {     x$startInFeature < 5L & x$length < 30L }, tRNA_3p_fragment =
+    function(x) {     x$distanceToFeatureEnd < 5L & x$length < 50L }, tRNA_5p_half =
+    function(x) {     x$startInFeature \%in\% -1:1 & x$length \%in\% 30:34 },
+    tRNA_3p_half = function(x) {     x$distanceToFeatureEnd \%in\% -1:1 & x$length >= 34L
+    & x$length <= 50L & grepl("CCA$", x$seq) })
+)
 }
 \arguments{
-\item{o}{An object of class shortRNAexp.}
+\item{srcs}{A data.frame of overlaps, as produced by
+\code{\link{overlapWithTx}}}
 
-\item{seq}{A character vector including the sequence(s) of interest.}
+\item{rules}{Named list of validity functions, in increasing order of
+priority}
 }
 \value{
-A data.frame.
+A factor of tRNA fragment types
 }
 \description{
-Returns the tRNA fragment type from a sources data.frame
+Return the type of tRNA fragment
 }

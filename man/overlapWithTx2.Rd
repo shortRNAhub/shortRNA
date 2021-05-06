@@ -9,12 +9,14 @@ overlapWithTx2(bamFile, annotation, ignoreStrand = TRUE, nbthreads = NULL)
 \arguments{
 \item{bamFile}{A character vector of path to BAM file.}
 
-\item{annotation}{An object of class `GRangesList`, as produced by `prepareAnnotation()`.}
+\item{annotation}{An object of class `GRangesList`, as produced by
+`prepareAnnotation()`.}
 
-\item{ignoreStrand}{Logical; whether to ignore strand when searching for overlaps. By
-default, strand is ignored and considered later on at the read assignment stage.}
+\item{ignoreStrand}{Logical; whether to ignore strand when searching for
+overlaps. By default, strand is ignored and considered later on at the read
+assignment stage.}
 
-\item{nbthreads}{A positive integer indicating the number of threads to use. 
+\item{nbthreads}{A positive integer indicating the number of threads to use.
 Defaults to `min(c(8, bpworkers()))`.}
 }
 \value{
@@ -22,5 +24,6 @@ A data.table.
 }
 \description{
 Find overlaps between read alignments (bam format) and a feature annotation.
-Supports spliced reads/transcripts, and calculates position relative to transcript.
+Supports spliced reads/transcripts, and calculates position relative to
+transcript.
 }
