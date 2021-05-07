@@ -1,18 +1,18 @@
-library(data.tree)
-# tRNAs as FL
-load("../../../shortRNA_data/db/tRNA.rda")
-ps_tRNA <- ToDataFrameTable(tRNA, "pathString")
-names(ps_tRNA) <- gsub(pattern = ".*\\/", replacement = "", x = ps_tRNA)
-
-# Data subset
-ar_tRNA <- readRDS("ar_tRNA.rds")
-
-
-# Example
-ps <- ps_tRNA
-mappedFeaturesDF <- ar_tRNA
-featuresCol <- "transcript_id"
-readsCol <- "seq"
+# library(data.tree)
+# # tRNAs as FL
+# load("../../../shortRNA_data/db/tRNA.rda")
+# ps_tRNA <- ToDataFrameTable(tRNA, "pathString")
+# names(ps_tRNA) <- gsub(pattern = ".*\\/", replacement = "", x = ps_tRNA)
+# 
+# # Data subset
+# ar_tRNA <- readRDS("ar_tRNA.rds")
+# 
+# 
+# # Example
+# ps <- ps_tRNA
+# mappedFeaturesDF <- ar_tRNA
+# featuresCol <- "transcript_id"
+# readsCol <- "seq"
 
 addReadsToTree <- function(ps, mappedFeaturesDF, featuresCol = "transcript_id", readsCol = "seq", ...) {
   suppressPackageStartupMessages({
@@ -80,25 +80,25 @@ addReadsToTree <- function(ps, mappedFeaturesDF, featuresCol = "transcript_id", 
   return(tree)
 }
 
-tree_tRNA <- addReadsToTree(ps = ps_tRNA, 
-                            mappedFeaturesDF = ar_tRNA, 
-                            featuresCol = "transcript_id", 
-                            readsCol = "seq", 
-                            root = "mm10")
+# tree_tRNA <- addReadsToTree(ps = ps_tRNA, 
+#                             mappedFeaturesDF = ar_tRNA, 
+#                             featuresCol = "transcript_id", 
+#                             readsCol = "seq", 
+#                             root = "mm10")
 
 
-library(TreeSummarizedExperiment)
-
-m <- readRDS("reads_with_counts.rds")
-rownames(m) <- m$seq
-m <- m[,grep(pattern = "sample", x = colnames(m))]
-cd <- data.frame(Samples = colnames(m), Group = rep(c("CTRL", "MSUS"), rep = 6))
-rownames(cd) <- cd$Samples
-
-tse <- TreeSummarizedExperiment(assay = list(counts = m), rowTree = tree_tRNA, colData = cd)
-
-library(treeclimbR)
-res <- runDA(TSE = tse, feature_on_row = TRUE, assay = 1, 
-             option = "glm", group_column = "Group",
-             design_terms = "Group")
-out <- nodeResult(object = res, n = Inf)
+# library(TreeSummarizedExperiment)
+# 
+# m <- readRDS("reads_with_counts.rds")
+# rownames(m) <- m$seq
+# m <- m[,grep(pattern = "sample", x = colnames(m))]
+# cd <- data.frame(Samples = colnames(m), Group = rep(c("CTRL", "MSUS"), rep = 6))
+# rownames(cd) <- cd$Samples
+# 
+# tse <- TreeSummarizedExperiment(assay = list(counts = m), rowTree = tree_tRNA, colData = cd)
+# 
+# library(treeclimbR)
+# res <- runDA(TSE = tse, feature_on_row = TRUE, assay = 1, 
+#              option = "glm", group_column = "Group",
+#              design_terms = "Group")
+# out <- nodeResult(object = res, n = Inf)

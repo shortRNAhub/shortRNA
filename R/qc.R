@@ -14,7 +14,16 @@
 #' @param adaptersFa Adapter sequence fasta file
 #' @param ... other parameters specific to `Rfastp`
 #' @return A list of results and location to the JSON results file
-#'
+#' 
+#' @examples
+#' \dontrun{
+#' # Input
+#' fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
+#' # Analysis
+#' qc_res <- qc_fastq(file = fq1)
+#' # Output
+#' qc_res
+#' }
 #' @export
 qc_fastq <- function(file,
                      outDir = ".",
@@ -60,23 +69,38 @@ qc_fastq <- function(file,
   return(ret)
 }
 
-# se_read1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
-# qc_res <- qc_fastq(file = se_read1)
-
 
 
 # Various tables with some QC values ----
 
 #' Make general information data frame from JSON file
+#' @author Deepak Tanwar (tanward@ethz.ch)
 #'
+#' @import Rfastp
+#'
+#' @seealso Rfastp
+#' 
 #' @param json A JSON file with QC information
 #'
 #' @return A data frame with FASTQ file information
-#' @export
-#'
+#' 
 #' @examples
+#' \dontrun{
+#' # Input
+#' fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
+#' 
+#' # Analysis
+#' qc_res <- qc_fastq(file = fq1)
+#' df <- make_general_df(json = qc_res$json)
+#' 
+#' # Output
+#' df
+#' }
+#' 
+#' @export
 make_general_df <- function(json) {
-  js <- rjson::fromJSON(file = json)
+  library(rjson)
+  js <- fromJSON(file = json)
 
   # pkg <- as.character(packageVersion("Rfastp"))
   seq <- js$read1_before_filtering$total_cycles
@@ -116,13 +140,27 @@ make_general_df <- function(json) {
 
 
 #' Make before QC information data frame from JSON file
+#' @author Deepak Tanwar (tanward@ethz.ch)
 #'
+#' @import Rfastp
+#'
+#' @seealso Rfastp
+#' 
 #' @param json A JSON file with QC information
 #'
 #' @return A data frame with FASTQ file information
-#' @export
-#'
+#' 
 #' @examples
+#' \dontrun{
+#' # Input
+#' 
+#' # Analysis
+#'
+#' # Output
+#' 
+#' }
+#' 
+#' @export
 make_before_filt_df <- function(json) {
   js <- rjson::fromJSON(file = json)
   tot_reads <- js$read1_before_filtering$total_reads
@@ -156,13 +194,26 @@ make_before_filt_df <- function(json) {
 
 
 #' Make after QC information data frame from JSON file
+#' @author Deepak Tanwar (tanward@ethz.ch)
 #'
+#' @import Rfastp
+#'
+#' @seealso Rfastp
 #' @param json A JSON file with QC information
 #'
 #' @return A data frame with FASTQ file information
-#' @export
-#'
+#' 
 #' @examples
+#' \dontrun{
+#' # Input
+#' 
+#' # Analysis
+#'
+#' # Output
+#' 
+#' }
+#' 
+#' @export
 make_after_filt_df <- function(json) {
   js <- rjson::fromJSON(file = json)
   tot_reads <- js$read1_after_filtering$total_reads
@@ -192,17 +243,30 @@ make_after_filt_df <- function(json) {
   return(df)
 }
 
-make_after_filt_df(json = qc_res$json)
+# make_after_filt_df(json = qc_res$json)
 
 
 #' Make filtering information information data frame from JSON file
+#' @author Deepak Tanwar (tanward@ethz.ch)
 #'
+#' @import Rfastp
+#'
+#' @seealso Rfastp
 #' @param json A JSON file with QC information
 #'
 #' @return A data frame with FASTQ file information
-#' @export
-#'
+#' 
 #' @examples
+#' \dontrun{
+#' # Input
+#' 
+#' # Analysis
+#'
+#' # Output
+#' 
+#' }
+#' 
+#' @export
 make_filt_df <- function(json) {
   js <- rjson::fromJSON(file = json)
 
@@ -241,16 +305,29 @@ make_filt_df <- function(json) {
 
 
 #' Duplicated reads plot
+#' @author Deepak Tanwar (tanward@ethz.ch)
 #'
+#' @import Rfastp
+#'
+#' @seealso Rfastp
 #' @param df A data frame
 #' @param dupRateCol Column with duplication rate in df
 #' @param GCpercentCol Column with GC percentage in df
 #' @param dupLevelCol Column with duplication levels in df
 #'
 #' @return An interactive plot
-#' @export
-#'
+#' 
 #' @examples
+#' \dontrun{
+#' # Input
+#' 
+#' # Analysis
+#'
+#' # Output
+#' 
+#' }
+#' 
+#' @export
 reads_duplication_plot <- function(df, dupRateCol, GCpercentCol, dupLevelCol) {
   
   library(dplyr)
@@ -284,13 +361,26 @@ reads_duplication_plot <- function(df, dupRateCol, GCpercentCol, dupLevelCol) {
 }
 
 #' Make duplicated reads plot from JSON file
+#' @author Deepak Tanwar (tanward@ethz.ch)
 #'
+#' @import Rfastp
+#'
+#' @seealso Rfastp
 #' @param json A JSON file
 #' 
 #' @return An interactive plot
-#' @export
+#' 
+#' #' @examples
+#' \dontrun{
+#' # Input
+#' 
+#' # Analysis
 #'
-#' @examples
+#' # Output
+#' 
+#' }
+#' 
+#' @export
 make_dup_plot <- function(json) {
   js <- rjson::fromJSON(file = json)
 
@@ -317,7 +407,27 @@ make_dup_plot <- function(json) {
 
 
 ## Read quality plot
-
+#' Make filtering information information data frame from JSON file
+#' @author Deepak Tanwar (tanward@ethz.ch)
+#'
+#' @import Rfastp
+#'
+#' @seealso Rfastp
+#' @param json A JSON file with QC information
+#'
+#' @return A data frame with FASTQ file information
+#' 
+#' @examples
+#' \dontrun{
+#' # Input
+#' 
+#' # Analysis
+#'
+#' # Output
+#' 
+#' }
+#' 
+#' @export
 reads_quality_plot <- function(df, bpPosCol, A_col, T_col, G_col, C_col, meanQual = NULL) {
   library(plotly)
   library(dplyr)
@@ -389,6 +499,27 @@ reads_quality_plot <- function(df, bpPosCol, A_col, T_col, G_col, C_col, meanQua
     )
 }
 
+#' Make filtering information information data frame from JSON file
+#' @author Deepak Tanwar (tanward@ethz.ch)
+#'
+#' @import Rfastp
+#'
+#' @seealso Rfastp
+#' @param json A JSON file with QC information
+#'
+#' @return A data frame with FASTQ file information
+#' 
+#' @examples
+#' \dontrun{
+#' # Input
+#' 
+#' # Analysis
+#'
+#' # Output
+#' 
+#' }
+#' 
+#' @export
 make_read_qual_plot <- function(json, which = "before") {
   js <- rjson::fromJSON(file = json)
 
@@ -420,12 +551,33 @@ make_read_qual_plot <- function(json, which = "before") {
   return(p)
 }
 
-make_read_qual_plot(json = qc_res$json, which = "before")
-make_read_qual_plot(json = qc_res$json, which = "after")
+# make_read_qual_plot(json = qc_res$json, which = "before")
+# make_read_qual_plot(json = qc_res$json, which = "after")
 
 
 
 ## Base content line plot ---
+#' Make filtering information information data frame from JSON file
+#' @author Deepak Tanwar (tanward@ethz.ch)
+#'
+#' @import Rfastp
+#'
+#' @seealso Rfastp
+#' @param json A JSON file with QC information
+#'
+#' @return A data frame with FASTQ file information
+#' 
+#' @examples
+#' \dontrun{
+#' # Input
+#' 
+#' # Analysis
+#'
+#' # Output
+#' 
+#' }
+#' 
+#' @export
 base_ratio_line_plot <- function(df, bpPosCol, A_col, T_col, G_col, C_col, GC_col = NULL, N_col, isRatio = FALSE) {
   if (isRatio) {
     df <- df[, c(bpPosCol, A_col, T_col, G_col, C_col, N_col)] * 100
@@ -489,6 +641,27 @@ base_ratio_line_plot <- function(df, bpPosCol, A_col, T_col, G_col, C_col, GC_co
     )
 }
 
+#' Make filtering information information data frame from JSON file
+#' @author Deepak Tanwar (tanward@ethz.ch)
+#'
+#' @import Rfastp
+#'
+#' @seealso Rfastp
+#' @param json A JSON file with QC information
+#'
+#' @return A data frame with FASTQ file information
+#' 
+#' @examples
+#' \dontrun{
+#' # Input
+#' 
+#' # Analysis
+#'
+#' # Output
+#' 
+#' }
+#' 
+#' @export
 make_base_ratio_line_plot <- function(json, which = "before") {
   js <- rjson::fromJSON(file = json)
 
@@ -526,6 +699,27 @@ make_base_ratio_line_plot <- function(json, which = "before") {
 
 
 ## Base content ratio proportion plot ----
+#' Make filtering information information data frame from JSON file
+#' @author Deepak Tanwar (tanward@ethz.ch)
+#'
+#' @import Rfastp
+#'
+#' @seealso Rfastp
+#' @param json A JSON file with QC information
+#'
+#' @return A data frame with FASTQ file information
+#' 
+#' @examples
+#' \dontrun{
+#' # Input
+#' 
+#' # Analysis
+#'
+#' # Output
+#' 
+#' }
+#' 
+#' @export
 base_ratio_proportion_plot <- function(df, bpPosCol, A_col, T_col, G_col, C_col, GC_col = NULL, N_col, isRatio = FALSE) {
   if (isRatio) {
     df <- df[, c(bpPosCol, A_col, T_col, G_col, C_col, N_col)] * 100
@@ -575,6 +769,27 @@ base_ratio_proportion_plot <- function(df, bpPosCol, A_col, T_col, G_col, C_col,
 }
 
 
+#' Make filtering information information data frame from JSON file
+#' @author Deepak Tanwar (tanward@ethz.ch)
+#'
+#' @import Rfastp
+#'
+#' @seealso Rfastp
+#' @param json A JSON file with QC information
+#'
+#' @return A data frame with FASTQ file information
+#' 
+#' @examples
+#' \dontrun{
+#' # Input
+#' 
+#' # Analysis
+#'
+#' # Output
+#' 
+#' }
+#' 
+#' @export
 make_base_ratio_prop_plot <- function(json, which = "before") {
   js <- rjson::fromJSON(file = json)
 
@@ -611,7 +826,27 @@ make_base_ratio_prop_plot <- function(json, which = "before") {
 }
 
 
-
+#' Make filtering information information data frame from JSON file
+#' @author Deepak Tanwar (tanward@ethz.ch)
+#'
+#' @import Rfastp
+#'
+#' @seealso Rfastp
+#' @param json A JSON file with QC information
+#'
+#' @return A data frame with FASTQ file information
+#' 
+#' @examples
+#' \dontrun{
+#' # Input
+#' 
+#' # Analysis
+#'
+#' # Output
+#' 
+#' }
+#' 
+#' @export
 # `qckitfastq`
 run_qc <- function(fq) {
   out <- list()
@@ -680,7 +915,27 @@ run_qc <- function(fq) {
 
 
 ## Read length distribution
-
+#' Make filtering information information data frame from JSON file
+#' @author Deepak Tanwar (tanward@ethz.ch)
+#'
+#' @import Rfastp
+#'
+#' @seealso Rfastp
+#' @param json A JSON file with QC information
+#'
+#' @return A data frame with FASTQ file information
+#' 
+#' @examples
+#' \dontrun{
+#' # Input
+#' 
+#' # Analysis
+#'
+#' # Output
+#' 
+#' }
+#' 
+#' @export
 read_length_hist <- function(df, groupName, readLength, nRead, col) {
   plot_ly(hoverinfo = "text", type = "bar", textposition = "auto") %>%
     add_trace(
@@ -704,14 +959,27 @@ read_length_hist <- function(df, groupName, readLength, nRead, col) {
 }
 
 #' Read length distribution plot
+#' @author Deepak Tanwar (tanward@ethz.ch)
 #'
+#' @import Rfastp
+#'
+#' @seealso Rfastp
 #' @param before_trim A dataframe with 2 columns: read_length and num_reads
 #' @param after_trim A dataframe with 2 columns: read_length and num_reads
 #'
 #' @return An interactive barplot
-#' @export
-#'
+#' 
 #' @examples
+#' \dontrun{
+#' # Input
+#' 
+#' # Analysis
+#'
+#' # Output
+#' 
+#' }
+#' 
+#' @export
 make_read_length_plot <- function(before_trim, after_trim) {
   if (!colnames(before_trim) %in% c("read_length", "num_reads") |
     !colnames(after_trim) %in% c("read_length", "num_reads")) {

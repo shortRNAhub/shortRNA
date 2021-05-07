@@ -26,6 +26,26 @@ addReadsFeatures(
 \description{
 Add reads to the features in the annotation `data.tree`. Also add a separate node with "Unassigned" reads/features
 }
+\examples{
+# Input
+testDF <- data.frame(
+  Reads = c("Read1", "Read1", "Read1", "Read2", "Read3", "Read4", "Read5"),
+  Features = c(
+    "tRNA-Ala-AGC-10", "tRNA-Ala-AGC-2", "tRNA-Ala-AGC-3",
+    "tRNA-Ala-AGC-1C", "tRNA-Arg-AGC-1D", "tRNA-Ala-AGC-1E", "tRNA-Ala-AGC-3D"
+  ),
+  stringsAsFactors = F
+)
+
+data("tRNA")
+
+# Analysis
+testRun <- addReadsFeatures(tree = tRNA, mappedFeaturesDF = testDF)
+
+# Output
+testTree <- FindNode(node = tRNA, name = "tRNA-Ala-AGC")
+testTreeUnassigned <- FindNode(node = mm10$tree, name = "Unassigned")
+}
 \seealso{
 data.tree
 }

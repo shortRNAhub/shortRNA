@@ -15,12 +15,12 @@ mergeAtomicLists(x, y)
 An `AtomicList` object of the same length as `x` and `y`
 }
 \description{
-Pairwise merging of two atomic lists of the same length. Does not perform
-any matching of the names, but triggers an error if names are present and
+Pairwise merging of two atomic lists of the same length. Does not perform 
+any matching of the names, but triggers an error if names are present and 
 not in the same order.
 }
 \examples{
-f1 <- FactorList(list(LETTERS[1:3], LETTERS[1:4]))
-f2 <- FactorList(list(LETTERS[4:6], LETTERS[7:9]))
-mergeAtomicLists(f1, f2)
+f1 <- FactorList(list(LETTERS[1:3],LETTERS[1:4]))
+f2 <- FactorList(list(LETTERS[4:6],LETTERS[7:9]))
+mergeAtomicLists(f1,f2)
 }

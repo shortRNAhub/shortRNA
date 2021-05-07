@@ -15,3 +15,7 @@ An atomic vector
 \description{
 Returns the longest ordered overlap between elements of an atomic list
 }
+\examples{
+il <- IntegerList(list(1:4, 1:5, c(1:3, 6)))
+longestOrderedOverlap(il)
+}

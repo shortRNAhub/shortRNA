@@ -17,6 +17,12 @@ fastaToTree(file, root)
 \description{
 Convert the annotation fasta file into tree obtained from `prepareAnnotation` function
 }
+\examples{
+tRNA <- fastaToTree(file = "test/tRNAs.modified.fa", root = "tRNA")
+miRNA.mirBase <- fastaToTree(file = "test/miRNAs.modified.fa", root = "miRNA")
+rRNA <- fastaToTree(file = "test/Mus_musculus/rRNAdb/", root = "rRNA")
+longRNA.gencode <- fastaToTree(file = "test/gencode.vM22.chr_patch_hapl_scaff.annotation.gff3.gz", root = "longRNA")
+}
 \seealso{
 Biostrings data.tree plyr
 }
