@@ -2,7 +2,7 @@
 % Please edit documentation in R/tree.R
 \name{addReadsFeatures}
 \alias{addReadsFeatures}
-\title{Add reads to the features in the annotation `data.tree`. Also add a separate node with "Unassigned" reads/features}
+\title{Add reads to the features in the annotation `data.tree`. Also add a separate node with 'Unassigned' reads/features}
 \usage{
 addReadsFeatures(
   tree,
@@ -14,7 +14,7 @@ addReadsFeatures(
 \arguments{
 \item{tree}{a `data.tree` object}
 
-\item{mappedFeaturesDF}{a `data.frame` with "Reads" and mapped "Features" columns.}
+\item{mappedFeaturesDF}{a `data.frame` with 'Reads' and mapped 'Features' columns.}
 
 \item{featuresCol}{Column with features}
 
@@ -24,7 +24,7 @@ addReadsFeatures(
 
 }
 \description{
-Add reads to the features in the annotation `data.tree`. Also add a separate node with "Unassigned" reads/features
+Add reads to the features in the annotation `data.tree`. Also add a separate node with 'Unassigned' reads/features
 }
 \examples{
 # Input

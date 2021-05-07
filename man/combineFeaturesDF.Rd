@@ -2,7 +2,7 @@
 % Please edit documentation in R/tree.R
 \name{combineFeaturesDF}
 \alias{combineFeaturesDF}
-\title{Combine a list of `data.frame` into one `data.tree`. `data.frame` should have a column "pathString", or specify.}
+\title{Combine a list of `data.frame` into one `data.tree`. `data.frame` should have a column 'pathString', or specify.}
 \usage{
 combineFeaturesDF(dfList, rootName = "root", ...)
 }
@@ -15,7 +15,7 @@ combineFeaturesDF(dfList, rootName = "root", ...)
 
 }
 \description{
-Combine a list of `data.frame` into one `data.tree`. `data.frame` should have a column "pathString", or specify.
+Combine a list of `data.frame` into one `data.tree`. `data.frame` should have a column 'pathString', or specify.
 }
 \examples{
 mm10 <- combineFeaturesDF(dfList = list(tRNA$df, miRNA$df), rootName = "mm10")

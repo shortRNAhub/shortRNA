@@ -21,7 +21,7 @@ checkPiRNA(
 
 \item{size}{Integer vector indicating the possible sizes (default 26:32).}
 
-\item{fallback}{Eventual fallback transcript type when conditions are not met. 
+\item{fallback}{Eventual fallback transcript type when conditions are not met.
 Defaults to "piRNA_precursor". Use `fallback=FALSE` to set to invalid overlap.}
 }
 \value{

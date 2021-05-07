@@ -16,15 +16,16 @@ A data frame with FASTQ file information
 Make filtering information information data frame from JSON file
 }
 \examples{
-\dontrun{
 # Input
+fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
+outDir <- tempdir()
 
 # Analysis
+qc_res <- qc_fastq(file = fq1, outDir = outDir)
+df <- make_filt_df(json = qc_res$json)
 
 # Output
-
-}
-
+df
 }
 \seealso{
 Rfastp

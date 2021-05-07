@@ -13,14 +13,16 @@ make_dup_plot(json)
 An interactive plot
 
 #' @examples
-\dontrun{
 # Input
+fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
+outDir <- tempdir()
 
 # Analysis
+qc_res <- qc_fastq(file = fq1, outDir = outDir)
+p <- make_dup_plot(json = qc_res$json)
 
 # Output
-
-}
+p
 }
 \description{
 Make duplicated reads plot from JSON file

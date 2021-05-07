@@ -4,7 +4,7 @@
 \alias{reads_duplication_plot}
 \title{Duplicated reads plot}
 \usage{
-reads_duplication_plot(df, dupRateCol, GCpercentCol, dupLevelCol)
+reads_duplication_plot(df, dupRateCol, GCpercentCol = NULL, dupLevelCol)
 }
 \arguments{
 \item{df}{A data frame}
@@ -22,15 +22,31 @@ An interactive plot
 Duplicated reads plot
 }
 \examples{
-\dontrun{
 # Input
+df <- data.frame(
+  dupRate = rev(sort(c(70, 10, 1:5, rep(0, 13)))),
+  dupLevel = 1:20
+)
+df$GCpercent <- c(runif(n = 5, min = 51, max = 55), rep(0, 15))
 
 # Analysis
+p <- reads_duplication_plot(
+  df = df,
+  dupRateCol = "dupRate",
+  GCpercentCol = NULL,
+  dupLevelCol = "dupLevel"
+)
+
+p_GC <- reads_duplication_plot(
+  df = df,
+  dupRateCol = "dupRate",
+  GCpercentCol = "GCpercent",
+  dupLevelCol = "dupLevel"
+)
 
 # Output
-
-}
-
+p
+p_GC
 }
 \seealso{
 Rfastp

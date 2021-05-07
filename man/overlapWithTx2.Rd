@@ -14,7 +14,7 @@ overlapWithTx2(bamFile, annotation, ignoreStrand = TRUE, nbthreads = NULL)
 \item{ignoreStrand}{Logical; whether to ignore strand when searching for overlaps. By
 default, strand is ignored and considered later on at the read assignment stage.}
 
-\item{nbthreads}{A positive integer indicating the number of threads to use. 
+\item{nbthreads}{A positive integer indicating the number of threads to use.
 Defaults to `min(c(8, bpworkers()))`.}
 }
 \value{

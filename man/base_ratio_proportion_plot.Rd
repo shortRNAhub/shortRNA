@@ -32,7 +32,6 @@ Make filtering information information data frame from JSON file
 # Analysis
 
 # Output
-
 }
 
 }

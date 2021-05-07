@@ -24,7 +24,6 @@ Read length distribution plot
 # Analysis
 
 # Output
-
 }
 
 }
