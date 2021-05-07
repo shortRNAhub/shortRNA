@@ -4,8 +4,7 @@
 .paste5 <- function(..., sep = " ", collapse = NULL, na.rm = FALSE) {
   if (na.rm == FALSE) {
     paste(..., sep = sep, collapse = collapse)
-  } else
-  if (na.rm == TRUE) {
+  } else if (na.rm == TRUE) {
     paste.na <- function(x, sep) {
       x <- gsub("^\\s+|\\s+$", "", x)
       ret <- paste(na.omit(x), collapse = sep)
@@ -32,40 +31,29 @@
   library(parallel)
 
   gff <- readGFF(file)
-  suppressWarnings(gff <- data.frame(gff) %>% mutate_all(funs(replace_na(., ""))))
+  suppressWarnings(gff <- data.frame(gff) %>%
+    mutate_all(funs(replace_na(., ""))))
   gff$gID <- gsub("\\..*", "", gff[, "gene_id"])
   gff$tID <- gsub("\\..*", "", gff[, "transcript_id"])
 
   gff.sp <- split(x = gff, f = gff[, "gene_type"])
 
-  gff.sp[[1]]$pathString <- .paste5(root, "/", gff.sp[[1]][, "gene_type"], "/", gff.sp[[1]][, "gID"], ":",
-    gff.sp[[1]][, "gene_name"], "/", gff.sp[[1]][, "tID"],
+  gff.sp[[1]]$pathString <- .paste5(root, "/", gff.sp[[1]][, "gene_type"], "/", gff.sp[[1]][, "gID"], ":", gff.sp[[1]][, "gene_name"],
+    "/", gff.sp[[1]][, "tID"],
     na.rm = T, sep = ""
   )
-  
-  # gff1 <- gff
-  # 
-  # 
-  # d <- split(gff1,rep(1:16,each=113500))
-  # gff <- d[[1]]
-  # 
-  # pathString <- mclapply(d, function(gff){
-  #   .paste5(root, "/", gff[, "gene_type"], "/", gff[, "gID"], ":",
-  #           gff[, "gene_name"], "/", gff[, "tID"],
-  #           na.rm = T, sep = ""
-  #   )
-  # }, mc.preschedule = F, mc.cores = 16) 
-  
+
+  # gff1 <- gff d <- split(gff1,rep(1:16,each=113500)) gff <- d[[1]] pathString <- mclapply(d, function(gff){ .paste5(root,
+  # '/', gff[, 'gene_type'], '/', gff[, 'gID'], ':', gff[, 'gene_name'], '/', gff[, 'tID'], na.rm = T, sep = '' ) },
+  # mc.preschedule = F, mc.cores = 16)
+
   # pathString1 <- as.character(unlist(pathString))
-    
+
 
   node <- as.Node(data.frame(gff.sp[[1]]), na.rm = TRUE)
 
   gff.tree <- mclapply(gff.sp[2:length(gff.sp)], function(x) {
-    x$pathString <- .paste5(x[, "gene_type"], "/", x[, "gID"], ":",
-      x[, "gene_name"], "/", x[, "tID"],
-      na.rm = T, sep = ""
-    )
+    x$pathString <- .paste5(x[, "gene_type"], "/", x[, "gID"], ":", x[, "gene_name"], "/", x[, "tID"], na.rm = T, sep = "")
     node <- as.Node(data.frame(x), na.rm = TRUE)
     return(node)
   }, mc.preschedule = F, mc.cores = cores)
@@ -80,7 +68,9 @@
 .name2path <- function(features, root) {
   x <- features
   x <- sapply(strsplit(gsub(".", "-", x, fixed = TRUE), "-", fixed = TRUE), FUN = function(x) {
-    if (x[1] == "mmu") x <- x[-1]
+    if (x[1] == "mmu") {
+      x <- x[-1]
+    }
     n <- NULL
     if (root == "miRNA") {
       if (length(grep(pattern = "[0-9][a-z]|[0-9][0-9][a-z]", x = x[2])) > 0) {
@@ -141,7 +131,7 @@ fastaToTree <- function(file, root) {
     library(data.tree)
     fasta <- readDNAStringSet(file)
     features <- sapply(strsplit(names(fasta), " "), FUN = function(x) x[1])
-    .name2path(features = features, root = root) -> pathString
+    pathString <- .name2path(features = features, root = root)
     node <- as.Node(data.frame(features = features, pathString = pathString), na.rm = T)
     return(node)
   }
@@ -154,12 +144,12 @@ fastaToTree <- function(file, root) {
 }
 
 
-#' Add reads to the features in the annotation `data.tree`. Also add a separate node with "Unassigned" reads/features
+#' Add reads to the features in the annotation `data.tree`. Also add a separate node with 'Unassigned' reads/features
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #' @import data.tree
 #' @seealso data.tree
 #' @param tree a `data.tree` object
-#' @param mappedFeaturesDF a `data.frame` with "Reads" and mapped "Features" columns.
+#' @param mappedFeaturesDF a `data.frame` with 'Reads' and mapped 'Features' columns.
 #' @param featuresCol Column with features
 #' @param readsCol column with reads
 #' @return A `data.tree` object. Modified version of original tree input.
@@ -184,10 +174,7 @@ fastaToTree <- function(file, root) {
 #' testTree <- FindNode(node = tRNA, name = "tRNA-Ala-AGC")
 #' testTreeUnassigned <- FindNode(node = mm10$tree, name = "Unassigned")
 #' @export
-addReadsFeatures <- function(tree,
-                             mappedFeaturesDF,
-                             featuresCol = "Features",
-                             readsCol = "Reads") {
+addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", readsCol = "Reads") {
   # Libraries
   library(data.tree)
   library(plyr)
@@ -202,14 +189,14 @@ addReadsFeatures <- function(tree,
   names(featuresPerRead) <- mappedFeaturesDF[, readsCol]
 
   featuresPerRead.single <- featuresPerRead[lengths(featuresPerRead) == 1]
-  # featuresPerRead.single$test <- "trf"
+  # featuresPerRead.single$test <- 'trf'
 
   fpr_single_notFound <- compact(.not_found(feature = featuresPerRead.single, tree))
 
   featuresPerRead.single <- featuresPerRead.single[!names(featuresPerRead.single) %in% names(fpr_single_notFound)]
 
   featuresPerRead.multi <- featuresPerRead[lengths(featuresPerRead) > 1]
-  # featuresPerRead.multi$TESTSEQ <- c("tRNA1", "tRNA2")
+  # featuresPerRead.multi$TESTSEQ <- c('tRNA1', 'tRNA2')
 
   fpr_multi_notFound <- compact(.not_found(feature = featuresPerRead.multi, tree))
 
@@ -227,13 +214,13 @@ addReadsFeatures <- function(tree,
 
   # Not found ones
   nf <- c(fpr_single_notFound, fpr_multi_notFound)
-  
-  if(length(nf) > 0){
-    notFound <- reshape2::melt(ldply(nf), id.vars = ".id")[, -2]  
+
+  if (length(nf) > 0) {
+    notFound <- reshape2::melt(ldply(nf), id.vars = ".id")[, -2]
     notFound$pathString <- paste("Unassigned", notFound[, ".id"], notFound[, "value"], sep = "/")
     tree$AddChildNode(child = as.Node(notFound))
   }
-  
+
   # Return the new tree with added sequences
   return(tree)
 }
@@ -247,16 +234,17 @@ addReadsFeatures <- function(tree,
     f <- feature
     r <- name
 
-    # # A dataframe for storing not found reads
-    # notFound <- data.frame(matrix(ncol = 2, nrow = 0), stringsAsFactors = FALSE)
-    # colnames(notFound) <- c("seq", "feature")
+    # # A dataframe for storing not found reads notFound <- data.frame(matrix(ncol = 2, nrow = 0), stringsAsFactors = FALSE)
+    # colnames(notFound) <- c('seq', 'feature')
 
     p <- list()
-    for (i in 1:length(f)) { # For each feature
+    for (i in 1:length(f)) {
+      # For each feature
       if (!is.null(FindNode(node = tree, name = r))) {
         message(paste("Read exist!", r, "is already assigned!"))
         next
-      } else { # If feature exists
+      } else {
+        # If feature exists
         a <- FindNode(node = tree, name = f[i])$pathString
         a <- strsplit(a, "\\/")[[1]]
         p[[i]] <- a
@@ -265,13 +253,16 @@ addReadsFeatures <- function(tree,
 
     parent <- vector()
 
-    if (length(p) == 0) { # If read do not exist
+    if (length(p) == 0) {
+      # If read do not exist
       parent <- NULL
-    } else if (length(p) == 1) { # in case of 1 parent
+    } else if (length(p) == 1) {
+      # in case of 1 parent
       ca <- p[[1]]
       ca <- ca[max(na.omit(match(ca, p[[1]])))]
       parent <- ca
-    } else { # In case of multiple parents
+    } else {
+      # In case of multiple parents
       ca <- p[[1]]
       for (i in 2:length(p)) {
         if (i != length(p)) {
@@ -317,7 +308,7 @@ addReadsFeatures <- function(tree,
 
 # Combine two `data.frame` into one ----
 
-#' Combine a list of `data.frame` into one `data.tree`. `data.frame` should have a column "pathString", or specify.
+#' Combine a list of `data.frame` into one `data.tree`. `data.frame` should have a column 'pathString', or specify.
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #' @import data.tree plyr
 #' @seealso data.tree plyr

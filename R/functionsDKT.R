@@ -1,47 +1,19 @@
-# .RNAtoTree <- function(RNA) {
-#   library(plyr)
-#   n <- lapply(RNA$names, function(x) {
-#     a <- strsplit(x, "-")[[1]]
-#     if (a[1] == "mmu") a <- a[-1]
-#     df <- data.frame(matrix(ncol = length(a)), stringsAsFactors = F)
-#     for (i in 1:length(a)) {
-#       df[1, i] <- paste(a[1:i], collapse = "-")
-#     }
-#     if (length(grep(pattern = "\\.", x = df[, ncol(df)])) == 1) {
-#       b <- strsplit(df[, ncol(df)], "\\.")[[1]]
-#       df[, ncol(df)] <- b[1]
-#       df[, ncol(df) + 1] <- paste(b[1:2], collapse = ".")
-#     }
-#     colnames(df) <- c("R", paste0("C", 1:(ncol(df) - 1)))
-#     df$pathString <- paste(df[1, ], collapse = "/")
-#     return(df)
-#   })
-#   n1 <- ldply(n, data.frame)
-#   return(data.frame(RNA, n1, stringsAsFactors = F))
-# }
-#
-# fastaToTree <- function(fasta) {
-#   library(Biostrings)
-#   library(data.tree)
-#   read.file <- readDNAStringSet(fasta)
-#   df <- data.frame(names = names(read.file), Sequence = as.character(read.file), stringsAsFactors = F)
-#   df$names <- as.character(sapply(df$names, function(x) strsplit(x, "\\ ")[[1]][1]))
-#   df <- .RNAtoTree(RNA = df)
-#   tree.df <- as.Node(df)
-#   return(list(df = df, tree = tree.df))
-# }
-#
+# .RNAtoTree <- function(RNA) { library(plyr) n <- lapply(RNA$names, function(x) { a <- strsplit(x, '-')[[1]] if (a[1] ==
+# 'mmu') a <- a[-1] df <- data.frame(matrix(ncol = length(a)), stringsAsFactors = F) for (i in 1:length(a)) { df[1, i] <-
+# paste(a[1:i], collapse = '-') } if (length(grep(pattern = '\\.', x = df[, ncol(df)])) == 1) { b <- strsplit(df[,
+# ncol(df)], '\\.')[[1]] df[, ncol(df)] <- b[1] df[, ncol(df) + 1] <- paste(b[1:2], collapse = '.') } colnames(df) <-
+# c('R', paste0('C', 1:(ncol(df) - 1))) df$pathString <- paste(df[1, ], collapse = '/') return(df) }) n1 <- ldply(n,
+# data.frame) return(data.frame(RNA, n1, stringsAsFactors = F)) } fastaToTree <- function(fasta) { library(Biostrings)
+# library(data.tree) read.file <- readDNAStringSet(fasta) df <- data.frame(names = names(read.file), Sequence =
+# as.character(read.file), stringsAsFactors = F) df$names <- as.character(sapply(df$names, function(x) strsplit(x, '\\
+# ')[[1]][1])) df <- .RNAtoTree(RNA = df) tree.df <- as.Node(df) return(list(df = df, tree = tree.df)) }
 
 # Build index for Rsubread from `fasta` file ----
 
 .listFilesFTP <- function(url) {
   library(RCurl)
   library(stringr)
-  files <- getURL(
-    url = url,
-    ftp.use.epsv = FALSE,
-    dirlistonly = TRUE
-  )
+  files <- getURL(url = url, ftp.use.epsv = FALSE, dirlistonly = TRUE)
   files <- str_c(url, str_split(files, "\n")[[1]])
   files <- str_trim(files)
   return(files)
@@ -66,11 +38,8 @@
 #' @examples
 #' indexRsubread(fastaGenome = "../test/reference.fa.gz", basename = "../test/reference")
 #' @export
-indexRsubread <- function(fastaGenome = NULL,
-                          refGenome = "mm10", gencodeRelease = "M18",
-                          outPath = getwd(), basename = "refRsubread",
-                          extraFasta = NULL, gzExtra = FALSE,
-                          ...) {
+indexRsubread <- function(fastaGenome = NULL, refGenome = "mm10", gencodeRelease = "M18", outPath = getwd(), basename = "refRsubread",
+                          extraFasta = NULL, gzExtra = FALSE, ...) {
   library(Rsubread)
   library(R.utils)
 
@@ -81,24 +50,19 @@ indexRsubread <- function(fastaGenome = NULL,
     gzip(gsub(pattern = "\\.gz$", "", fastaGenome))
   } else {
     # If not provided
-    message(
-      paste0(
-        "As the `fasta` file is not provided via fastaGenome, ",
-        refGenome, " will be dowloaded and index will be build from GENCODE version ",
-        gencodeRelease, "."
-      )
-    )
+    message(paste0(
+      "As the `fasta` file is not provided via fastaGenome, ", refGenome, " will be dowloaded and index will be build from GENCODE version ",
+      gencodeRelease, "."
+    ))
 
     # Various checks
     if (!grepl(pattern = "hg19|hg38|mm9|mm10", x = refGenome)) {
       stop("Please provide path to the `fasta` file! This function can only build indexes without a `fasta` file for mm9, mm10, hg19 or hg38, or from a `fasta file`!")
     }
-    if (grepl(pattern = "hg[0-9][0-9]", x = refGenome) &
-      !grepl(pattern = "[0-9][0-9]", x = gencodeRelease)) {
+    if (grepl(pattern = "hg[0-9][0-9]", x = refGenome) & !grepl(pattern = "[0-9][0-9]", x = gencodeRelease)) {
       stop("Please see: https://www.gencodegenes.org/human/releases.html")
     }
-    if (grepl(pattern = "mm[0-9]|mm[0-9][0-9]", x = refGenome) &
-      !grepl(pattern = "M[0-9]|M[0-9][0-9]", x = gencodeRelease)) {
+    if (grepl(pattern = "mm[0-9]|mm[0-9][0-9]", x = refGenome) & !grepl(pattern = "M[0-9]|M[0-9][0-9]", x = gencodeRelease)) {
       stop("Please see: https://www.gencodegenes.org/mouse/releases.html")
     }
 
@@ -147,7 +111,7 @@ indexRsubread <- function(fastaGenome = NULL,
 
     # Index building
     buildindex(basename = paste(outPath, basename, sep = "/"), reference = genomeFasta, ...)
-    # gzip(gsub(pattern = "\\.gz$", "", fa))
+    # gzip(gsub(pattern = '\\.gz$', '', fa))
   }
 }
 
@@ -174,8 +138,7 @@ indexRsubread <- function(fastaGenome = NULL,
 #' @return Stores a `BAM` file.
 #'
 #' @export
-alignShortRNA <- function(fastq, fastq2 = NULL, index, nBestLocations = 100,
-                          nThreads = parallel::detectCores() - 1, GTF = NULL,
+alignShortRNA <- function(fastq, fastq2 = NULL, index, nBestLocations = 100, nThreads = parallel::detectCores() - 1, GTF = NULL,
                           outDir = getwd(), outFile = NULL, mode = "align", ...) {
   gtfOption <- NULL
   if (!is.null(GTF)) {
@@ -196,19 +159,11 @@ alignShortRNA <- function(fastq, fastq2 = NULL, index, nBestLocations = 100,
   library(parallel)
 
   if (mode == "align") {
-    align(
-      index = index, readfile1 = fastq, readfile2 = fastq2,
-      nBestLocations = nBestLocations, output_file = out,
-      nthreads = detectCores() - 1, sortReadsByCoordinates = TRUE,
-      annot.ext = GTF, isGTF = gtfOption, ...
-    )
+    align(index = index, readfile1 = fastq, readfile2 = fastq2, nBestLocations = nBestLocations, output_file = out, nthreads = detectCores() -
+      1, sortReadsByCoordinates = TRUE, annot.ext = GTF, isGTF = gtfOption, ...)
   } else if (mode == "subjunc") {
-    subjunc(
-      index = index, readfile1 = fastq, readfile2 = fastq2,
-      nBestLocations = nBestLocations, output_file = out,
-      nthreads = detectCores() - 1, sortReadsByCoordinates = TRUE,
-      annot.ext = GTF, isGTF = gtfOption, ...
-    )
+    subjunc(index = index, readfile1 = fastq, readfile2 = fastq2, nBestLocations = nBestLocations, output_file = out, nthreads = detectCores() -
+      1, sortReadsByCoordinates = TRUE, annot.ext = GTF, isGTF = gtfOption, ...)
   } else {
     stop("Please provide one option: align or subjunc!")
   }

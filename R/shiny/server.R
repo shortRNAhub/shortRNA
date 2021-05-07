@@ -66,7 +66,7 @@ server <- shinyServer(function(input, output) {
     if (length(s()) == 0) {
       return("No data.")
     } else {
-      getCols(res$seqLevel$allKnownUnique[ which(row.names(res$seqLevel$allKnownUnique) %in% s()), ])
+      getCols(res$seqLevel$allKnownUnique[which(row.names(res$seqLevel$allKnownUnique) %in% s()), ])
     }
   })
 
@@ -84,19 +84,22 @@ server <- shinyServer(function(input, output) {
     }
   })
 
-  output$deatable <- renderDataTable({
-    tt <- strsplit(input$deaTypes, ".", fixed = T)[[1]]
-    if (tt[[1]] == "agg") {
-      rr <- res$aggregated[[tt[[2]]]]
-    } else {
-      rr <- res$seqLevel[[tt[[2]]]]
-    }
-    if (is.null(rr)) {
-      return("No data.")
-    } else {
-      getCols(rr)
-    }
-  }, options = list(lengthMenu = c(20, 50, 100), pageLength = 20))
+  output$deatable <- renderDataTable(
+    {
+      tt <- strsplit(input$deaTypes, ".", fixed = T)[[1]]
+      if (tt[[1]] == "agg") {
+        rr <- res$aggregated[[tt[[2]]]]
+      } else {
+        rr <- res$seqLevel[[tt[[2]]]]
+      }
+      if (is.null(rr)) {
+        return("No data.")
+      } else {
+        getCols(rr)
+      }
+    },
+    options = list(lengthMenu = c(20, 50, 100), pageLength = 20)
+  )
 
   output$sizeplot <- renderPlot({
     checkSizeSelection(o)

@@ -14,26 +14,33 @@
 #' @param adaptersFa Adapter sequence fasta file
 #' @param ... other parameters specific to `Rfastp`
 #' @return A list of results and location to the JSON results file
-#' 
+#'
 #' @examples
-#' \dontrun{
 #' # Input
 #' fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
+#' outDir <- tempdir()
+#'
 #' # Analysis
-#' qc_res <- qc_fastq(file = fq1)
+#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
+#'
 #' # Output
 #' qc_res
-#' }
 #' @export
 qc_fastq <- function(file,
                      outDir = ".",
-                     name = gsub(pattern = "\\.fq|\\.fq.gz|\\.fastq|\\.fastq.gz", replacement = "", x = basename(file)),
+                     name = gsub(
+                       pattern = "\\.fq|\\.fq.gz|\\.fastq|\\.fastq.gz",
+                       replacement = "", x = basename(file)
+                     ),
                      adapterSeq = "auto",
                      adaptersFa = "",
                      minLength = 15,
                      nThread = parallel::detectCores() - 1, ...) {
   if (adapterSeq == "auto") {
-    message("The adapter sequence is automatically recognised.\nIf the adapter sequence is already known, it is better to specify it.\n\n")
+    message(
+      "The adapter sequence is automatically recognised.
+    If the adapter sequence is already known, it is better to specify it.\n\n"
+    )
   }
 
   library(Rfastp)
@@ -79,24 +86,22 @@ qc_fastq <- function(file,
 #' @import Rfastp
 #'
 #' @seealso Rfastp
-#' 
+#'
 #' @param json A JSON file with QC information
 #'
 #' @return A data frame with FASTQ file information
-#' 
+#'
 #' @examples
-#' \dontrun{
 #' # Input
 #' fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
-#' 
+#' outDir <- tempdir()
+#'
 #' # Analysis
-#' qc_res <- qc_fastq(file = fq1)
+#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
 #' df <- make_general_df(json = qc_res$json)
-#' 
+#'
 #' # Output
 #' df
-#' }
-#' 
 #' @export
 make_general_df <- function(json) {
   library(rjson)
@@ -104,7 +109,9 @@ make_general_df <- function(json) {
 
   # pkg <- as.character(packageVersion("Rfastp"))
   seq <- js$read1_before_filtering$total_cycles
-  seq_type <- ifelse(test = any(grepl(pattern = "read2", x = names(js))), yes = "paired-end", no = "single-end")
+  seq_type <- ifelse(test = any(grepl(pattern = "read2", x = names(js))),
+    yes = "paired-end", no = "single-end"
+  )
   cycle <- paste0(seq_type, " (", seq, " cycles)")
 
   mean_len_bf <- js$summary$before_filtering$read1_mean_length
@@ -145,21 +152,22 @@ make_general_df <- function(json) {
 #' @import Rfastp
 #'
 #' @seealso Rfastp
-#' 
+#'
 #' @param json A JSON file with QC information
 #'
 #' @return A data frame with FASTQ file information
-#' 
+#'
 #' @examples
-#' \dontrun{
 #' # Input
-#' 
+#' fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
+#' outDir <- tempdir()
+#'
 #' # Analysis
+#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
+#' df <- make_before_filt_df(json = qc_res$json)
 #'
 #' # Output
-#' 
-#' }
-#' 
+#' df
 #' @export
 make_before_filt_df <- function(json) {
   js <- rjson::fromJSON(file = json)
@@ -202,17 +210,18 @@ make_before_filt_df <- function(json) {
 #' @param json A JSON file with QC information
 #'
 #' @return A data frame with FASTQ file information
-#' 
+#'
 #' @examples
-#' \dontrun{
 #' # Input
-#' 
+#' fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
+#' outDir <- tempdir()
+#'
 #' # Analysis
+#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
+#' df <- make_after_filt_df(json = qc_res$json)
 #'
 #' # Output
-#' 
-#' }
-#' 
+#' df
 #' @export
 make_after_filt_df <- function(json) {
   js <- rjson::fromJSON(file = json)
@@ -222,7 +231,10 @@ make_after_filt_df <- function(json) {
   q_20_rate <- js$summary$after_filtering$q20_rate * 100
   q_30_bases <- js$read1_after_filtering$q30_bases
   q_30_rate <- js$summary$after_filtering$q30_rate * 100
-  gc <- paste0(round(x = js$summary$after_filtering$gc_content * 100, digits = 2), "%")
+  gc <- paste0(
+    round(x = js$summary$after_filtering$gc_content * 100, digits = 2),
+    "%"
+  )
 
   df <- data.frame(
     test = c(
@@ -255,17 +267,18 @@ make_after_filt_df <- function(json) {
 #' @param json A JSON file with QC information
 #'
 #' @return A data frame with FASTQ file information
-#' 
+#'
 #' @examples
-#' \dontrun{
 #' # Input
-#' 
+#' fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
+#' outDir <- tempdir()
+#'
 #' # Analysis
+#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
+#' df <- make_filt_df(json = qc_res$json)
 #'
 #' # Output
-#' 
-#' }
-#' 
+#' df
 #' @export
 make_filt_df <- function(json) {
   js <- rjson::fromJSON(file = json)
@@ -316,24 +329,42 @@ make_filt_df <- function(json) {
 #' @param dupLevelCol Column with duplication levels in df
 #'
 #' @return An interactive plot
-#' 
+#'
 #' @examples
-#' \dontrun{
 #' # Input
-#' 
+#' df <- data.frame(
+#'   dupRate = rev(sort(c(70, 10, 1:5, rep(0, 13)))),
+#'   dupLevel = 1:20
+#' )
+#' df$GCpercent <- c(runif(n = 5, min = 51, max = 55), rep(0, 15))
+#'
 #' # Analysis
+#' p <- reads_duplication_plot(
+#'   df = df,
+#'   dupRateCol = "dupRate",
+#'   GCpercentCol = NULL,
+#'   dupLevelCol = "dupLevel"
+#' )
+#'
+#' p_GC <- reads_duplication_plot(
+#'   df = df,
+#'   dupRateCol = "dupRate",
+#'   GCpercentCol = "GCpercent",
+#'   dupLevelCol = "dupLevel"
+#' )
 #'
 #' # Output
-#' 
-#' }
-#' 
+#' p
+#' p_GC
 #' @export
-reads_duplication_plot <- function(df, dupRateCol, GCpercentCol, dupLevelCol) {
-  
+reads_duplication_plot <- function(df,
+                                   dupRateCol,
+                                   GCpercentCol = NULL,
+                                   dupLevelCol) {
   library(dplyr)
   library(plotly)
-  
-  plot_ly(df, x = df[, dupLevelCol]) %>%
+
+  p <- plot_ly(df, x = df[, dupLevelCol]) %>%
     add_trace(
       y = df[, dupRateCol],
       type = "bar",
@@ -342,22 +373,45 @@ reads_duplication_plot <- function(df, dupRateCol, GCpercentCol, dupLevelCol) {
       hovertext = paste(
         "<b>", df[, dupRateCol], "</b>"
       )
-    ) %>%
-    add_lines(
-      y = df[, GCpercentCol],
-      name = "Mean GC ratio (%)",
-      line = list(color = "red", width = 3),
-      hoverinfo = "text+x",
-      hovertext = paste(
-        "<b>", df[, GCpercentCol], "</b>"
-      )
-    ) %>%
-    layout(
-      title = paste0("Mean duplication rate: ", round(mean(df[, dupRateCol]), 2), "%"),
-      xaxis = list(title = "Duplication level"),
-      yaxis = list(title = "Reads percent & GC ratio (%)"),
-      hovermode = "x closest"
     )
+
+  if (!is.null(GCpercentCol)) {
+    df[, GCpercentCol][df[, GCpercentCol] == 0] <- ""
+    p <- p %>%
+      add_lines(
+        y = df[, GCpercentCol],
+        name = "Mean GC ratio (%)",
+        line = list(color = "red", width = 3),
+        hoverinfo = "text+x",
+        hovertext = paste(
+          "<b>", df[, GCpercentCol], "</b>"
+        )
+      ) %>%
+      layout(
+        title = paste0(
+          "Mean duplication rate: ",
+          round(mean(df[, dupRateCol]), 2),
+          "%"
+        ),
+        xaxis = list(title = "Duplication level"),
+        yaxis = list(title = "Reads percent & GC ratio (%)"),
+        hovermode = "x closest"
+      )
+  } else {
+    p <- p %>%
+      layout(
+        title = paste0(
+          "Mean duplication rate: ",
+          round(mean(df[, dupRateCol]), 2),
+          "%"
+        ),
+        xaxis = list(title = "Duplication level"),
+        yaxis = list(title = "Reads percent"),
+        hovermode = "x closest"
+      )
+  }
+
+  return(p)
 }
 
 #' Make duplicated reads plot from JSON file
@@ -367,22 +421,26 @@ reads_duplication_plot <- function(df, dupRateCol, GCpercentCol, dupLevelCol) {
 #'
 #' @seealso Rfastp
 #' @param json A JSON file
-#' 
+#'
 #' @return An interactive plot
-#' 
+#'
 #' #' @examples
-#' \dontrun{
 #' # Input
-#' 
+#' fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
+#' outDir <- tempdir()
+#'
 #' # Analysis
+#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
+#' p <- make_dup_plot(json = qc_res$json)
 #'
 #' # Output
-#' 
-#' }
-#' 
+#' p
+#'
 #' @export
 make_dup_plot <- function(json) {
-  js <- rjson::fromJSON(file = json)
+  library(rjson)
+
+  js <- fromJSON(file = json)
 
   bars <- js$duplication$histogram
   gc <- js$duplication$mean_gc
@@ -393,9 +451,13 @@ make_dup_plot <- function(json) {
     GC = round(gc * 100, 2),
     x = xaxis
   )
-  data$GC[data$GC == 0] <- ""
 
-  p <- reads_duplication_plot(df = data, dupRateCol = "Duplicate", GCpercentCol = "GC", dupLevelCol = "x")
+  p <- reads_duplication_plot(
+    df = data,
+    dupRateCol = "Duplicate",
+    GCpercentCol = "GC",
+    dupLevelCol = "x"
+  )
   return(
     p
     # tagList = htmltools::tagList(p)
@@ -416,19 +478,24 @@ make_dup_plot <- function(json) {
 #' @param json A JSON file with QC information
 #'
 #' @return A data frame with FASTQ file information
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' # Input
-#' 
+#'
 #' # Analysis
 #'
 #' # Output
-#' 
 #' }
-#' 
+#'
 #' @export
-reads_quality_plot <- function(df, bpPosCol, A_col, T_col, G_col, C_col, meanQual = NULL) {
+reads_quality_plot <- function(df,
+                               bpPosCol,
+                               A_col,
+                               T_col,
+                               G_col,
+                               C_col,
+                               meanQual = NULL) {
   library(plotly)
   library(dplyr)
 
@@ -445,16 +512,16 @@ reads_quality_plot <- function(df, bpPosCol, A_col, T_col, G_col, C_col, meanQua
 
   plot_ly(df, x = df[, bpPosCol]) %>%
     add_trace(
-      y = df[, "Q20"], name = "Not good", fillcolor = "rgba(255,0,0, 0.2)", type = "scatter",
-      mode = "none", stackgroup = "one", hoverinfo = "skip"
+      y = df[, "Q20"], name = "Not good", fillcolor = "rgba(255,0,0, 0.2)",
+      type = "scatter", mode = "none", stackgroup = "one", hoverinfo = "skip"
     ) %>%
     add_trace(
-      y = df[, "Q28"], name = "OK", fillcolor = "rgba(255,255,0,0.2)", type = "scatter",
-      mode = "none", stackgroup = "one", hoverinfo = "skip"
+      y = df[, "Q28"], name = "OK", fillcolor = "rgba(255,255,0,0.2)",
+      type = "scatter", mode = "none", stackgroup = "one", hoverinfo = "skip"
     ) %>%
     add_trace(
-      y = df[, "Q50"], name = "Good", fillcolor = "rgba(0,128,0,0.2)", type = "scatter",
-      mode = "none", stackgroup = "one", hoverinfo = "skip"
+      y = df[, "Q50"], name = "Good", fillcolor = "rgba(0,128,0,0.2)",
+      type = "scatter", mode = "none", stackgroup = "one", hoverinfo = "skip"
     ) %>%
     add_lines(
       y = df[, A_col],
@@ -508,17 +575,16 @@ reads_quality_plot <- function(df, bpPosCol, A_col, T_col, G_col, C_col, meanQua
 #' @param json A JSON file with QC information
 #'
 #' @return A data frame with FASTQ file information
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' # Input
-#' 
+#'
 #' # Analysis
 #'
 #' # Output
-#' 
 #' }
-#' 
+#'
 #' @export
 make_read_qual_plot <- function(json, which = "before") {
   js <- rjson::fromJSON(file = json)
@@ -566,19 +632,26 @@ make_read_qual_plot <- function(json, which = "before") {
 #' @param json A JSON file with QC information
 #'
 #' @return A data frame with FASTQ file information
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' # Input
-#' 
+#'
 #' # Analysis
 #'
 #' # Output
-#' 
 #' }
-#' 
+#'
 #' @export
-base_ratio_line_plot <- function(df, bpPosCol, A_col, T_col, G_col, C_col, GC_col = NULL, N_col, isRatio = FALSE) {
+base_ratio_line_plot <- function(df,
+                                 bpPosCol,
+                                 A_col,
+                                 T_col,
+                                 G_col,
+                                 C_col,
+                                 GC_col = NULL,
+                                 N_col,
+                                 isRatio = FALSE) {
   if (isRatio) {
     df <- df[, c(bpPosCol, A_col, T_col, G_col, C_col, N_col)] * 100
   }
@@ -650,17 +723,16 @@ base_ratio_line_plot <- function(df, bpPosCol, A_col, T_col, G_col, C_col, GC_co
 #' @param json A JSON file with QC information
 #'
 #' @return A data frame with FASTQ file information
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' # Input
-#' 
+#'
 #' # Analysis
 #'
 #' # Output
-#' 
 #' }
-#' 
+#'
 #' @export
 make_base_ratio_line_plot <- function(json, which = "before") {
   js <- rjson::fromJSON(file = json)
@@ -708,19 +780,26 @@ make_base_ratio_line_plot <- function(json, which = "before") {
 #' @param json A JSON file with QC information
 #'
 #' @return A data frame with FASTQ file information
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' # Input
-#' 
+#'
 #' # Analysis
 #'
 #' # Output
-#' 
 #' }
-#' 
+#'
 #' @export
-base_ratio_proportion_plot <- function(df, bpPosCol, A_col, T_col, G_col, C_col, GC_col = NULL, N_col, isRatio = FALSE) {
+base_ratio_proportion_plot <- function(df,
+                                       bpPosCol,
+                                       A_col,
+                                       T_col,
+                                       G_col,
+                                       C_col,
+                                       GC_col = NULL,
+                                       N_col,
+                                       isRatio = FALSE) {
   if (isRatio) {
     df <- df[, c(bpPosCol, A_col, T_col, G_col, C_col, N_col)] * 100
   }
@@ -778,17 +857,16 @@ base_ratio_proportion_plot <- function(df, bpPosCol, A_col, T_col, G_col, C_col,
 #' @param json A JSON file with QC information
 #'
 #' @return A data frame with FASTQ file information
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' # Input
-#' 
+#'
 #' # Analysis
 #'
 #' # Output
-#' 
 #' }
-#' 
+#'
 #' @export
 make_base_ratio_prop_plot <- function(json, which = "before") {
   js <- rjson::fromJSON(file = json)
@@ -835,17 +913,16 @@ make_base_ratio_prop_plot <- function(json, which = "before") {
 #' @param json A JSON file with QC information
 #'
 #' @return A data frame with FASTQ file information
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' # Input
-#' 
+#'
 #' # Analysis
 #'
 #' # Output
-#' 
 #' }
-#' 
+#'
 #' @export
 # `qckitfastq`
 run_qc <- function(fq) {
@@ -924,17 +1001,16 @@ run_qc <- function(fq) {
 #' @param json A JSON file with QC information
 #'
 #' @return A data frame with FASTQ file information
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' # Input
-#' 
+#'
 #' # Analysis
 #'
 #' # Output
-#' 
 #' }
-#' 
+#'
 #' @export
 read_length_hist <- function(df, groupName, readLength, nRead, col) {
   plot_ly(hoverinfo = "text", type = "bar", textposition = "auto") %>%
@@ -968,17 +1044,16 @@ read_length_hist <- function(df, groupName, readLength, nRead, col) {
 #' @param after_trim A dataframe with 2 columns: read_length and num_reads
 #'
 #' @return An interactive barplot
-#' 
+#'
 #' @examples
 #' \dontrun{
 #' # Input
-#' 
+#'
 #' # Analysis
 #'
 #' # Output
-#' 
 #' }
-#' 
+#'
 #' @export
 make_read_length_plot <- function(before_trim, after_trim) {
   if (!colnames(before_trim) %in% c("read_length", "num_reads") |
@@ -988,8 +1063,21 @@ make_read_length_plot <- function(before_trim, after_trim) {
   raw <- before_trim
   trim <- after_trim
 
-  p1 <- read_length_hist(df = raw, groupName = "Raw", readLength = "read_length", nRead = "num_reads", col = "red")
-  p2 <- read_length_hist(df = trim, groupName = "Trimmed", readLength = "read_length", nRead = "num_reads", col = "green")
+  p1 <- read_length_hist(
+    df = raw,
+    groupName = "Raw",
+    readLength = "read_length",
+    nRead = "num_reads",
+    col = "red"
+  )
+
+  p2 <- read_length_hist(
+    df = trim,
+    groupName = "Trimmed",
+    readLength = "read_length",
+    nRead = "num_reads",
+    col = "green"
+  )
 
   p <- subplot(p1, p2, shareX = T, shareY = T)
   return(p)
