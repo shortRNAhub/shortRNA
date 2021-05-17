@@ -1,18 +1,15 @@
-# Running QC on FASTQ file ----
-
 #' QC of fastq files
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
 #' @import Rfastp
 #'
-#' @seealso Rfastp
-#'
 #' @param file character vector of file names
-#' @param name character vector of output file names.
 #' @param outDir output directory. Default: current working directory
+#' @param name character vector of output file names.
 #' @param adapterSeq Adapter sequence for read1
 #' @param adaptersFa Adapter sequence fasta file
-#' @param ... other parameters specific to `Rfastp`
+#' @param ... other parameters specific to \code{\link[Rfastp:rfastp]}
+#'
 #' @return A list of results and location to the JSON results file
 #'
 #' @examples
@@ -27,15 +24,15 @@
 #' qc_res
 #' @export
 qcFastq <- function(file,
-                     outDir = ".",
-                     name = gsub(
-                       pattern = "\\.fq|\\.fq.gz|\\.fastq|\\.fastq.gz",
-                       replacement = "", x = basename(file)
-                     ),
-                     adapterSeq = "auto",
-                     adaptersFa = "",
-                     minLength = 15,
-                     nThread = parallel::detectCores() - 1, ...) {
+                    outDir = ".",
+                    name = gsub(
+                      pattern = "\\.fq|\\.fq.gz|\\.fastq|\\.fastq.gz",
+                      replacement = "", x = basename(file)
+                    ),
+                    adapterSeq = "auto",
+                    adaptersFa = "",
+                    minLength = 15,
+                    nThread = parallel::detectCores(), ...) {
   if (adapterSeq == "auto") {
     message(
       "The adapter sequence is automatically recognised.
@@ -78,16 +75,12 @@ qcFastq <- function(file,
 
 
 
-# Various tables with some QC values ----
-
 #' Make general information data frame from JSON file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import Rfastp
+#' @import rjson
 #'
-#' @seealso Rfastp
-#'
-#' @param json A JSON file with QC information
+#' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #'
 #' @return A data frame with FASTQ file information
 #'
@@ -107,7 +100,7 @@ makeGeneralDF <- function(json) {
   library(rjson)
   js <- fromJSON(file = json)
 
-  # pkg <- as.character(packageVersion("Rfastp"))
+  pkg <- as.character(packageVersion("Rfastp"))
   seq <- js$read1_before_filtering$total_cycles
   seq_type <- ifelse(test = any(grepl(pattern = "read2", x = names(js))),
     yes = "paired-end", no = "single-end"
@@ -126,14 +119,14 @@ makeGeneralDF <- function(json) {
 
   df <- data.frame(
     test = c(
-      # "Rfastp version",
+      "Rfastp version",
       "Sequencing",
       "Mean length before filtering",
       "Mean length after filtering",
       "Duplication rate"
     ),
     value = c(
-      # pkg,
+      pkg,
       cycle,
       mean_len_bf,
       mean_len_af,
@@ -143,17 +136,14 @@ makeGeneralDF <- function(json) {
   return(df)
 }
 
-# make_general_df(json = qc_res$json)
 
 
 #' Make before QC information data frame from JSON file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import Rfastp
+#' @import rjson
 #'
-#' @seealso Rfastp
-#'
-#' @param json A JSON file with QC information
+#' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #'
 #' @return A data frame with FASTQ file information
 #'
@@ -163,14 +153,15 @@ makeGeneralDF <- function(json) {
 #' outDir <- tempdir()
 #'
 #' # Analysis
-#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
+#' qc_res <- qcFastq(file = fq1, outDir = outDir)
 #' df <- makeBeforeFiltDF(json = qc_res$json)
 #'
 #' # Output
 #' df
 #' @export
 makeBeforeFiltDF <- function(json) {
-  js <- rjson::fromJSON(file = json)
+  library(rjson)
+  js <- fromJSON(file = json)
   tot_reads <- js$read1_before_filtering$total_reads
   tot_bases <- js$read1_before_filtering$total_bases
   q_20_bases <- js$read1_before_filtering$q20_bases
@@ -198,16 +189,14 @@ makeBeforeFiltDF <- function(json) {
   return(df)
 }
 
-# make_before_filt_df(json = qc_res$json)
 
 
 #' Make after QC information data frame from JSON file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import Rfastp
+#' @import rjson
 #'
-#' @seealso Rfastp
-#' @param json A JSON file with QC information
+#' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #'
 #' @return A data frame with FASTQ file information
 #'
@@ -217,14 +206,15 @@ makeBeforeFiltDF <- function(json) {
 #' outDir <- tempdir()
 #'
 #' # Analysis
-#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
+#' qc_res <- qcFastq(file = fq1, outDir = outDir)
 #' df <- makeAfterFiltDF(json = qc_res$json)
 #'
 #' # Output
 #' df
 #' @export
 makeAfterFiltDF <- function(json) {
-  js <- rjson::fromJSON(file = json)
+  library(rjson)
+  js <- fromJSON(file = json)
   tot_reads <- js$read1_after_filtering$total_reads
   tot_bases <- js$read1_after_filtering$total_bases
   q_20_bases <- js$read1_after_filtering$q20_bases
@@ -255,16 +245,14 @@ makeAfterFiltDF <- function(json) {
   return(df)
 }
 
-# make_after_filt_df(json = qc_res$json)
 
 
 #' Make filtering information information data frame from JSON file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import Rfastp
+#' @import rjson
 #'
-#' @seealso Rfastp
-#' @param json A JSON file with QC information
+#' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #'
 #' @return A data frame with FASTQ file information
 #'
@@ -274,14 +262,15 @@ makeAfterFiltDF <- function(json) {
 #' outDir <- tempdir()
 #'
 #' # Analysis
-#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
+#' qc_res <- qcFastq(file = fq1, outDir = outDir)
 #' df <- makeFiltDF(json = qc_res$json)
 #'
 #' # Output
 #' df
 #' @export
 makeFiltDF <- function(json) {
-  js <- rjson::fromJSON(file = json)
+  library(rjson)
+  js <- fromJSON(file = json)
 
   reads <- js$summary$before_filtering$total_reads
   read_pass <- js$filtering_result$passed_filter_reads
@@ -314,19 +303,18 @@ makeFiltDF <- function(json) {
   return(df)
 }
 
-# make_filt_df(json = qc_res$json)
 
 
-#' Duplicated reads plot
+#' Reads duplication plot
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import Rfastp
+#' @import dplyr plotly
 #'
-#' @seealso Rfastp
+#' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #' @param df A data frame
-#' @param dupRateCol Column with duplication rate in df
-#' @param GCpercentCol Column with GC percentage in df
-#' @param dupLevelCol Column with duplication levels in df
+#' @param dupRate Column with duplication rate in df
+#' @param GCpercent Column with GC percentage in df
+#' @param dupLevel Column with duplication levels in df
 #'
 #' @return An interactive plot
 #'
@@ -339,6 +327,7 @@ makeFiltDF <- function(json) {
 #' df$GCpercent <- c(runif(n = 5, min = 51, max = 55), rep(0, 15))
 #'
 #' # Analysis
+#' ## Plot with a data frame
 #' p <- readDuplicationPlot(
 #'   df = df,
 #'   dupRateCol = "dupRate",
@@ -346,6 +335,7 @@ makeFiltDF <- function(json) {
 #'   dupLevelCol = "dupLevel"
 #' )
 #'
+#' ## Plot with a data frame with GC
 #' p_GC <- readDuplicationPlot(
 #'   df = df,
 #'   dupRateCol = "dupRate",
@@ -353,23 +343,30 @@ makeFiltDF <- function(json) {
 #'   dupLevelCol = "dupLevel"
 #' )
 #'
+#' ## Plot with a json file
+#' fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
+#' outDir <- tempdir()
+#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
+#' p_js <- readDuplicationPlot(json = qc_res$json)
+#'
 #' # Output
 #' p
 #' p_GC
+#' p_js
 #' @export
 readDuplicationPlot <- function(json = NULL,
-                                   df = NULL,
-                                   dupRate = "dupRate",
-                                   GCpercent = NULL,
-                                   dupLevel = "dupLevel") {
+                                df = NULL,
+                                dupRate = "dupRate",
+                                GCpercent = NULL,
+                                dupLevel = "dupLevel") {
   library(dplyr)
   library(plotly)
 
-  if(!is.null(json)){
+  if (!is.null(json)) {
     df <- dupPlotDF(json)
-    GCpercent <- "GCpercent" 
+    GCpercent <- "GCpercent"
   }
-  
+
   p <- plot_ly(df, x = df[, dupLevel]) %>%
     add_trace(
       y = df[, dupRate],
@@ -420,13 +417,34 @@ readDuplicationPlot <- function(json = NULL,
   return(p)
 }
 
-#' Make duplicated reads data frame from JSON file
+df <- data.frame(
+  dupRate = rev(sort(c(70, 10, 1:5, rep(0, 13)))),
+  dupLevel = 1:20
+)
+df$GCpercent <- c(runif(n = 5, min = 51, max = 55), rep(0, 15))
+
+p <- readDuplicationPlot(
+  df = df,
+  dupRate = "dupRate",
+  GCpercent = NULL,
+  dupLevel = "dupLevel"
+)
+
+p_GC <- readDuplicationPlot(
+  df = df,
+  dupRate = "dupRate",
+  GCpercent = "GCpercent",
+  dupLevel = "dupLevel"
+)
+
+
+
+#' Reads duplication data frame from JSON file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
 #' @import Rfastp
 #'
-#' @seealso Rfastp
-#' @param json A JSON file
+#' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #'
 #' @return An interactive plot
 #'
@@ -441,7 +459,6 @@ readDuplicationPlot <- function(json = NULL,
 #'
 #' # Output
 #' df
-#'
 dupPlotDF <- function(json) {
   library(rjson)
 
@@ -458,50 +475,55 @@ dupPlotDF <- function(json) {
   )
 
   return(data)
-  # return(tagList = htmltools::tagList(p))
 }
 
-# a <- make_dup_plot(json = qc_res$json)
 
 
-
-## Read quality plot
-#' Make filtering information information data frame from JSON file
+#' Read quality score plot
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import Rfastp
+#' @import plotly dplyr rcartocolor
 #'
-#' @seealso Rfastp
-#' @param json A JSON file with QC information
+#' @param json A JSON file with QC information from \code{\link{qcFastq}}
+#' @param df A data frame
+#' @param bpPos Column name with base-pair position
+#' @param Aa Column with Adenine quality score
+#' @param Tt Column with Thymine quality score
+#' @param Gg Column with Guanine quality score
+#' @param Cc Column with Cytosine quality score
+#' @param meanQual Column with `mean` quality score
 #'
-#' @return A data frame with FASTQ file information
+#' @return An interactive plot
 #'
 #' @examples
-#' \dontrun{
 #' # Input
+#' fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
+#' outDir <- tempdir()
 #'
 #' # Analysis
+#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
+#' p <- readsQualityPlot(json = qc_res$json)
 #'
 #' # Output
-#' }
-#'
+#' p
 #' @export
 readsQualityPlot <- function(json = NULL,
-                               df = NULL,
-                               bpPos = "bpPos",
-                               Aa = "Aa",
-                               Tt = "Tt",
-                               Gg = "Gg",
-                               Cc = "Cc",
-                               meanQual = NULL) {
+                             df = NULL,
+                             bpPos = "bpPos",
+                             Aa = "Aa",
+                             Tt = "Tt",
+                             Gg = "Gg",
+                             Cc = "Cc",
+                             meanQual = NULL) {
   library(plotly)
   library(dplyr)
+  library(rcartocolor)
 
-  if(!is.null(json)){
+  if (!is.null(json)) {
     df <- readQualDF(json)
     meanQual <- "meanQual"
   }
-  
+
   if (is.null(meanQual)) {
     df$meanQual <- rowMeans(df[, c(Aa, Tt, Gg, Cc)])
     meanQual <- "meanQual"
@@ -511,7 +533,7 @@ readsQualityPlot <- function(json = NULL,
   df$Q28 <- 8
   df$Q50 <- 18
 
-  cols <- rcartocolor::carto_pal(n = 10, name = "Safe")[c(2, 1, 3, 4, 10)]
+  cols <- carto_pal(n = 10, name = "Safe")[c(2, 1, 3, 4, 10)]
 
   plot_ly(df, x = df[, bpPos]) %>%
     add_trace(
@@ -569,28 +591,31 @@ readsQualityPlot <- function(json = NULL,
     )
 }
 
-#' Make filtering information information data frame from JSON file
+
+
+#' Reads qualoty data frame from JSON file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import Rfastp
+#' @import rjson
 #'
-#' @seealso Rfastp
-#' @param json A JSON file with QC information
+#' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #'
 #' @return A data frame with FASTQ file information
 #'
 #' @examples
-#' \dontrun{
 #' # Input
+#' fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
+#' outDir <- tempdir()
 #'
 #' # Analysis
+#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
+#' df <- readsQualDF(json = qc_res$json)
 #'
 #' # Output
-#' }
-#'
-#' @export
+#' df
 readQualDF <- function(json, which = "before") {
-  js <- rjson::fromJSON(file = json)
+  library(rjson)
+  js <- fromJSON(file = json)
 
   qual <- NULL
   if (which == "before") {
@@ -611,94 +636,110 @@ readQualDF <- function(json, which = "before") {
   return(data)
 }
 
-# make_read_qual_plot(json = qc_res$json, which = "before")
-# make_read_qual_plot(json = qc_res$json, which = "after")
 
 
-
-## Base content line plot ---
-#' Make filtering information information data frame from JSON file
+#' Base content line plot
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import Rfastp
+#' @import plotly dplyr rcartocolor
 #'
-#' @seealso Rfastp
-#' @param json A JSON file with QC information
+#' @param json A JSON file with QC information from \code{\link{qcFastq}}
+#' @param df A data frame
+#' @param bpPos Column name with base-pair position
+#' @param Aa Column with Adenine quality score
+#' @param Tt Column with Thymine quality score
+#' @param Gg Column with Guanine quality score
+#' @param Cc Column with Cytosine quality score
+#' @param GC Column with Mean Guanine & Cytosine quality score
+#' @param Nn Column with N (could be any of A,T,G, or C) score
+#' @param isRatio If the Quality scores are ratios or percentages
 #'
-#' @return A data frame with FASTQ file information
+#' @return An interactive plot
 #'
 #' @examples
-#' \dontrun{
 #' # Input
+#' fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
+#' outDir <- tempdir()
 #'
 #' # Analysis
+#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
+#' p <- baseRatioLinePlot(json = qc_res$json)
 #'
 #' # Output
-#' }
-#'
+#' p
 #' @export
-base_ratio_line_plot <- function(df,
-                                 bpPosCol,
-                                 A_col,
-                                 T_col,
-                                 G_col,
-                                 C_col,
-                                 GC_col = NULL,
-                                 N_col,
-                                 isRatio = FALSE) {
+baseRatioLinePlot <- function(json = NULL,
+                              df = NULL,
+                              bpPos = "bpPos",
+                              Aa = "Aa",
+                              Tt = "Tt",
+                              Gg = "Gg",
+                              Cc = "Cc",
+                              GC = NULL,
+                              Nn = "Nn",
+                              isRatio = FALSE) {
+  library(plotly)
+  library(dplyr)
+  library(rcartocolor)
+
+  if (!is.null(json)) {
+    df <- baseRatioDF(json)
+    GC <- "GC"
+  }
+
   if (isRatio) {
-    df <- df[, c(bpPosCol, A_col, T_col, G_col, C_col, N_col)] * 100
+    df <- df[, c(bpPos, Aa, Tt, Gg, Cc, Nn)] * 100
   }
 
-  if (is.null(GC_col)) {
-    df$GC_col <- rowMeans(df[, c(G_col, C_col)])
-    GC_col <- "GC_col"
+  if (is.null(GC)) {
+    df$GC <- rowMeans(df[, c(Gg, Cc)])
+    GC <- "GC"
   }
 
-  cols <- rcartocolor::carto_pal(n = 11, name = "Safe")[c(2, 1, 3, 4, 10)]
+  cols <- carto_pal(n = 11, name = "Safe")[c(2, 1, 3, 4, 10)]
 
-  plot_ly(df, x = df[, bpPosCol]) %>%
+  plot_ly(df, x = df[, bpPos]) %>%
     add_lines(
-      y = df[, A_col],
+      y = df[, Aa],
       name = "A",
       line = list(color = cols[1], width = 2),
       hoverinfo = "text+x",
-      hovertext = paste("<b>", df[, A_col], "</b>")
+      hovertext = paste("<b>", df[, Aa], "</b>")
     ) %>%
     add_lines(
-      y = df[, T_col],
+      y = df[, Tt],
       name = "T",
       line = list(color = cols[2], width = 2),
       hoverinfo = "text+x",
-      hovertext = paste("<b>", df[, T_col], "</b>")
+      hovertext = paste("<b>", df[, Tt], "</b>")
     ) %>%
     add_lines(
-      y = df[, G_col],
+      y = df[, Gg],
       name = "G",
       line = list(color = cols[3], width = 2),
       hoverinfo = "text+x",
-      hovertext = paste("<b>", df[, G_col], "</b>")
+      hovertext = paste("<b>", df[, Gg], "</b>")
     ) %>%
     add_lines(
-      y = df[, C_col],
+      y = df[, Cc],
       name = "C",
       line = list(color = cols[4], width = 2),
       hoverinfo = "text+x",
-      hovertext = paste("<b>", df[, C_col], "</b>")
+      hovertext = paste("<b>", df[, Cc], "</b>")
     ) %>%
     add_lines(
-      y = df[, GC_col],
+      y = df[, GC],
       name = "GC",
       line = list(color = cols[5], width = 3, dash = "dot"),
       hoverinfo = "text+x",
-      hovertext = paste("<b>", df[, GC_col], "</b>")
+      hovertext = paste("<b>", df[, GC], "</b>")
     ) %>%
     add_lines(
-      y = df[, N_col],
+      y = df[, Nn],
       name = "N",
       line = list(color = "black", width = 3),
       hoverinfo = "text+x",
-      hovertext = paste("<b>", df[, N_col], "</b>")
+      hovertext = paste("<b>", df[, Nn], "</b>")
     ) %>%
     layout(
       title = "Per base sequence content",
@@ -708,28 +749,31 @@ base_ratio_line_plot <- function(df,
     )
 }
 
-#' Make filtering information information data frame from JSON file
+
+
+#' Base content data frame from JSON file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import Rfastp
+#' @import rjson
 #'
-#' @seealso Rfastp
-#' @param json A JSON file with QC information
+#' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #'
 #' @return A data frame with FASTQ file information
 #'
 #' @examples
-#' \dontrun{
 #' # Input
+#' fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
+#' outDir <- tempdir()
 #'
 #' # Analysis
+#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
+#' df <- baseRatioDF(json = qc_res$json)
 #'
 #' # Output
-#' }
-#'
-#' @export
-make_base_ratio_line_plot <- function(json, which = "before") {
-  js <- rjson::fromJSON(file = json)
+#' df
+baseRatioDF <- function(json, which = "before") {
+  library(rjson)
+  js <- fromJSON(file = json)
 
   qual <- NULL
   if (which == "before") {
@@ -739,7 +783,7 @@ make_base_ratio_line_plot <- function(json, which = "before") {
   }
 
   data <- data.frame(
-    pos = 1:length(qual$A),
+    bpPos = 1:length(qual$A),
     Aa = qual$A * 100,
     Tt = qual$T * 100,
     Gg = qual$G * 100,
@@ -748,90 +792,98 @@ make_base_ratio_line_plot <- function(json, which = "before") {
     Nn = qual$N * 100
   )
 
-  p <- base_ratio_line_plot(
-    df = data,
-    bpPosCol = "pos",
-    A_col = "Aa",
-    T_col = "Tt",
-    G_col = "Gg",
-    C_col = "Cc",
-    GC_col = "GC",
-    N_col = "Nn",
-    isRatio = FALSE
-  )
-
-  return(p)
+  return(data)
 }
 
 
-## Base content ratio proportion plot ----
-#' Make filtering information information data frame from JSON file
+
+#' Base content ratio proportion plot
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import Rfastp
+#' @import plotly dplyr rcartocolor
 #'
-#' @seealso Rfastp
-#' @param json A JSON file with QC information
+#' @param json A JSON file with QC information from \code{\link{qcFastq}}
+#' @param df A data frame
+#' @param bpPos Column name with base-pair position
+#' @param Aa Column with Adenine quality score
+#' @param Tt Column with Thymine quality score
+#' @param Gg Column with Guanine quality score
+#' @param Cc Column with Cytosine quality score
+#' @param GC Column with Mean Guanine & Cytosine quality score
+#' @param Nn Column with N (could be any of A,T,G, or C) score
+#' @param isRatio If the Quality scores are ratios or percentages
 #'
-#' @return A data frame with FASTQ file information
+#' @return An interactive plot
 #'
 #' @examples
-#' \dontrun{
 #' # Input
+#' fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
+#' outDir <- tempdir()
 #'
 #' # Analysis
+#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
+#' p <- baseRatioProportionPlot(json = qc_res$json)
 #'
 #' # Output
-#' }
-#'
+#' p
 #' @export
-base_ratio_proportion_plot <- function(df,
-                                       bpPosCol,
-                                       A_col,
-                                       T_col,
-                                       G_col,
-                                       C_col,
-                                       GC_col = NULL,
-                                       N_col,
-                                       isRatio = FALSE) {
+baseRatioProportionPlot <- function(json = NULL,
+                                    df = NULL,
+                                    bpPos = "bpPos",
+                                    Aa = "Aa",
+                                    Tt = "Tt",
+                                    Gg = "Gg",
+                                    Cc = "Cc",
+                                    GC = NULL,
+                                    Nn = "Nn",
+                                    isRatio = FALSE) {
+  library(plotly)
+  library(dplyr)
+  library(rcartocolor)
+
+  if (!is.null(json)) {
+    df <- baseRatioDF(json)
+    GC <- "GC"
+  }
+
   if (isRatio) {
-    df <- df[, c(bpPosCol, A_col, T_col, G_col, C_col, N_col)] * 100
+    df <- df[, c(bpPos, Aa, Tt, Gg, Cc, Nn)] * 100
   }
 
-  if (is.null(GC_col)) {
-    df$GC_col <- rowMeans(df[, c(G_col, C_col)])
-    GC_col <- "GC_col"
+  if (is.null(GC)) {
+    df$GC <- rowMeans(df[, c(Gg, Cc)])
+    GC <- "GC"
   }
 
-  cols <- rcartocolor::carto_pal(n = 11, name = "Safe")[c(2, 1, 3, 4, 10)]
+  cols <- carto_pal(n = 11, name = "Safe")[c(2, 1, 3, 4, 10)]
 
-  plot_ly(data, x = df[, bpPosCol]) %>%
+  plot_ly(df, x = df[, bpPos]) %>%
     add_trace(
-      y = df[, N_col], name = "N", fillcolor = "black", type = "scatter",
+      y = df[, Nn], name = "N", fillcolor = "black", type = "scatter",
       mode = "none", stackgroup = "one", hoverinfo = "skip"
     ) %>%
     add_trace(
-      y = df[, C_col], name = "C", fillcolor = cols[4], type = "scatter",
+      y = df[, Cc], name = "C", fillcolor = cols[4], type = "scatter",
       mode = "none", stackgroup = "one", hoverinfo = "skip"
     ) %>%
     add_trace(
-      y = df[, G_col], name = "G", fillcolor = cols[3], type = "scatter",
+      y = df[, Gg], name = "G", fillcolor = cols[3], type = "scatter",
       mode = "none", stackgroup = "one", hoverinfo = "skip"
     ) %>%
     add_trace(
-      y = df[, T_col], name = "T", fillcolor = cols[2], type = "scatter",
+      y = df[, Tt], name = "T", fillcolor = cols[2], type = "scatter",
       mode = "none", stackgroup = "one", hoverinfo = "skip"
     ) %>%
     add_trace(
-      y = df[, A_col], name = "A", fillcolor = cols[1], type = "scatter",
+      y = df[, Aa], name = "A", fillcolor = cols[1], type = "scatter",
       mode = "none", stackgroup = "one", hoverinfo = "skip"
     ) %>%
     add_lines(
-      y = df[, GC_col],
+      y = df[, GC],
       name = "GC",
       line = list(color = cols[5], width = 3, dash = "dot"),
       hoverinfo = "text",
-      hovertext = paste("<b>", df[, GC_col], "</b>")
+      hovertext = paste("<b>", df[, GC], "</b>")
     ) %>%
     layout(
       title = "Per base sequence content",
@@ -842,182 +894,89 @@ base_ratio_proportion_plot <- function(df,
 }
 
 
-#' Make filtering information information data frame from JSON file
+
+#' Extract reads length information from a fastq file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import Rfastp
+#' @import seqTools qckitfastq
 #'
-#' @seealso Rfastp
-#' @param json A JSON file with QC information
+#' @param fq A fastq file
 #'
-#' @return A data frame with FASTQ file information
-#'
-#' @examples
-#' \dontrun{
-#' # Input
-#'
-#' # Analysis
-#'
-#' # Output
-#' }
-#'
-#' @export
-make_base_ratio_prop_plot <- function(json, which = "before") {
-  js <- rjson::fromJSON(file = json)
-
-  qual <- NULL
-  if (which == "before") {
-    qual <- js$read1_before_filtering$content_curves
-  } else {
-    qual <- js$read1_after_filtering$content_curves
-  }
-
-  data <- data.frame(
-    pos = 1:length(qual$A),
-    Aa = qual$A * 100,
-    Tt = qual$T * 100,
-    Gg = qual$G * 100,
-    Cc = qual$C * 100,
-    GC = qual$GC * 100,
-    Nn = qual$N * 100
-  )
-
-  p <- base_ratio_proportion_plot(
-    df = data,
-    bpPosCol = "pos",
-    A_col = "Aa",
-    T_col = "Tt",
-    G_col = "Gg",
-    C_col = "Cc",
-    GC_col = "GC",
-    N_col = "Nn",
-    isRatio = FALSE
-  )
-
-  return(p)
-}
-
-
-#' Make filtering information information data frame from JSON file
-#' @author Deepak Tanwar (tanward@ethz.ch)
-#'
-#' @import Rfastp
-#'
-#' @seealso Rfastp
-#' @param json A JSON file with QC information
-#'
-#' @return A data frame with FASTQ file information
+#' @return A data frame with reads length (read_length) and number of reads (num_reads)
 #'
 #' @examples
-#' \dontrun{
 #' # Input
+#' fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
 #'
 #' # Analysis
+#' df <- readLengthFastq(fq = fq1)
 #'
 #' # Output
-#' }
-#'
-#' @export
-# `qckitfastq`
-run_qc <- function(fq) {
+#' df
+readLengthFastq <- function(fq) {
+  library(seqTools)
+  library(qckitfastq)
+
   out <- list()
 
   infile <- fq
-  fseq <- seqTools::fastqq(infile)
-
-  ## Read length
+  fseq <- fastqq(infile)
   read_len <- read_length(fseq)
-  # plot_read_length(read_len)
 
-  ## Per base sequence quality
-  bs <- per_base_quality(infile)
-  # plot_per_base_quality(bs)
-
-  ## Per read quality
-  prq <- per_read_quality(infile)
-  # plot_per_read_quality(prq)
-
-  ## GC content
-  gc_df <- GC_content(infile)
-  # plot_GC_content(gc_df)
-
-  ## Nucleotide read content
-  rc <- read_content(fseq)
-  # plot_read_content(rc)
-
-  ## Kmer count
-  km <- kmer_count(infile, k = 6)
-
-  ## Overrep reads
-  # overrep_reads <- overrep_reads(infile)
-  # plot_overrep_reads(overrep_reads)
-
-  ## Overrep kmer
-  overkm <- overrep_kmer(infile, 7)
-  # plot_overrep_kmer(overkm)
-
-  ## Adapter content
-  if (.Platform$OS.type != "windows") {
-    ac_sorted <- adapter_content(infile)
-    # plot_adapter_content(ac_sorted)
-  } else {
-    ac_sorted <- "adapter_content not available for Windows; skipping"
-    print("adapter_content not available for Windows; skipping")
-  }
-
-  out <- list(
-    read_length = read_len,
-    per_base_quality = bs,
-    per_read_quality = prq,
-    GC_content = gc_df,
-    read_content = rc,
-    kmer_count = km,
-    overrep_kmer = overkm,
-    overrep_reads = overrep_reads,
-    adapter_content = ac_sorted
-  )
-  return(out)
+  return(read_len)
 }
 
 
 
-
-
-
-
-## Read length distribution
-#' Make filtering information information data frame from JSON file
+#' Read length distribution (barplot)
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import Rfastp
+#' @import dplyr plotly
 #'
-#' @seealso Rfastp
-#' @param json A JSON file with QC information
+#' @param fq A fastq file
+#' @param df A data frame with reads length and number of reads
+#' @param read_length Column with reads length
+#' @param num_reads Column with number of reads of a particulat length
+#' @param col Color of the bars
+#' @param name Either the fastq file is trimmed or not-trimmed
 #'
 #' @return A data frame with FASTQ file information
 #'
 #' @examples
-#' \dontrun{
 #' # Input
+#' fq1 <- system.file("extdata", "Fox3_Std_small.fq.gz", package = "Rfastp")
 #'
 #' # Analysis
+#' p <- readLengthHist(fq = fq1)
 #'
 #' # Output
-#' }
-#'
+#' p
 #' @export
-read_length_hist <- function(df, groupName, readLength, nRead, col) {
+readLengthHist <- function(fq = NULL,
+                           df = NULL,
+                           read_length = "read_length",
+                           num_reads = "num_reads",
+                           col = "red",
+                           name = "Not trimmed") {
+  library(plotly)
+  library(dplyr)
+
+  if (!is.null(fq)) {
+    df <- readLengthFastq(fq)
+    df[, name] <- name
+  }
+
   plot_ly(hoverinfo = "text", type = "bar", textposition = "auto") %>%
     add_trace(
       data = df,
-      legendgroup = df[, groupName],
-      x = df[, readLength],
-      y = df[, nRead],
-      name = df[, groupName],
+      legendgroup = df[, name],
+      x = df[, read_length],
+      y = df[, num_reads],
+      name = df[, name],
       marker = list(color = col),
       hovertext = paste(
-        "<b>Length:</b> ", df[, readLength],
-        "<br><b>nReads:</b> ", df[, nRead]
+        "<b>Length:</b> ", df[, read_length],
+        "<br><b>nReads:</b> ", df[, num_reads]
       )
     ) %>%
     layout(
@@ -1027,56 +986,3 @@ read_length_hist <- function(df, groupName, readLength, nRead, col) {
       hovermode = "x closest"
     )
 }
-
-#' Read length distribution plot
-#' @author Deepak Tanwar (tanward@ethz.ch)
-#'
-#' @import Rfastp
-#'
-#' @seealso Rfastp
-#' @param before_trim A dataframe with 2 columns: read_length and num_reads
-#' @param after_trim A dataframe with 2 columns: read_length and num_reads
-#'
-#' @return An interactive barplot
-#'
-#' @examples
-#' \dontrun{
-#' # Input
-#'
-#' # Analysis
-#'
-#' # Output
-#' }
-#'
-#' @export
-make_read_length_plot <- function(before_trim, after_trim) {
-  if (!colnames(before_trim) %in% c("read_length", "num_reads") |
-    !colnames(after_trim) %in% c("read_length", "num_reads")) {
-    message("Please check the columns of input")
-  }
-  raw <- before_trim
-  trim <- after_trim
-
-  p1 <- read_length_hist(
-    df = raw,
-    groupName = "Raw",
-    readLength = "read_length",
-    nRead = "num_reads",
-    col = "red"
-  )
-
-  p2 <- read_length_hist(
-    df = trim,
-    groupName = "Trimmed",
-    readLength = "read_length",
-    nRead = "num_reads",
-    col = "green"
-  )
-
-  p <- subplot(p1, p2, shareX = T, shareY = T)
-  return(p)
-}
-
-
-
-## Comparison of various FastQ file reading tools "/mnt/IM/projects/software/ssc_shortRNA/04_comp_fastq_read"
