@@ -21,12 +21,12 @@
 #' outDir <- tempdir()
 #'
 #' # Analysis
-#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
+#' qc_res <- qcFastq(file = fq1, outDir = outDir)
 #'
 #' # Output
 #' qc_res
 #' @export
-qc_fastq <- function(file,
+qcFastq <- function(file,
                      outDir = ".",
                      name = gsub(
                        pattern = "\\.fq|\\.fq.gz|\\.fastq|\\.fastq.gz",
@@ -97,13 +97,13 @@ qc_fastq <- function(file,
 #' outDir <- tempdir()
 #'
 #' # Analysis
-#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
-#' df <- make_general_df(json = qc_res$json)
+#' qc_res <- qcFastq(file = fq1, outDir = outDir)
+#' df <- makeGeneralDF(json = qc_res$json)
 #'
 #' # Output
 #' df
 #' @export
-make_general_df <- function(json) {
+makeGeneralDF <- function(json) {
   library(rjson)
   js <- fromJSON(file = json)
 
@@ -164,12 +164,12 @@ make_general_df <- function(json) {
 #'
 #' # Analysis
 #' qc_res <- qc_fastq(file = fq1, outDir = outDir)
-#' df <- make_before_filt_df(json = qc_res$json)
+#' df <- makeBeforeFiltDF(json = qc_res$json)
 #'
 #' # Output
 #' df
 #' @export
-make_before_filt_df <- function(json) {
+makeBeforeFiltDF <- function(json) {
   js <- rjson::fromJSON(file = json)
   tot_reads <- js$read1_before_filtering$total_reads
   tot_bases <- js$read1_before_filtering$total_bases
@@ -218,12 +218,12 @@ make_before_filt_df <- function(json) {
 #'
 #' # Analysis
 #' qc_res <- qc_fastq(file = fq1, outDir = outDir)
-#' df <- make_after_filt_df(json = qc_res$json)
+#' df <- makeAfterFiltDF(json = qc_res$json)
 #'
 #' # Output
 #' df
 #' @export
-make_after_filt_df <- function(json) {
+makeAfterFiltDF <- function(json) {
   js <- rjson::fromJSON(file = json)
   tot_reads <- js$read1_after_filtering$total_reads
   tot_bases <- js$read1_after_filtering$total_bases
@@ -275,12 +275,12 @@ make_after_filt_df <- function(json) {
 #'
 #' # Analysis
 #' qc_res <- qc_fastq(file = fq1, outDir = outDir)
-#' df <- make_filt_df(json = qc_res$json)
+#' df <- makeFiltDF(json = qc_res$json)
 #'
 #' # Output
 #' df
 #' @export
-make_filt_df <- function(json) {
+makeFiltDF <- function(json) {
   js <- rjson::fromJSON(file = json)
 
   reads <- js$summary$before_filtering$total_reads
@@ -339,14 +339,14 @@ make_filt_df <- function(json) {
 #' df$GCpercent <- c(runif(n = 5, min = 51, max = 55), rep(0, 15))
 #'
 #' # Analysis
-#' p <- reads_duplication_plot(
+#' p <- readDuplicationPlot(
 #'   df = df,
 #'   dupRateCol = "dupRate",
 #'   GCpercentCol = NULL,
 #'   dupLevelCol = "dupLevel"
 #' )
 #'
-#' p_GC <- reads_duplication_plot(
+#' p_GC <- readDuplicationPlot(
 #'   df = df,
 #'   dupRateCol = "dupRate",
 #'   GCpercentCol = "GCpercent",
@@ -357,40 +357,46 @@ make_filt_df <- function(json) {
 #' p
 #' p_GC
 #' @export
-reads_duplication_plot <- function(df,
-                                   dupRateCol,
-                                   GCpercentCol = NULL,
-                                   dupLevelCol) {
+readDuplicationPlot <- function(json = NULL,
+                                   df = NULL,
+                                   dupRate = "dupRate",
+                                   GCpercent = NULL,
+                                   dupLevel = "dupLevel") {
   library(dplyr)
   library(plotly)
 
-  p <- plot_ly(df, x = df[, dupLevelCol]) %>%
+  if(!is.null(json)){
+    df <- dupPlotDF(json)
+    GCpercent <- "GCpercent" 
+  }
+  
+  p <- plot_ly(df, x = df[, dupLevel]) %>%
     add_trace(
-      y = df[, dupRateCol],
+      y = df[, dupRate],
       type = "bar",
       name = "Read percent",
       hoverinfo = "text+x",
       hovertext = paste(
-        "<b>", df[, dupRateCol], "</b>"
+        "<b>", df[, dupRate], "</b>"
       )
     )
 
-  if (!is.null(GCpercentCol)) {
-    df[, GCpercentCol][df[, GCpercentCol] == 0] <- ""
+  if (!is.null(GCpercent)) {
+    df[, GCpercent][df[, GCpercent] == 0] <- ""
     p <- p %>%
       add_lines(
-        y = df[, GCpercentCol],
+        y = df[, GCpercent],
         name = "Mean GC ratio (%)",
         line = list(color = "red", width = 3),
         hoverinfo = "text+x",
         hovertext = paste(
-          "<b>", df[, GCpercentCol], "</b>"
+          "<b>", df[, GCpercent], "</b>"
         )
       ) %>%
       layout(
         title = paste0(
           "Mean duplication rate: ",
-          round(mean(df[, dupRateCol]), 2),
+          round(mean(df[, dupRate]), 2),
           "%"
         ),
         xaxis = list(title = "Duplication level"),
@@ -402,7 +408,7 @@ reads_duplication_plot <- function(df,
       layout(
         title = paste0(
           "Mean duplication rate: ",
-          round(mean(df[, dupRateCol]), 2),
+          round(mean(df[, dupRate]), 2),
           "%"
         ),
         xaxis = list(title = "Duplication level"),
@@ -414,7 +420,7 @@ reads_duplication_plot <- function(df,
   return(p)
 }
 
-#' Make duplicated reads plot from JSON file
+#' Make duplicated reads data frame from JSON file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
 #' @import Rfastp
@@ -430,14 +436,13 @@ reads_duplication_plot <- function(df,
 #' outDir <- tempdir()
 #'
 #' # Analysis
-#' qc_res <- qc_fastq(file = fq1, outDir = outDir)
-#' p <- make_dup_plot(json = qc_res$json)
+#' qc_res <- qcFastq(file = fq1, outDir = outDir)
+#' df <- dupPlotDF(qc_res$json)
 #'
 #' # Output
-#' p
+#' df
 #'
-#' @export
-make_dup_plot <- function(json) {
+dupPlotDF <- function(json) {
   library(rjson)
 
   js <- fromJSON(file = json)
@@ -447,21 +452,13 @@ make_dup_plot <- function(json) {
   xaxis <- 1:length(bars)
 
   data <- data.frame(
-    Duplicate = round(bars / sum(bars) * 100, 2),
-    GC = round(gc * 100, 2),
-    x = xaxis
+    dupRate = round(bars / sum(bars) * 100, 2),
+    GCpercent = round(gc * 100, 2),
+    dupLevel = xaxis
   )
 
-  p <- reads_duplication_plot(
-    df = data,
-    dupRateCol = "Duplicate",
-    GCpercentCol = "GC",
-    dupLevelCol = "x"
-  )
-  return(
-    p
-    # tagList = htmltools::tagList(p)
-  )
+  return(data)
+  # return(tagList = htmltools::tagList(p))
 }
 
 # a <- make_dup_plot(json = qc_res$json)
@@ -489,18 +486,24 @@ make_dup_plot <- function(json) {
 #' }
 #'
 #' @export
-reads_quality_plot <- function(df,
-                               bpPosCol,
-                               A_col,
-                               T_col,
-                               G_col,
-                               C_col,
+readsQualityPlot <- function(json = NULL,
+                               df = NULL,
+                               bpPos = "bpPos",
+                               Aa = "Aa",
+                               Tt = "Tt",
+                               Gg = "Gg",
+                               Cc = "Cc",
                                meanQual = NULL) {
   library(plotly)
   library(dplyr)
 
+  if(!is.null(json)){
+    df <- readQualDF(json)
+    meanQual <- "meanQual"
+  }
+  
   if (is.null(meanQual)) {
-    df$meanQual <- rowMeans(df[, c(A_col, T_col, G_col, C_col)])
+    df$meanQual <- rowMeans(df[, c(Aa, Tt, Gg, Cc)])
     meanQual <- "meanQual"
   }
 
@@ -510,7 +513,7 @@ reads_quality_plot <- function(df,
 
   cols <- rcartocolor::carto_pal(n = 10, name = "Safe")[c(2, 1, 3, 4, 10)]
 
-  plot_ly(df, x = df[, bpPosCol]) %>%
+  plot_ly(df, x = df[, bpPos]) %>%
     add_trace(
       y = df[, "Q20"], name = "Not good", fillcolor = "rgba(255,0,0, 0.2)",
       type = "scatter", mode = "none", stackgroup = "one", hoverinfo = "skip"
@@ -524,32 +527,32 @@ reads_quality_plot <- function(df,
       type = "scatter", mode = "none", stackgroup = "one", hoverinfo = "skip"
     ) %>%
     add_lines(
-      y = df[, A_col],
+      y = df[, Aa],
       name = "A",
       line = list(color = cols[1], width = 2),
       hoverinfo = "text",
-      hovertext = paste("<b>", df[, A_col], "</b>")
+      hovertext = paste("<b>", df[, Aa], "</b>")
     ) %>%
     add_lines(
-      y = df[, T_col],
+      y = df[, Tt],
       name = "T",
       line = list(color = cols[2], width = 2),
       hoverinfo = "text",
-      hovertext = paste("<b>", df[, T_col], "</b>")
+      hovertext = paste("<b>", df[, Tt], "</b>")
     ) %>%
     add_lines(
-      y = df[, G_col],
+      y = df[, Gg],
       name = "G",
       line = list(color = cols[3], width = 2),
       hoverinfo = "text",
-      hovertext = paste("<b>", df[, G_col], "</b>")
+      hovertext = paste("<b>", df[, Gg], "</b>")
     ) %>%
     add_lines(
-      y = df[, C_col],
+      y = df[, Cc],
       name = "C",
       line = list(color = cols[4], width = 2),
       hoverinfo = "text",
-      hovertext = paste("<b>", df[, C_col], "</b>")
+      hovertext = paste("<b>", df[, Cc], "</b>")
     ) %>%
     add_lines(
       y = df[, meanQual],
@@ -586,7 +589,7 @@ reads_quality_plot <- function(df,
 #' }
 #'
 #' @export
-make_read_qual_plot <- function(json, which = "before") {
+readQualDF <- function(json, which = "before") {
   js <- rjson::fromJSON(file = json)
 
   qual <- NULL
@@ -597,24 +600,15 @@ make_read_qual_plot <- function(json, which = "before") {
   }
 
   data <- data.frame(
-    pos = 1:length(qual$mean),
+    bpPos = 1:length(qual$mean),
     Aa = qual$A,
     Tt = qual$T,
     Gg = qual$G,
     Cc = qual$C,
-    Mm = qual$mean
+    meanQual = qual$mean
   )
 
-  p <- reads_quality_plot(
-    df = data,
-    bpPosCol = "pos",
-    A_col = "Aa",
-    T_col = "Tt",
-    G_col = "Gg",
-    C_col = "Cc",
-    meanQual = "Mm"
-  )
-  return(p)
+  return(data)
 }
 
 # make_read_qual_plot(json = qc_res$json, which = "before")
