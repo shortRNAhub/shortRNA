@@ -203,3 +203,33 @@ mylapply <- function(...) {
     lapply(...)
   }
 }
+
+
+
+#' longestCommonString
+#'
+#' Finds the longest common part of a set of character strings
+#'
+#' @param x A character vector
+#' @param delim The delimiter (by default, splits all letters)
+#'
+#' @return A character vector of length 1
+#'
+#' @examples
+#' a <- c("B1/B2/B3", "B1/B2/B3/B4", "B1/B2/B5")
+#' longestCommonString(a, "/")
+longestCommonString <- function(x, delim = "") {
+  if (length(x) == 1) {
+    return(x)
+  }
+  tmp <- strsplit(as.character(x), delim, fixed = TRUE)
+  if (any(lengths(tmp) == 1)) {
+    return("")
+  }
+  i <- 0
+  while (length(unique(vapply(tmp, FUN.VALUE = character(1), FUN = function(x) x[i + 1]))) == 1) {
+    i <- i + 1
+  }
+  paste(tmp[[1]][seq_len(i)], collapse = delim)
+}
+
