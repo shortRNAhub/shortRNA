@@ -10,8 +10,8 @@
 #' @return An `AtomicList` object of the same length as `x` and `y`
 #' @export
 #'
-#' @importFrom IRanges FactorList AtomicList
-#' @importFrom S4Vectors splitAsList
+#' @import IRanges
+#' @import S4Vectors
 #' @examples
 #' f1 <- FactorList(list(LETTERS[1:3], LETTERS[1:4]))
 #' f2 <- FactorList(list(LETTERS[4:6], LETTERS[7:9]))
@@ -57,7 +57,7 @@ mergeAtomicLists <- function(x, y) {
 #'
 #' @return An atomic vector
 #' @export
-#' @importFrom IRanges AtomicList
+#' @import IRanges
 #'
 #' @examples
 #' il <- IntegerList(list(1:4, 1:5, c(1:3, 6)))
@@ -158,8 +158,11 @@ fList2tree <- function(fL, addRoot = TRUE, collapseSingles = FALSE, root = "ROOT
 }
 
 
-# library(data.tree) # tRNAs as FL load('../../../shortRNA_data/db/tRNA.rda') ps_tRNA <- ToDataFrameTable(tRNA, 'pathString')
-# names(ps_tRNA) <- gsub(pattern = '.*\\/', replacement = '', x = ps_tRNA) # Data subset ar_tRNA <- readRDS('ar_tRNA.rds')
+# library(data.tree) 
+# tRNAs as FL load('../../../shortRNA_data/db/tRNA.rda')
+# ps_tRNA <- ToDataFrameTable(tRNA, 'pathString')
+# names(ps_tRNA) <- gsub(pattern = '.*\\/', replacement = '', x = ps_tRNA) 
+# Data subset ar_tRNA <- readRDS('ar_tRNA.rds')
 # # Example ps <- ps_tRNA mappedFeaturesDF <- ar_tRNA featuresCol <- 'transcript_id' readsCol <- 'seq'
 
 addReadsToTree <- function(ps, mappedFeaturesDF, featuresCol = "transcript_id", readsCol = "seq", ...) {
