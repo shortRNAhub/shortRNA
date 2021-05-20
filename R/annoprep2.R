@@ -35,6 +35,8 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
   library(R.utils)
   library(Rsubread)
 
+  if (!dir.exists(output_dir)) dir.create(output_dir)
+  
   # If splicing is not to be resolved
   if (is.null(resolveSplicing)) {
     p <- defaultAssignRules()$highPriorityTypes
@@ -176,26 +178,85 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
     "Genome including eventual extra chromosomes was saved in:\n",
     genome.out, "\nNow building the index..."
   )
-  Rsubread::buildindex(basename = output_dir, reference = genome.out, ...)
+  Rsubread::buildindex(basename = paste0(output_dir, "/customGenome"), 
+                       reference = ifelse(test = isCompressed, 
+                                          yes = genome.out,
+                                          no = paste0(genome.out, ".gz")),  ...)
   return(tx)
 }
 
 
-# ah <- AnnotationHub()
-# ensdb <- rev(query(ah, "GRCm38", "Ensdb"))[[1]]
-#
-# tRNA <- readDNAStringSet("../../ssc/annotation/mm10-mature-tRNAs.fa")
-# names(tRNA) <- trimws(gsub(pattern = ".*_|\\(.*", replacement = "", x = names(tRNA)))
-#
-# piRNA <- import("../extdata/piRNA_precursors_zamore_mm10.gtf")
-# piRNA <- piRNA[piRNA$type == "transcript"]
-# colnames(mcols(piRNA))[5:7] <- c("symbol", "tx_id", "tx-type")
-#
-#
-# prep <- prepareAnnotation(
-#   ensdb = ensdb,
-#   genome = "/mnt/IM/reference/genome/gencode/fasta/GRCm38.p5.genome.2bit",
-#   output_dir = "/mnt/IM/tmp/ensdb/",
-#   extra.seqs = list(tRNA = tRNA),
-#   extra.gr = list(piRNA = piRNA)
-# )
+ah <- AnnotationHub()
+ensdb <- rev(query(ah, "GRCm38", "Ensdb"))[[1]]
+
+tRNA <- readDNAStringSet("../../ssc/annotation/mm10-mature-tRNAs.fa")
+names(tRNA) <- trimws(gsub(pattern = ".*_|\\(.*", replacement = "", x = names(tRNA)))
+
+piRNA <- import("../extdata/piRNA_precursors_zamore_mm10.gtf")
+piRNA <- piRNA[piRNA$type == "transcript"]
+colnames(mcols(piRNA))[5:7] <- c("symbol", "tx_id", "tx-type")
+
+
+
+test1 <- prepareAnnotation(
+  ensdb = ensdb,
+  genome = "/mnt/IM/tmp/ensdb/reference.fa",
+  output_dir = "/mnt/IM/tmp/ensdb/test1",
+  extra.seqs = list(tRNA = tRNA),
+  extra.gr = list(piRNA = piRNA)
+)
+
+
+test2 <- prepareAnnotation(
+  ensdb = ensdb,
+  genome = "/mnt/IM/tmp/ensdb/reference.2bit",
+  output_dir = "/mnt/IM/tmp/ensdb/test2",
+  extra.seqs = list(tRNA = tRNA),
+  extra.gr = list(piRNA = piRNA)
+)
+
+test3 <- prepareAnnotation(
+  ensdb = ensdb,
+  genome = "/mnt/IM/tmp/ensdb/reference.2bit",
+  output_dir = "/mnt/IM/tmp/ensdb/test3",
+  extra.seqs = list(tRNA = tRNA)
+)
+
+test4 <- prepareAnnotation(
+  ensdb = ensdb,
+  genome = "/mnt/IM/tmp/ensdb/reference.2bit",
+  output_dir = "/mnt/IM/tmp/ensdb/test4",
+  extra.gr = list(piRNA = piRNA)
+)
+
+test5 <- prepareAnnotation(
+  ensdb = ensdb,
+  genome = "/mnt/IM/tmp/ensdb/reference.2bit",
+  output_dir = "/mnt/IM/tmp/ensdb/test5"
+)
+
+
+test6 <- prepareAnnotation(
+  ensdb = ensdb,
+  output_dir = "/mnt/IM/tmp/ensdb/test6"
+)
+
+
+test7 <- prepareAnnotation(
+  ensdb = ensdb,
+  output_dir = "/mnt/IM/tmp/ensdb/test7",
+  extra.seqs = list(tRNA = tRNA)
+)
+
+test8 <- prepareAnnotation(
+  ensdb = ensdb,
+  output_dir = "/mnt/IM/tmp/ensdb/test8",
+  extra.gr = list(piRNA = piRNA)
+)
+
+test9 <- prepareAnnotation(
+  ensdb = ensdb,
+  output_dir = "/mnt/IM/tmp/ensdb/test9",
+  extra.seqs = list(tRNA = tRNA),
+  extra.gr = list(piRNA = piRNA)
+)
