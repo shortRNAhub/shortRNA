@@ -1,5 +1,7 @@
+
+
 ## longRNAs to tree
-.longRNA2path <- function(file, root, cores = detectCores()) {
+longRNA2FL <- function(file, root, cores = detectCores()) {
   library(rtracklayer)
   library(dplyr)
   library(tidyr)

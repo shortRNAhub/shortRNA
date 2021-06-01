@@ -82,24 +82,18 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
       filter = ~ !(tx_biotype %in% resolveSplicing),
       columns = c("gene_id", "gene_biotype", "symbol")
     )
+    gs$tx_id <- gs$symbol
+    gs$tx_biotype <- gs$gene_biotype
+    gs$gene_id <- gs$gene_biotype <- NULL
+    anofilter <- ~ tx_biotype %in% resolveSplicing
   } else {
-    gs <- genes(ensdb, columns = c("gene_id", "gene_biotype", "symbol"))
+    anofilter <- NULL
   }
-
-  gs$tx_id <- gs$symbol
-  gs$tx_biotype <- gs$gene_biotype
-  gs$gene_id <- gs$gene_biotype <- NULL
-
-  if (!is.null(resolveSplicing)) {
-    tx <- exonsBy(ensdb,
-      filter = ~ tx_biotype %in% resolveSplicing,
-      columns = c("tx_id", "tx_biotype", "symbol")
-    )
-  } else {
-    tx <- exonsBy(ensdb, columns = c("tx_id", "tx_biotype", "symbol"))
-  }
-
-  tx <- c(tx, split(gs, gs$tx_id))
+  tx <- exonsBy(ensdb,
+    filter = anofilter,
+    columns = c("tx_id", "tx_biotype", "symbol")
+  )
+  if (!is.null(resolveSplicing)) tx <- c(tx, split(gs, gs$tx_id))
 
   if (!is.null(extra.seqs)) tx <- c(tx, split(gr, gr$tx_id))
 
@@ -134,7 +128,7 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
   saveRDS(tx, file = anno.out)
   message("Features saved in \n", anno.out)
 
-  # If genome is nuot provided
+  # If genome is not provided
   if (is.null(genome)) genome <- getSeq(ensembldb::getGenomeTwoBitFile(ensdb))
   if (is.character(genome) && length(genome) != 1) {
     stop(
@@ -148,7 +142,7 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
     genome <- import(genome)
   }
 
-  isCompressed <- !is.character(genome) || grepl("\\·gz$", genome)
+  isCompressed <- !is.character(genome) || grepl("\\.gz$", genome)
   genome.out <- paste0("customGenome.fasta", ifelse(isCompressed, ".gz", ""))
   genome.out <- file.path(output_dir, genome.out)
 
@@ -189,20 +183,32 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
   return(tx)
 }
 
-
+# 
 # library(AnnotationHub)
 # ah <- AnnotationHub()
 # ensdb <- rev(query(ah, "GRCm38", "Ensdb"))[[1]]
-#
+# 
 # library(Biostrings)
 # tRNA <- readDNAStringSet("../../ssc/annotation/mm10-mature-tRNAs.fa")
 # names(tRNA) <- trimws(gsub(pattern = ".*_|\\(.*", replacement = "", x = names(tRNA)))
-#
+
+# library(rtracklayer)
 # piRNA <- import("../extdata/piRNA_precursors_zamore_mm10.gtf")
 # piRNA <- piRNA[piRNA$type == "transcript"]
 # colnames(mcols(piRNA))[5:7] <- c("symbol", "tx_id", "tx-type")
-#
-#
+
+# rRNA <- readDNAStringSet("../../shortRNA_reports/sperm_gapp2014/annotation/Mus_musculus/rRNAdb/rRNA.fa")
+# names(rRNA) <- gsub(pattern = ".*\\(|\\).*|.*Y[0-9] ", replacement = "", x = names(rRNA))
+
+# mm10_annoprep <- prepareAnnotation(
+#  ensdb = ensdb,
+# output_dir = "../../shortRNA_reports/sperm_gapp2014/shortRNA/genome1",
+# extra.gr = list(piRNA = piRNA),
+# extra.seqs = list(tRNA = tRNA, rRNA = rRNA),
+# resolveSplicing = FALSE
+# )
+
+
 # test1 <- prepareAnnotation(
 #   ensdb = ensdb,
 #   genome = "/mnt/IM/tmp/ensdb/reference.fa",
