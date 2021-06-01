@@ -5,22 +5,22 @@
   if (na.rm == FALSE) {
     paste(..., sep = sep, collapse = collapse)
   } else
-  if (na.rm == TRUE) {
-    paste.na <- function(x, sep) {
-      x <- gsub("^\\s+|\\s+$", "", x)
-      ret <- paste(na.omit(x), collapse = sep)
-      is.na(ret) <- ret == ""
-      return(ret)
+    if (na.rm == TRUE) {
+      paste.na <- function(x, sep) {
+        x <- gsub("^\\s+|\\s+$", "", x)
+        ret <- paste(na.omit(x), collapse = sep)
+        is.na(ret) <- ret == ""
+        return(ret)
+      }
+      df <- data.frame(..., stringsAsFactors = FALSE)
+      ret <- apply(df, 1, FUN = function(x) paste.na(x, sep))
+      
+      if (is.null(collapse)) {
+        ret
+      } else {
+        paste.na(ret, sep = collapse)
+      }
     }
-    df <- data.frame(..., stringsAsFactors = FALSE)
-    ret <- apply(df, 1, FUN = function(x) paste.na(x, sep))
-
-    if (is.null(collapse)) {
-      ret
-    } else {
-      paste.na(ret, sep = collapse)
-    }
-  }
 }
 
 ## longRNAs to tree
@@ -30,32 +30,32 @@
   library(tidyr)
   library(data.tree)
   library(parallel)
-
+  
   gff <- readGFF(file)
   suppressWarnings(gff <- data.frame(gff) %>% mutate_all(funs(replace_na(., ""))))
   gff$gID <- gsub("\\..*", "", gff[, "gene_id"])
   gff$tID <- gsub("\\..*", "", gff[, "transcript_id"])
-
+  
   gff.sp <- split(x = gff, f = gff[, "gene_type"])
-
+  
   gff.sp[[1]]$pathString <- .paste5(root, "/", gff.sp[[1]][, "gene_type"], "/", gff.sp[[1]][, "gID"], ":",
-    gff.sp[[1]][, "gene_name"], "/", gff.sp[[1]][, "tID"],
-    na.rm = T, sep = ""
+                                    gff.sp[[1]][, "gene_name"], "/", gff.sp[[1]][, "tID"],
+                                    na.rm = T, sep = ""
   )
-
+  
   node <- as.Node(data.frame(gff.sp[[1]]), na.rm = TRUE)
-
+  
   gff.tree <- mclapply(gff.sp[2:length(gff.sp)], function(x) {
     x$pathString <- .paste5(x[, "gene_type"], "/", x[, "gID"], ":",
-      x[, "gene_name"], "/", x[, "tID"],
-      na.rm = T, sep = ""
+                            x[, "gene_name"], "/", x[, "tID"],
+                            na.rm = T, sep = ""
     )
     node <- as.Node(data.frame(x), na.rm = TRUE)
     return(node)
   }, mc.preschedule = F, mc.cores = cores)
-
+  
   tmp <- lapply(gff.tree, function(x) node$AddChildNode(x))
-
+  
   return(node)
 }
 
@@ -93,10 +93,10 @@
   library(data.tree)
   files <- list.files(path = files, pattern = ".fa", full.names = T)
   files.read <- lapply(files, readDNAStringSet)
-
+  
   rr <- str_extract(string = files, pattern = "[0-9]+S|[0-9].[0-9]S")
   names(files.read) <- rr
-
+  
   pathString <- paste(root, names(files.read), sep = "/")
   return(as.Node(data.frame(pathString)))
 }
@@ -170,23 +170,75 @@ fastaToTree <- function(file, root) {
 #' testTreeUnassigned <- FindNode(node = mm10$tree, name = "Unassigned")
 #' }
 #' @export
-addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", readsCol = "Reads") {
+addReadsFeatures <- function(tree,
+                             mappedFeaturesDF,
+                             featuresCol = "Features",
+                             readsCol = "Reads") {
+  # Libraries
   library(data.tree)
   library(plyr)
+  library(future.apply)
+  
+  # Parallel processing of apply functions
+  plan(multisession)
+  
+  features <- strsplit(mappedFeaturesDF[, featuresCol], ";")
+  # featuresPerRead <- split(features, mappedFeaturesDF[, readsCol])
+  featuresPerRead <- features
+  names(featuresPerRead) <- mappedFeaturesDF[, readsCol]
+  
+  featuresPerRead.single <- featuresPerRead[lengths(featuresPerRead) == 1]
+  # featuresPerRead.single$test <- "trf"
+  
+  featuresPerRead.notFound <- compact(lapply(featuresPerRead.single, function(x) .not_found(feature = x, tree)))
+  
+  featuresPerRead.single <- featuresPerRead.single[!names(featuresPerRead.single) %in% names(featuresPerRead.notFound)]
+  
+  featuresPerRead.multi <- featuresPerRead[lengths(featuresPerRead) > 1]
+  # featuresPerRead.multi$TESTSEQ <- c("tRNA1", "tRNA2")
+  
+  find_parent <- .find_parent(featuresList = featuresPerRead.multi, tree = tree)
+  
+  # Found ones
+  reads <- future_lapply(find_parent, function(x) x[[1]])
+  reads <- compact(reads)
+  reads <- c(reads, featuresPerRead.single)
+  
+  if (length(reads) > 0) {
+    # Find node and add sequence
+    tmp <- imap(reads, function(feature, seq) FindNode(node = tree, name = feature)$AddChild(seq))
+  }
+  
+  # Not found ones
+  notFound_single <- ldply(featuresPerRead.notFound)
+  colnames(notFound_single) <- c("seq", "feature")
+  
+  notFound <- future_lapply(find_parent, function(x) x[[2]])
+  notFound <- ldply(compact(notFound), .id = NULL)
+  notFound <- rbind(notFound, notFound_single)
+  
+  if (nrow(notFound) > 0) {
+    notFound$pathString <- paste("Unassigned", notFound[, "feature"], notFound[, "seq"], sep = "/")
+    tree$AddChildNode(child = as.Node(notFound))
+  }
+  
+  # Return the new tree with added sequences
+  return(tree)
+}
 
-  mappedFeaturesDF.split <- split(mappedFeaturesDF, mappedFeaturesDF[, readsCol])
-  tmp <- lapply(mappedFeaturesDF.split, function(x) {
+
+
+# Finding nodes for all the sequences
+.find_parent <- function(featuresList, tree) {
+  library(purrr)
+  imap(featuresList, function(feature, name) {
+    f <- feature
+    r <- name
+    
+    # A dataframe for storing not found reads
     notFound <- data.frame(matrix(ncol = 2, nrow = 0), stringsAsFactors = FALSE)
-    colnames(notFound) <- colnames(x)
-
-    f <- unique(x[, featuresCol])
-    r <- unique(x[, readsCol])
-
-    parent <- NULL
-
-    # if (length(f) == 1) {
-    #   parent <- f
-    # } else {
+    colnames(notFound) <- c("seq", "feature")
+    
     p <- list()
     for (i in 1:length(f)) { # For each feature
       if (!is.null(FindNode(node = tree, name = r))) {
@@ -203,10 +255,16 @@ addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", r
         }
       }
     }
-
-    if (length(p) == 0) {
+    
+    parent <- vector()
+    
+    if (length(p) == 0) { # If read do not exist
       parent <- NULL
-    } else {
+    } else if (length(p) == 1) { # in case of 1 parent
+      ca <- p[[1]]
+      ca <- ca[max(na.omit(match(ca, p[[1]])))]
+      parent <- ca
+    } else { # In case of multiple parents
       ca <- p[[1]]
       for (i in 2:length(p)) {
         if (i != length(p)) {
@@ -217,35 +275,20 @@ addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", r
       }
       parent <- ca
     }
+    
+    # Return features that were found and not found
     return(list(parent = parent, notAssigned = notFound))
   })
-
-  reads <- lapply(tmp, function(x) x[[1]])
-  reads <- ldply(compact(reads))
-  
-  if (nrow(reads) > 0) {
-    colnames(reads) <- colnames(mappedFeaturesDF)
-    for (i in 1:nrow(reads)) {
-      FindNode(node = tree, name = reads$Features[i])$AddChild(reads$Reads[i])
-    }
-  }
-
-  notFound <- lapply(tmp, function(x) x[[2]])
-  if (nrow(reads) > 0) {
-    notFound <- ldply(compact(notFound))[, -1]
-    notFound$pathString <- paste("Unassigned", notFound[, featuresCol], notFound[, readsCol], sep = "/")
-    tree$AddChildNode(child = as.Node(notFound))
-  }
-
-  # a <- a[2:length(a)]
-  # a <- paste(a, collapse = "`$`")
-  # a <- paste0("`", a, "`")
-  # expr <- paste0(.objToString(obj = tree), "$", a, "$AddChild(", mappedFeaturesDF[i, readsCol], ")")
-  # expr <- paste0(.objToString(tree), "$", a)
-  # eval(parse(text = expr))$AddChild(mappedFeaturesDF[i, readsCol])
-
-  return(tree)
 }
+
+
+
+.not_found <- function(feature, tree){
+  if (is.null(FindNode(node = tree, name = feature))) {
+    return(feature)
+  }
+}
+
 
 
 # Save tree children as separate data objects ----

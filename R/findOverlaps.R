@@ -1,15 +1,18 @@
 #' overlapWithTx2
 #'
 #' Find overlaps between read alignments (bam format) and a feature annotation.
-#' Supports spliced reads/transcripts, and calculates position relative to transcript.
+#' Supports spliced reads/transcripts, and calculates position relative to
+#' transcript.
 #'
 #' @param bamFile A character vector of path to BAM file.
-#' @param annotation An object of class `GRangesList`, as produced by `prepareAnnotation()`.
-#' @param ignoreStrand Logical; whether to ignore strand when searching for overlaps. By
-#' default, strand is ignored and considered later on at the read assignment stage.
-#' @param nbthreads A positive integer indicating the number of threads to use. 
+#' @param annotation An object of class `GRangesList`, as produced by
+#' `prepareAnnotation()`.
+#' @param ignoreStrand Logical; whether to ignore strand when searching for
+#' overlaps. By default, strand is ignored and considered later on at the read
+#' assignment stage.
+#' @param nbthreads A positive integer indicating the number of threads to use.
 #' Defaults to `min(c(8, bpworkers()))`.
-#' 
+#'
 #' @return A data.table.
 #' @export
 overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NULL){
@@ -20,43 +23,37 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NUL
     library(BiocParallel)
     library(futile.logger)
   })
-  
+  mcols(annotation)$transcript_id <- as.factor(mcols(annotation)$transcript_id)
+
   if(is.null(nbthreads) || nbthreads==1){
     bp <- SerialParam()
   }else{
     bp <- MulticoreParam(nbthreads, progressbar = TRUE)
   }
-  
+
   # load bam as GAlignments
   param <- ScanBamParam(what=c("cigar", "seq"))
   bam <- readGAlignments(bamFile, param = param)
   bam <- as(bam, "GRangesList")
   bam@elementMetadata$seq <- as.character(bam@elementMetadata$seq)
-  
-  message(paste(length(bam), "alignments loaded, searching for overlaps..."))
-  
-  if( any(grepl("^chr", seqlevels(annotation)))!=any(grepl("^chr", seqlevels(bam))) ){
-    message("There appear to be a chromosome naming convention mismatch between the alignment and the annotation. Will attempt to resolve...")
-    seqlevels(annotation) <- gsub("^chr","",seqlevels(annotation))
-    seqlevels(bam) <- gsub("^chr","",seqlevels(bam))
-  }
 
-  
+  message(paste(length(bam), "alignments loaded, searching for overlaps..."))
+
   suppressWarnings({
     OV <- findOverlapPairs(bam, annotation, ignore.strand=ignoreStrand)
     Rdiff <- GenomicRanges::setdiff(OV)
     OVinter <- GenomicRanges::intersect(OV)
   })
-  
+
   message(paste("Found", length(OV), "overlaps."))
   message("Calculating positions relative to transcripts...")
-  
-  strands <- .ext_rlelist(OV@second, strand)
+
+  strands <- as.factor(unlist(unique(strand(OV@second))))
   negative_features <- which(strands=="-")
   posInFeature <- matrix( NA_integer_, ncol=2, nrow=length(OV))
   # flag spliced alignments
   toResolve <- elementNROWS(OV@first)>1 | elementNROWS(OV@second)>1
-  
+
   if(any(!toResolve)){
     # unspliced
     w <- which(!toResolve)
@@ -68,59 +65,60 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NUL
     posInFeature[w,1:2] <- posInFeature[w,2:1]
     rm(fe,re)
   }
-  
+
   if(any(toResolve)){
     # spliced
     w <- which(toResolve)
-    posInFeature[w,] <- t(bpmapply( FUN=.posInFeature, 
+    posInFeature[w,] <- t(bpmapply( FUN=.posInFeature,
                                     read=OV@first[w,],
-                                    feature=OV@second[w,], 
+                                    feature=OV@second[w,],
                                     Rd=Rdiff[w],
                                     oi=OVinter[w],
                                     BPPARAM=bp ))
     w <- intersect(w,negative_features)
     posInFeature[w,1:2] <- posInFeature[w,2:1]
   }
-  
+
   rm(Rdiff)
-  
+
   message("Aggregating...")
-  
-  res <- data.table( 
+
+  res <- data.frame(
       seq=as.character(OV@first@elementMetadata$seq),
       cigar=OV@first@elementMetadata$cigar,
-      chr=.ext_rlelist(OV@first, seqnames),
-      read.start=sapply(start(OV@first), FUN=min),
-      read.end=sapply(end(OV@first), FUN=max),
-      read.strand=.ext_rlelist(OV@first, strand),
-      overlap=sapply(width(OVinter), FUN=sum),
+      chr=as.factor(unlist(seqnames(OV@first))),
+      read.start=min(start(OV@first)),
+      read.end=max(end(OV@first)),
+      read.strand=as.factor(unlist(seqnames(OV@first))),
+      overlap=sum(width(OVinter)),
       startInFeature=posInFeature[,1],
       distanceToFeatureEnd=posInFeature[,2],
       transcript_id=mcols(OV@second)$transcript_id,
       transcript_type=factor(mcols(OV@second)$transcript_type),
       transcript.strand=strands,
-      gene_id=mcols(OV@second)$gene_id,
-      transcript.length=sapply(width(OV@second), FUN=sum)
+      transcript.length=sum(width(OV@second))
      )
   rm(OV, OVinter)
-  
+
   # add alignments that did not overlap anything
-  nonOV <- suppressWarnings( subsetByOverlaps( bam, 
-                                               annotation, 
-                                               invert=TRUE, 
+  nonOV <- suppressWarnings( subsetByOverlaps( bam,
+                                               annotation,
+                                               invert=TRUE,
                                                ignore.strand=ignoreStrand ))
-  
-  res2 <- data.table( 
+
+  res2 <- data.frame(
       seq=as.character(nonOV@elementMetadata$seq),
       cigar=nonOV@elementMetadata$cigar,
-      chr=.ext_rlelist(nonOV, seqnames),
-      read.start=sapply(start(nonOV), FUN=min),
-      read.end=sapply(end(nonOV), FUN=max),
-      read.strand=.ext_rlelist(nonOV, strand)
+      chr=as.factor(unlist(unique(seqnames(nonOV)))),
+      read.start=min(start(nonOV)),
+      read.end=max(end(nonOV)),
+      read.strand=as.factor(unlist(seqnames(nonOV)))
     )
+  for(f in setdiff(names(res),names(res2)))
+    res2[[f]] <- NA
 
-  res <- rbind(res,res2,fill=T)
-  
+  res <- rbind(res,res2[,colnames(res)])
+  res$seq <- as.factor(res$seq)
   res
 }
 
@@ -145,7 +143,7 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NUL
   }
   # read start is within transcript
   w <- which(end(feature)>=rs)[1]
-  return( as.integer( sum(width(feature)[which(end(feature)<rs)]) + 
+  return( as.integer( sum(width(feature)[which(end(feature)<rs)]) +
                        rs - start(feature)[w] ) )
 }
 
@@ -165,10 +163,6 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NUL
   }
   # read end is within transcript
   w <- rev(which(start(feature)<=rs))[1]
-  return( as.integer( -1*(sum(width(feature)[which(start(feature)>rs)]) + 
+  return( as.integer( -1*(sum(width(feature)[which(start(feature)>rs)]) +
                         end(feature)[w] - rs ) ) )
-}
-
-.ext_rlelist <- function(x, acc_fun){
-  as.factor(unlist(acc_fun(x))[!duplicated(rep(1:length(x), elementNROWS(x)))])
 }

@@ -4,11 +4,18 @@
 \alias{defaultAssignRules}
 \title{defaultAssignRules}
 \usage{
-defaultAssignRules()
+defaultAssignRules(rules = list())
+}
+\arguments{
+\item{rules}{An optional named list of rules, overwriting parts of the
+default rules.}
 }
 \value{
 A list
 }
 \description{
 defaultAssignRules
+}
+\examples{
+rules <- defaultAssignRules()
 }
