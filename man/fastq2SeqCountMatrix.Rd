@@ -19,12 +19,12 @@ fastq2SeqCountMatrix(
 \item{maxLength}{The maximum length for a sequence to be included (default
 Inf, i.e. no maximum)}
 
-\item{discardBelowCount}{Discard sequences that appear less than this number 
-of times across all samples. The default value is 2, which means that 
+\item{discardBelowCount}{Discard sequences that appear less than this number
+of times across all samples. The default value is 2, which means that
 sequences that appear only once are discarded.}
 }
 \value{
-a matrix, with unique sequences as rows and samples (i.e. file 
+a matrix, with unique sequences as rows and samples (i.e. file
 basenames) as column.
 }
 \description{

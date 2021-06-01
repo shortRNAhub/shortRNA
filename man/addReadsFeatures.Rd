@@ -2,7 +2,7 @@
 % Please edit documentation in R/tree.R
 \name{addReadsFeatures}
 \alias{addReadsFeatures}
-\title{Add reads to the features in the annotation `data.tree`. Also add a separate node with "Unassigned" reads/features}
+\title{Add reads to the features in the annotation `data.tree`. Also add a separate node with 'Unassigned' reads/features}
 \usage{
 addReadsFeatures(
   tree,
@@ -14,7 +14,7 @@ addReadsFeatures(
 \arguments{
 \item{tree}{a `data.tree` object}
 
-\item{mappedFeaturesDF}{a `data.frame` with "Reads" and mapped "Features" columns.}
+\item{mappedFeaturesDF}{a `data.frame` with 'Reads' and mapped 'Features' columns.}
 
 \item{featuresCol}{Column with features}
 
@@ -24,7 +24,27 @@ addReadsFeatures(
 
 }
 \description{
-Add reads to the features in the annotation `data.tree`. Also add a separate node with "Unassigned" reads/features
+Add reads to the features in the annotation `data.tree`. Also add a separate node with 'Unassigned' reads/features
+}
+\examples{
+# Input
+testDF <- data.frame(
+  Reads = c("Read1", "Read1", "Read1", "Read2", "Read3", "Read4", "Read5"),
+  Features = c(
+    "tRNA-Ala-AGC-10", "tRNA-Ala-AGC-2", "tRNA-Ala-AGC-3",
+    "tRNA-Ala-AGC-1C", "tRNA-Arg-AGC-1D", "tRNA-Ala-AGC-1E", "tRNA-Ala-AGC-3D"
+  ),
+  stringsAsFactors = F
+)
+
+data("tRNA")
+
+# Analysis
+testRun <- addReadsFeatures(tree = tRNA, mappedFeaturesDF = testDF)
+
+# Output
+testTree <- FindNode(node = tRNA, name = "tRNA-Ala-AGC")
+testTreeUnassigned <- FindNode(node = mm10$tree, name = "Unassigned")
 }
 \seealso{
 data.tree

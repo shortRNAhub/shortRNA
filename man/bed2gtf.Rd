@@ -7,9 +7,12 @@
 bed2gtf(b, fieldsToInclude = c("transcript_id"))
 }
 \arguments{
-\item{b}{A GRanges object in bed format (as produced by `rtracklayer::import.bed`)}
+\item{b}{A GRanges object in bed format
+(as produced by `rtracklayer::import.bed`)}
 
-\item{fieldsToInclude}{The additional columns of `b` to include in the results. By default, only the transcript_id is taken (from the `name` column)}
+\item{fieldsToInclude}{The additional columns of `b` to include
+in the results. By default, only the transcript_id is taken
+ (from the `name` column)}
 }
 \value{
 A GRanges object that can be saved with `rtracklayer::export.gff`

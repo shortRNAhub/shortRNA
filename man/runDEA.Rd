@@ -25,13 +25,13 @@ runDEA(
 
 \item{groups}{Either NULL (if `formula` is given), or the name of a column in phenoData, or a vector of length equal to the number of samples.}
 
-\item{method}{DEA method, either "edgeR", "voom", or "DESeq2".}
+\item{method}{DEA method, either 'edgeR', 'voom', or 'DESeq2'.}
 
 \item{types}{The types of RNA to test (default all). A separate analysis will anyway be performed for miRNAs and piRNAs, but this parameter dictates the RNAs that are included in the global analyses.}
 
 \item{normalizeByType}{Logical; whether each RNA type should be analyzed on its own (default FALSE). If TRUE, the default normalization method is used.}
 
-\item{replicates}{An optional vector indicating (technical or 'incomplete') replicates (ignored unless method="voom")}
+\item{replicates}{An optional vector indicating (technical or 'incomplete') replicates (ignored unless method='voom')}
 
 \item{forceGLM}{Whether to force using GLM even when doing a simple comparison between two groups.}
 

@@ -3,7 +3,6 @@ library(shiny)
 
 shinyUI(fluidPage(
   titlePanel(textOutput("title2"), windowTitle = "shiny smallRNAseq explorer"),
-
   mainPanel(
     tabsetPanel(
       tabPanel("Overview", fluidRow(

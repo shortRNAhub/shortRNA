@@ -9,7 +9,7 @@ getCompositionComponent(o, summarytype = "MDS", ...)
 \arguments{
 \item{o}{An object of class shortRNAexp}
 
-\item{summarytype}{The type of dimensionality reduction to use. Either "pca" (reporting the first two principal components) or "mds" (using a single variable). Default is "mds".}
+\item{summarytype}{The type of dimensionality reduction to use. Either 'pca' (reporting the first two principal components) or 'mds' (using a single variable). Default is 'mds'.}
 
 \item{...}{Any argument passed to the `getComposition` function.}
 }

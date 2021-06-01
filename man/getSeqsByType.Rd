@@ -11,7 +11,7 @@ getSeqsByType(o, type = NULL, status = NULL)
 
 \item{type}{Types of sequences to be fetched (e.g. miRNA, tRNA, etc.), fetches all by default.}
 
-\item{status}{Character vector of seq statuses to be selected (any combination of "unmapped","invalid","unknown","ambiguous", and "unique"). Fetches all by default.}
+\item{status}{Character vector of seq statuses to be selected (any combination of 'unmapped','invalid','unknown','ambiguous', and 'unique'). Fetches all by default.}
 }
 \value{
 A character vector of sequences.

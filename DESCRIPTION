@@ -14,3 +14,5 @@ RoxygenNote: 7.1.1
 VignetteBuilder: rmarkdown, knitr
 Imports: Biostrings, BiocParallel, data.table, data.tree, tools, plyr, rtracklayer, GenomicRanges, GenomicAlignments, Rsamtools, edgeR, pheatmap, LSD, corrplot, R.utils, msa
 LazyData: true
+Depends: 
+    R (>= 2.10)

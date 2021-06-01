@@ -36,13 +36,13 @@ plotFeature(
 
 \item{aggregated}{Logical; whether to return aggregated counts rather than per-sequence counts (default FALSE)}
 
-\item{plotType}{Either "barplot" (default), "heatmap", or "zheatmap" (heatmap of feature-wise z-scores").}
+\item{plotType}{Either 'barplot' (default), 'heatmap', or 'zheatmap' (heatmap of feature-wise z-scores').}
 
 \item{proportion}{Logical; whether to plot proportions (i.e. sequences summing to 1) rather than actual/normalized counts (default FALSE).}
 
 \item{plotLegend}{Logical; whether to plot the legend (default TRUE); will be plotted on a distinct frame.}
 
-\item{dolog}{Logical; whether to plot log-transformed counts (default FALSE if plotType="barplot", TRUE otherwise).}
+\item{dolog}{Logical; whether to plot log-transformed counts (default FALSE if plotType='barplot', TRUE otherwise).}
 
 \item{main}{Plot title, defaults to the name of the feature queried.}
 
@@ -50,7 +50,7 @@ plotFeature(
 
 \item{alignSeqs}{Logical; whether to show sequences as a multiple alignment (default TRUE).}
 
-\item{barplotLayout}{a matrix populated by 1s and 2s indicating the layout for the barplot (2) and legend (1). Defaults to matrix(c(1,2,2),nrow=1). Ignored if plotType!="barplot".}
+\item{barplotLayout}{a matrix populated by 1s and 2s indicating the layout for the barplot (2) and legend (1). Defaults to matrix(c(1,2,2),nrow=1). Ignored if plotType!='barplot'.}
 
 \item{...}{arguments passed to the plotting function.}
 }

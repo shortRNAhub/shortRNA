@@ -22,7 +22,7 @@ plotSizeAbundance(
 
 \item{type}{Types of sequences to be fetched (e.g. miRNA, tRNA, etc.), fetches all by default.}
 
-\item{status}{Character vector of seq statuses to be selected (any combination of "unmapped","unknown","ambiguous", and "unique"). Defaults to all mapped sequences.}
+\item{status}{Character vector of seq statuses to be selected (any combination of 'unmapped','unknown','ambiguous', and 'unique'). Defaults to all mapped sequences.}
 
 \item{normalized}{Logical; whether to return the normalized counts (default FALSE)}
 

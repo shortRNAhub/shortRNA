@@ -1,0 +1,6 @@
+chr	start	end	strand	transcript_id	gene_id	gene_name	gene_type
+Rn18s	1	2	*	NR_003278.3	Rn18s	18S ribosomal RNA	rRNA
+Rn28s1	1	2	*	NR_003279.1	Rn28s1	28S ribosomal RNA	rRNA
+Rn4.5s	1	2	*	NR_002841.2	Rn4.5s	4.5S RNA	rRNA
+Rn45s	1	2	*	NR_046233.2	Rn45s	45S pre-ribosomal RNA	rRNA
+Rs5-8s1	1	2	*	NR_003280.2	Rs5-8s1	5.8S ribosomal RNA	rRNA
