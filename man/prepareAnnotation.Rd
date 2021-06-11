@@ -11,6 +11,8 @@ prepareAnnotation(
   extra.gr = list(),
   extra.seqs = NULL,
   resolveSplicing = NULL,
+  rules = defaultAssignRules(),
+  tRNAEnsembleRemove = TRUE,
   ...
 )
 
@@ -21,6 +23,8 @@ prepareAnnotation(
   extra.gr = list(),
   extra.seqs = NULL,
   resolveSplicing = NULL,
+  rules = defaultAssignRules(),
+  tRNAEnsembleRemove = TRUE,
   ...
 )
 }
@@ -47,6 +51,10 @@ can also be provided).}
 \item{resolveSplicing}{The biotypes (in the `ensdb`) for which to resolve
 splicing. If NULL, will resolve all but the low-priority (i.e. long RNA)
 transcripts.}
+
+\item{rules}{Rules for reads assignment}
+
+\item{tRNAEnsembleRemove}{removes the tRNA annotations from Ensembl database}
 
 \item{...}{passed to `Rsubread::buildindex`}
 
