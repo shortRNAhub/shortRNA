@@ -85,11 +85,12 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
   if (!is.null(resolveSplicing)) {
     gs <- genes(ensdb,
       filter = ~ tx_biotype != resolveSplicing,
-      columns = c("gene_id", "gene_biotype", "symbol")
+      columns = c("tx_id", "gene_id", "gene_biotype", "symbol")
     )
     gs$tx_id <- gs$symbol
     gs$tx_biotype <- gs$gene_biotype
     gs$gene_id <- gs$gene_biotype <- NULL
+    gs <- unique(gs)
     anofilter <- ~ tx_biotype == resolveSplicing
   } else {
     anofilter <- NULL
@@ -646,7 +647,7 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
 
 
 # db_mmu <- getDB()
-
+# 
 # mm10_annoprep <- prepareAnnotation(
 #   ensdb = db_mmu$ensdb,
 #   genome = "/mnt/IM/reference/genome/gencode/fasta/GRCm38.p5.genome.fa",
