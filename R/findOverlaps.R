@@ -23,7 +23,7 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NUL
     library(BiocParallel)
     library(futile.logger)
   })
-  mcols(annotation)$transcript_id <- as.factor(mcols(annotation)$transcript_id)
+  mcols(annotation)$tx_id <- as.factor(mcols(annotation)$tx_id)
   
   if(is.null(nbthreads) || nbthreads==1){
     bp <- SerialParam()
@@ -39,8 +39,13 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NUL
   
   message(paste(length(bam), "alignments loaded, searching for overlaps..."))
   
+  if(is(annotation, "GRanges")){
+    annotation <- split(annotation, annotation$tx_id) 
+  }
+  
   suppressWarnings({
-    OV <- findOverlapPairs(bam, annotation, ignore.strand=ignoreStrand)
+    OV <- findOverlapPairs(bam, unlist(annotation), ignore.strand=ignoreStrand)
+    OV@second <- as(OV@second, "GRangesList")
     Rdiff <- GenomicRanges::setdiff(OV)
     OVinter <- GenomicRanges::intersect(OV)
   })
@@ -93,8 +98,8 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NUL
     overlap=sum(width(OVinter)),
     startInFeature=posInFeature[,1],
     distanceToFeatureEnd=posInFeature[,2],
-    transcript_id=mcols(OV@second)$transcript_id,
-    transcript_type=factor(mcols(OV@second)$transcript_type),
+    transcript_id=mcols(OV@second)$tx_id,
+    transcript_type=factor(mcols(OV@second)$tx_biotype),
     transcript.strand=strands,
     transcript.length=sum(width(OV@second))
   )

@@ -159,7 +159,7 @@ fList2tree <- function(fL, addRoot = TRUE, collapseSingles = FALSE, root = "ROOT
 
 
 # library(data.tree) 
-# tRNAs as FL load('../../../shortRNA_data/db/tRNA.rda')
+# tRNAs as FL load('../../shortRNA_data/db/tRNA.rda')
 # ps_tRNA <- ToDataFrameTable(tRNA, 'pathString')
 # names(ps_tRNA) <- gsub(pattern = '.*\\/', replacement = '', x = ps_tRNA) 
 # Data subset ar_tRNA <- readRDS('ar_tRNA.rds')

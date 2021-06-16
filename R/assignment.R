@@ -250,7 +250,7 @@ getOverlapValidity <- function(sources, rules=defaultAssignRules()){
 isValidOverlap <- function(srcs, rules=defaultAssignRules){
   valid <- rep(TRUE, nrow(srcs))
   if(!is.null(rules$overlapBy))
-    valid <- srcs$overlap/srcs$length >= rules$overlapBy
+    valid <- srcs$overlap/srcs$transcript.length >= rules$overlapBy
   if(isTRUE(rules$sameStrand=="require"))
     valid <- valid & srcs$read.strand == srcs$transcript.strand
   types <- list()
@@ -324,7 +324,7 @@ defaultAssignRules <- function(rules=list()){
 #' @return A factor of tRNA fragment types
 #' @export
 tRFtype <- function(srcs, rules=list(
-  "tRNA_internal_fragment"=function(x){ TRUE },
+  "tRNA_internal_fragment"=function(x){ rep(TRUE, nrow(x)) },
   "tRNA_5p_fragment"=function(x){ x$startInFeature < 5L & x$length < 30L },
   "tRNA_3p_fragment"=function(x){ x$distanceToFeatureEnd < 5L & x$length < 50L },
   "tRNA_5p_half"=function(x){ x$startInFeature %in% -1:1 & x$length %in% 30:34 },
