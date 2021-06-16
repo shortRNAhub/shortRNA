@@ -250,7 +250,7 @@ getOverlapValidity <- function(sources, rules=defaultAssignRules()){
 isValidOverlap <- function(srcs, rules=defaultAssignRules){
   valid <- rep(TRUE, nrow(srcs))
   if(!is.null(rules$overlapBy))
-    valid <- srcs$overlap/srcs$transcript.length >= rules$overlapBy
+    valid <- srcs$overlap/srcs$length >= rules$overlapBy
   if(isTRUE(rules$sameStrand=="require"))
     valid <- valid & srcs$read.strand == srcs$transcript.strand
   types <- list()

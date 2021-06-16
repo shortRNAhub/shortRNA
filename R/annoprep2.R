@@ -19,6 +19,7 @@
 #' transcripts.
 #' @param rules Rules for reads assignment
 #' @param tRNAEnsembleRemove removes the tRNA annotations from Ensembl database
+#' only if names of extra.seqs contains tRNA
 #' @param ... passed to `Rsubread::buildindex`
 #'
 #' @return Produces a Rsubread index and returns a GRanglesList of features
@@ -103,7 +104,7 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
 
   tx <- unlist(tx)
 
-  if (tRNAEnsembleRemove) {
+  if ("tRNA" %in% names(extra.seqs) & tRNAEnsembleRemove) {
     tx <- tx[grep("tRNA", tx$tx_biotype, invert = T)]
   }
 
@@ -162,7 +163,10 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
   tx$tx_id1[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")] <-
     tx$symbol[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")]
   tx$tx_id1[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")] <-
-    gsub("Mir", "miR-", tx$tx_id1[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")])
+    gsub(
+      "Mir", "miR-",
+      tx$tx_id1[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")]
+    )
 
   tx$symbol[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")] <-
     tx$symbol1[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")]
@@ -235,7 +239,7 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
 #'
 #' @param sp 3 alphabet species code. Please check `data(species)`
 #'
-#' @return a list of GRanges annotation of miRNAs, miRNAs DNAStringSet, 
+#' @return a list of GRanges annotation of miRNAs, miRNAs DNAStringSet,
 #' and miRNA hairpins miRNAs DNAStringSet
 #' @export
 #'
@@ -244,6 +248,7 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
 #' mir_human <- getmiRNA(sp = "hsa")
 getmiRNA <- function(sp = "mmu") {
   library(rtracklayer)
+  library(dplyr)
   library(plyr)
 
   sp <- tolower(sp)
@@ -345,7 +350,7 @@ miRNAcluster <- function(gr, minGap = 10000) {
 #' Obtain mitiochondrial tRNAs from mitotRNA batabase
 #'
 #' @param sp Scientific name of species
-#' @param addCCA Whether to add CCA modifications to sequences or not. 
+#' @param addCCA Whether to add CCA modifications to sequences or not.
 #' Default: TRUE
 #'
 #' @return
@@ -391,7 +396,11 @@ getMttRNA <- function(sp = "Mus musculus", addCCA = TRUE) {
 
   if ("His" %in% tab$tRNA_type) {
     his <- tab$tRNA_seq[tab$tRNA_type == "His"]
-    his <- sapply(his, function(x) ifelse(test = startsWith(x, "G"), yes = x, no = paste0("G", x)))
+    his <- sapply(his, function(x) {
+      ifelse(
+        test = startsWith(x, "G"), yes = x, no = paste0("G", x)
+      )
+    })
     tab$tRNA_seq[tab$tRNA_type == "His"] <- his
   }
 
@@ -400,8 +409,8 @@ getMttRNA <- function(sp = "Mus musculus", addCCA = TRUE) {
 
   if (addCCA) {
     mt_CCA <- paste0(mt, "CCA")
-    names(mt_CCA) <- paste(names(mt), "CCA", sep = "_")
-    mt <- c(mt, mt_CCA)
+    # names(mt_CCA) <- paste(names(mt), "CCA", sep = "_")
+    mt <- mt_CCA
   }
 
   return(DNAStringSet(mt))
@@ -411,11 +420,11 @@ getMttRNA <- function(sp = "Mus musculus", addCCA = TRUE) {
 
 #' Obtain tRNA sequences from the GttRNA database
 #'
-#' @param sp Species for which tRNA sequences to be obtained. Currently 
+#' @param sp Species for which tRNA sequences to be obtained. Currently
 #' available for mm10, mm39, hg19, and hg38
 #' @param mt Whether to also download and include mitochondrial tRNAs from
 #' mitotRNA database. Please see also `getMttRNA`
-#' @param addCCA Whether to add CCA modifications to sequences or not. 
+#' @param addCCA Whether to add CCA modifications to sequences or not.
 #'
 #' @return
 #' @export
@@ -449,6 +458,9 @@ gettRNA <- function(sp = "mm10", mt = TRUE, addCCA = TRUE) {
 
   if (any(grepl("His", names(trna)))) {
     trna <- as.character(trna)
+
+    # https://github.com/junchaoshi/sports1.1#trna_mappingpl
+
     his <- trna[grepl("His", names(trna))]
     his <- sapply(his, function(x) ifelse(test = startsWith(x, "G"), yes = x, no = paste0("G", x)))
     trna[names(his)] <- his
@@ -457,8 +469,8 @@ gettRNA <- function(sp = "mm10", mt = TRUE, addCCA = TRUE) {
 
   if (addCCA) {
     trna_CCA <- paste0(as.character(trna), "CCA")
-    names(trna_CCA) <- paste(names(trna), "CCA", sep = "_")
-    trna <- c(trna, DNAStringSet(trna_CCA))
+    # names(trna_CCA) <- paste(names(trna), "CCA", sep = "_")
+    trna <- DNAStringSet(trna_CCA)
   }
 
   if (mt) {
@@ -466,21 +478,6 @@ gettRNA <- function(sp = "mm10", mt = TRUE, addCCA = TRUE) {
     trna <- c(trna, mt)
   }
   return(trna)
-}
-
-
-#' Convert a RNAStringSet to DNAStringSet
-#'
-#' @param rss RNAStringSet
-#'
-#' @return
-#' @export
-#'
-#' @examples
-convertRSStoDSS <- function(rss) {
-  rss <- as.character(rss)
-  rss <- sapply(rss, function(x) gsub("U", "T", x))
-  DNAStringSet(rss)
 }
 
 
@@ -494,10 +491,9 @@ convertRSStoDSS <- function(rss) {
 #'
 #' @examples
 getrRNA <- function(sp = "Mus musculus", release = "138.1") {
-  if (!release %in% c("128", "132", "138.1")) {
-    stop("Currently following releases are supported: 128, 132, 138.1 \n")
-  }
+  match.arg(release, c("128", "132", "138.1"))
 
+  library(data.table)
   library(Biostrings)
 
   url_files <- paste0("https://ftp.arb-silva.de/release_", release, "/Exports/")
@@ -542,7 +538,6 @@ getrRNA <- function(sp = "Mus musculus", release = "138.1") {
 
   if (release != "128") {
     url_meta <- paste0(url_files, "full_metadata/")
-    library(data.table)
     meta <- listFilesFTP(url_meta)
 
     ssm <- grep(
@@ -609,13 +604,16 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
                   tRNA_addCCA = TRUE, tRNA_includeMt = TRUE,
                   rRNA_release = "138.1") {
   if (species == "mmu") {
+    library(rtracklayer)
+    library(R.utils)
+
     # EnsDb
     library(AnnotationHub)
     ah <- AnnotationHub()
     ensdb <- rev(query(ah, genomeVersion, "Ensdb"))[[1]]
 
     # miRNA
-    miRNA <- getmiRNA(sp = species)
+    miRNA <- getmiRNA(sp = species)$gtf
 
     # tRNA
     if (genomeVersion == "GRCm38") {
@@ -630,6 +628,19 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
     piRNA <- piRNA[piRNA$type == "transcript"]
     colnames(mcols(piRNA))[5:7] <- c("symbol", "tx_id", "tx_type")
     piRNA <- piRNA[, c("symbol", "tx_id", "tx_type")]
+
+    if (genomeVersion == "GRCm39") {
+      gunzip(
+        downloadFile(paste0(
+          "http://hgdownload.soe.ucsc.edu/goldenPath/mm10/",
+          "liftOver/mm10ToMm39.over.chain.gz"
+        ))
+      )
+      chain <- import.chain("mm10ToMm39.over.chain")
+      miRNA <- unlist(liftOver(miRNA, chain))
+      piRNA <- unlist(liftOver(piRNA, chain))
+      unlink("mm10ToMm39.over.chain")
+    }
 
     # rRNA
     rRNA <- getrRNA(sp = "Mus musculus", release = rRNA_release)
@@ -647,13 +658,13 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
 
 
 # db_mmu <- getDB()
-# 
+# #
 # mm10_annoprep <- prepareAnnotation(
 #   ensdb = db_mmu$ensdb,
 #   genome = "/mnt/IM/reference/genome/gencode/fasta/GRCm38.p5.genome.fa",
 #   output_dir = "./",
 #   extra.gr = list(piRNA = db_mmu$piRNA_GR, miRNA = db_mmu$miRNA_GR),
-#   extra.seqs = list(tRNA = db_mmu$tRNA_fa, rRNA = db_mmu$rRNA_fa),
+#   extra.seqs = list(rRNA = db_mmu$rRNA_fa, tRNa = db_mmu$tRNA_fa),
 #   resolveSplicing = NULL,
 #   rules = defaultAssignRules(),
 #   tRNAEnsembleRemove = TRUE
