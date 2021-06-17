@@ -7,7 +7,7 @@
 gettRNA(sp = "mm10", mt = TRUE, addCCA = TRUE)
 }
 \arguments{
-\item{sp}{Species for which tRNA sequences to be obtained. Currently 
+\item{sp}{Species for which tRNA sequences to be obtained. Currently
 available for mm10, mm39, hg19, and hg38}
 
 \item{mt}{Whether to also download and include mitochondrial tRNAs from

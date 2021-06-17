@@ -10,7 +10,7 @@ getmiRNA(sp = "mmu")
 \item{sp}{3 alphabet species code. Please check `data(species)`}
 }
 \value{
-a list of GRanges annotation of miRNAs, miRNAs DNAStringSet, 
+a list of GRanges annotation of miRNAs, miRNAs DNAStringSet,
 and miRNA hairpins miRNAs DNAStringSet
 }
 \description{

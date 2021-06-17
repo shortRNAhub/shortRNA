@@ -9,7 +9,7 @@ getMttRNA(sp = "Mus musculus", addCCA = TRUE)
 \arguments{
 \item{sp}{Scientific name of species}
 
-\item{addCCA}{Whether to add CCA modifications to sequences or not. 
+\item{addCCA}{Whether to add CCA modifications to sequences or not.
 Default: TRUE}
 }
 \value{

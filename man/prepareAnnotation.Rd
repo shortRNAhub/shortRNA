@@ -13,6 +13,7 @@ prepareAnnotation(
   resolveSplicing = NULL,
   rules = defaultAssignRules(),
   tRNAEnsembleRemove = TRUE,
+  clusterMiRNA = TRUE,
   ...
 )
 
@@ -25,6 +26,7 @@ prepareAnnotation(
   resolveSplicing = NULL,
   rules = defaultAssignRules(),
   tRNAEnsembleRemove = TRUE,
+  clusterMiRNA = TRUE,
   ...
 )
 }
@@ -54,7 +56,8 @@ transcripts.}
 
 \item{rules}{Rules for reads assignment}
 
-\item{tRNAEnsembleRemove}{removes the tRNA annotations from Ensembl database}
+\item{tRNAEnsembleRemove}{removes the tRNA annotations from Ensembl database
+only if names of extra.seqs contains tRNA}
 
 \item{...}{passed to `Rsubread::buildindex`}
 

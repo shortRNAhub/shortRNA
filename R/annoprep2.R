@@ -32,6 +32,7 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
                               resolveSplicing = NULL,
                               rules = defaultAssignRules(),
                               tRNAEnsembleRemove = TRUE,
+                              clusterMiRNA = TRUE,
                               ...) {
 
   # Loading libraries early in case they are not available,
@@ -175,6 +176,8 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
 
   tx <- tx[, c("tx_id", "tx_biotype", "symbol")]
 
+  if(clusterMiRNA) tx <- miRNAcluster(tx)
+  
   saveRDS(tx, file = anno.out)
   message("Features saved in \n", anno.out)
 
@@ -186,7 +189,6 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
       "BSgenome/TwoBitFile object"
     )
   }
-
 
   if (is(genome, "TwoBitFile") || grepl(pattern = "\\.2bit", x = genome)) {
     genome <- import(genome)
@@ -332,17 +334,23 @@ getmiRNA <- function(sp = "mmu") {
 #'
 #' @examples
 miRNAcluster <- function(gr, minGap = 10000) {
+  
+  gr_miRNA <- gr[grep("miRNA", gr$tx_biotype)]
+  gr_o <- gr[grep("miRNA", gr$tx_biotype, invert = T)]
+  gr_o$miRNAcluster <- NA
+  
   library(GenomicRanges)
-  rd <- reduce(gr, min.gapwidth = minGap)
-  hits <- findOverlaps(rd, gr)
+  rd <- reduce(gr_miRNA, min.gapwidth = minGap)
+  hits <- findOverlaps(rd, gr_miRNA)
   idx1 <- subjectHits(hits)
   idx2 <- queryHits(hits)
   r1 <- data.frame(rd[idx2])
-  r1$cluster <- paste0("miRNAcluster_", r1$seqnames, ":", r1$start, "-", r1$end, r1$strand)
-  values <- data.frame(gr[idx1])
+  r1$miRNAcluster <- paste0("miRNAcluster_", r1$seqnames, ":", r1$start, "-", r1$end, r1$strand)
+  values <- data.frame(gr_miRNA[idx1])
 
-  df <- GRanges(data.frame(values, cluster = r1$cluster))
-  return(df)
+  df <- GRanges(data.frame(values, miRNAcluster = r1$miRNAcluster))
+  grn <- c(df, gr_o)
+  return(grn)
 }
 
 
@@ -396,11 +404,7 @@ getMttRNA <- function(sp = "Mus musculus", addCCA = TRUE) {
 
   if ("His" %in% tab$tRNA_type) {
     his <- tab$tRNA_seq[tab$tRNA_type == "His"]
-    his <- sapply(his, function(x) {
-      ifelse(
-        test = startsWith(x, "G"), yes = x, no = paste0("G", x)
-      )
-    })
+    his <- sapply(his, function(x) paste0("G", x))
     tab$tRNA_seq[tab$tRNA_type == "His"] <- his
   }
 
@@ -410,6 +414,7 @@ getMttRNA <- function(sp = "Mus musculus", addCCA = TRUE) {
   if (addCCA) {
     mt_CCA <- paste0(mt, "CCA")
     # names(mt_CCA) <- paste(names(mt), "CCA", sep = "_")
+    names(mt_CCA) <- names(mt)
     mt <- mt_CCA
   }
 
@@ -431,10 +436,9 @@ getMttRNA <- function(sp = "Mus musculus", addCCA = TRUE) {
 #'
 #' @examples
 gettRNA <- function(sp = "mm10", mt = TRUE, addCCA = TRUE) {
-  if (!sp %in% c("hg19", "hg38", "mm10", "mm39")) {
-    stop("Currently supported species are: hg19, hg38, mm10, mm39")
-  }
-
+  
+  match.arg(sp, c("hg19", "hg38", "mm10", "mm39"))
+  
   library(Biostrings)
   url <- "http://gtrnadb.ucsc.edu/genomes/eukaryota/"
   mt_sp <- NULL
@@ -462,7 +466,7 @@ gettRNA <- function(sp = "mm10", mt = TRUE, addCCA = TRUE) {
     # https://github.com/junchaoshi/sports1.1#trna_mappingpl
 
     his <- trna[grepl("His", names(trna))]
-    his <- sapply(his, function(x) ifelse(test = startsWith(x, "G"), yes = x, no = paste0("G", x)))
+    his <- sapply(his, function(x) paste0("G", x))
     trna[names(his)] <- his
     trna <- DNAStringSet(trna)
   }
@@ -470,6 +474,7 @@ gettRNA <- function(sp = "mm10", mt = TRUE, addCCA = TRUE) {
   if (addCCA) {
     trna_CCA <- paste0(as.character(trna), "CCA")
     # names(trna_CCA) <- paste(names(trna), "CCA", sep = "_")
+    names(trna_CCA) <- names(trna)
     trna <- DNAStringSet(trna_CCA)
   }
 
@@ -515,7 +520,7 @@ getrRNA <- function(sp = "Mus musculus", release = "138.1") {
 
   ss <- readRNAStringSet(ss_file)
   ss <- ss[grepl(pattern = sp, x = names(ss))]
-  ss <- convertRSStoDSS(ss)
+  ss <- DNAStringSet(ss)
   names(ss) <- gsub(pattern = "\\..*", replacement = "", x = names(ss))
 
   ls_file <- grep(
@@ -533,7 +538,7 @@ getrRNA <- function(sp = "Mus musculus", release = "138.1") {
 
   ls <- readRNAStringSet(ls_file)
   ls <- ls[grepl(pattern = sp, x = names(ls))]
-  ls <- convertRSStoDSS(ls)
+  ls <- DNAStringSet(ls)
   names(ls) <- gsub(pattern = "\\..*", replacement = "", x = names(ls))
 
   if (release != "128") {
@@ -647,7 +652,7 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
 
     db <- list(
       ensdb = ensdb,
-      miRNA_GR = miRNA$gtf,
+      miRNA_GR = miRNA,
       tRNA_fa = tRNA,
       piRNA_GR = piRNA,
       rRNA_fa = rRNA
@@ -657,15 +662,18 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
 }
 
 
+# devtools::load_all("../")
+
 # db_mmu <- getDB()
-# #
+# 
 # mm10_annoprep <- prepareAnnotation(
 #   ensdb = db_mmu$ensdb,
 #   genome = "/mnt/IM/reference/genome/gencode/fasta/GRCm38.p5.genome.fa",
-#   output_dir = "./",
+#   output_dir = "../genome",
 #   extra.gr = list(piRNA = db_mmu$piRNA_GR, miRNA = db_mmu$miRNA_GR),
-#   extra.seqs = list(rRNA = db_mmu$rRNA_fa, tRNa = db_mmu$tRNA_fa),
+#   extra.seqs = list(rRNA = db_mmu$rRNA_fa, tRNA = db_mmu$tRNA_fa),
 #   resolveSplicing = NULL,
 #   rules = defaultAssignRules(),
-#   tRNAEnsembleRemove = TRUE
+#   tRNAEnsembleRemove = TRUE,
+#   clusterMiRNA = TRUE
 # )

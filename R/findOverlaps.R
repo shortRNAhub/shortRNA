@@ -34,21 +34,22 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NUL
   # load bam as GAlignments
   param <- ScanBamParam(what=c("cigar", "seq"))
   bam <- readGAlignments(bamFile, param = param)
+  seqlevelsStyle(bam) <- "ensembl"
   bam <- as(bam, "GRangesList")
   bam@elementMetadata$seq <- as.character(bam@elementMetadata$seq)
   
   message(paste(length(bam), "alignments loaded, searching for overlaps..."))
   
   if(is(annotation, "GRanges")){
-    annotation <- split(annotation, annotation$tx_id) 
+    annotation <- as(annotation, "GRangesList")
   }
   
-  suppressWarnings({
-    OV <- findOverlapPairs(bam, unlist(annotation), ignore.strand=ignoreStrand)
-    OV@second <- as(OV@second, "GRangesList")
+  # suppressWarnings({
+    OV <- findOverlapPairs(bam, annotation, ignore.strand=ignoreStrand)
+    # OV@second <- as(OV@second, "GRangesList")
     Rdiff <- GenomicRanges::setdiff(OV)
     OVinter <- GenomicRanges::intersect(OV)
-  })
+  # })
   
   message(paste("Found", length(OV), "overlaps."))
   message("Calculating positions relative to transcripts...")
