@@ -8,11 +8,13 @@
 #'
 #' @examples
 otherRNA2FL <- function(gr, sp = "mm10") {
-  gr <- unique(gr)
+  # gr <- unique(gr)
   if (all(gr$tx_id == gr$symbol)) {
-    fl <- FactorList(as.list(paste(sp, gr$tx_biotype, gr$symbol)))
+    fl <- FactorList(lapply(1:length(gr), function(x) 
+      c(sp, gr$tx_biotype[x], gr$symbol[x])))
   } else {
-    fl <- FactorList(as.list(paste(sp, gr$tx_biotype, gr$symbol, gr$tx_id)))
+    fl <- FactorList(lapply(1:length(gr), function(x) 
+      c(sp, gr$tx_biotype[x], gr$symbol[x], gr$tx_id[x])))
   }
   return(fl)
 }
@@ -48,29 +50,67 @@ tRNAtoFL <- function(gr, sp = "mm10") {
 #' @export
 #'
 #' @examples
-miRNAtoFL <- function(gr, spMore = TRUE, sp) {
+miRNAtoFL <- function(gr, spMore = TRUE, sp = "mm10", cluster = TRUE) {
+  if (cluster) {
+    if (!"miRNAcluster" %in% colnames(mcols(gr))) gr <- miRNAcluster(gr)
+  }
+
   gr$tx_biotype <- "miRNA"
-  x <- paste(gr$symbol, gr$tx_id, sep = "/")
+
+  if (cluster) {
+    x <- paste(gr$miRNAcluster, gr$symbol, gr$tx_id, sep = "/")
+  } else {
+    x <- paste(gr$symbol, gr$tx_id, sep = "/")
+  }
+
 
   y <- lapply(x, FUN = function(x) {
-    x1 <- strsplit(x, "/")[[1]][2]
-    x2 <- strsplit(x, "/")[[1]][1]
+    xp <- strsplit(x, "/")[[1]]
+    if (length(xp) > 2) {
+      x3 <- xp[1]
+    }
+    x1 <- xp[length(xp)]
+    x2 <- xp[length(xp) - 1]
     x <- strsplit(gsub(".", "-", x1, fixed = TRUE), "-", fixed = TRUE)[[1]]
     if (length(x) > 1) {
-      if (grepl("[a-z]", x[2])) {
-        x1 <- strsplit(x[2], "(?=[A-Za-z])(?<=[0-9])|(?=[0-9])(?<=[A-Za-z])", perl = TRUE)[[1]]
-        x1 <- c(x1[1], paste0(x1[1], x1[2]))
-        x <- c(x[1], x1, ifelse(test = length(x) > 2, yes = x[3:length(x)], no = ""))
-        x <- x[!x %in% ""]
+      if (spMore) {
+        test <- grepl("[a-z]", x[2])
+        if (test) {
+          x1 <- strsplit(x[2], "(?=[A-Za-z])(?<=[0-9])|(?=[0-9])(?<=[A-Za-z])", perl = TRUE)[[1]]
+          x1 <- c(x1[1], paste0(x1[1], x1[2]))
+          x <- c(x[1], x1, if(length(x) > 2) x[3:length(x)])
+          x <- x[!x %in% ""]
+        }
       }
       # x1 <- sapply(1:2, FUN = function(i) paste(x[1:i], collapse = "-"))
       x1 <- paste(x[1], x[2], sep = "-")
       if (length(x) > 2) {
-        x1 <- c(x1, sapply(3:length(x), FUN = function(i) paste(x[c(1, 3:i)], collapse = "-")))
+        if (spMore) {
+          if (test) {
+            x1 <- c(x1, sapply(3:length(x), FUN = function(i) paste(x[c(1, 3:i)], collapse = "-")))
+          } else {
+            x1 <- c(x1, sapply(3:length(x), FUN = function(i) paste(x[c(1, 2:i)], collapse = "-")))
+          }
+        } else {
+          x1 <- c(x1, sapply(3:length(x), FUN = function(i) paste(x[c(1, 2:i)], collapse = "-")))
+        }
       }
-      return(c(sp, gr$tx_biotype[1], x2, x1))
+
+      if (cluster) {
+        res <- c(sp, gr$tx_biotype[1], x3, x2, x1)
+      } else {
+        res <- c(sp, gr$tx_biotype[1], x2, x1)
+      }
+
+      return(res)
+      
     } else {
-      return(c(sp, gr$tx_biotype[1], x2, x))
+      if (cluster) {
+        res <- c(sp, gr$tx_biotype[1], x3, x2, x)
+      } else {
+        res <- c(sp, gr$tx_biotype[1], x2, x)
+      }
+      return(res)
     }
   })
 
@@ -90,6 +130,7 @@ featuresAnnoToFL <- function(anno, species = "mm10") {
   if (is(anno, "GRangesList")) {
     anno <- unlist(anno)
   }
+
   if (!is(anno, "GRanges")) {
     stop("Please check the input.")
   }
@@ -100,15 +141,18 @@ featuresAnnoToFL <- function(anno, species = "mm10") {
     tRNA <- anno[grep("tRNA", anno$tx_biotype)]
     tRNA <- tRNAtoFL(tRNA, sp = species)
     fl <- c(fl, tRNA)
-  } else if (any(grepl("miRNA", anno$tx_biotype))) {
-    miRNA <- anno[grep("miRNA", anno$tx_biotype)]
-    miRNA <- miRNAtoFL(miRNA, spMore = TRUE, sp = species)
-    fl <- c(fl, miRNA)
-  } else {
-    others <- anno[grep("miRNA|tRNA", anno$tx_biotype, invert = TRUE)]
-    others <- otherRNA2FL(others, sp = species)
-    fl <- c(fl, others)
   }
+
+  if (any(grepl("miRNA", anno$tx_biotype))) {
+    miRNA <- anno[grep("miRNA", anno$tx_biotype)]
+    miRNA <- miRNAtoFL(gr = miRNA, spMore = TRUE, sp = species, cluster = TRUE)
+    fl <- c(fl, miRNA)
+  }
+
+  others <- anno[grep("miRNA|tRNA", anno$tx_biotype, invert = TRUE)]
+  others <- split(others, others$tx_biotype)
+  others <- lapply(others, function(x) otherRNA2FL(gr = x, sp = species))
+  fl <- c(fl, Reduce(c, others))
 
   return(fl)
 }

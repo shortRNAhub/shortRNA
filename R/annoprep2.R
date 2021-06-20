@@ -50,40 +50,7 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
     resolveSplicing <- names(p)[p >= 0]
   }
 
-  # If no additional sequence files are provided
-  if (!is.null(extra.seqs)) {
-    stopifnot(is.list(extra.seqs) || is(extra.seqs, "DNAStringSet"))
-
-    # If additional sequence files are provided as a list
-    if (is.list(extra.seqs)) {
-      m <- dplyr::bind_rows(
-        lapply(extra.seqs, FUN = function(x) {
-          data.frame(
-            row.names = names(x), tx_id = names(x),
-            seq = as.character(x)
-          )
-        }),
-        .id = "tx_biotype"
-      )
-
-      extra.seqs <- DNAStringSet(m$seq)
-      m$seq <- NULL
-      names(extra.seqs) <- row.names(m)
-      mcols(extra.seqs) <- m
-    }
-    m <- mcols(extra.seqs)
-
-    if (is.null(m$tx_id)) m$tx_id <- names(extra.seqs)
-    names(extra.seqs) <- paste0("pseudoChr_", names(extra.seqs))
-    stopifnot(all(c("tx_id", "tx_biotype") %in% colnames(mcols(extra.seqs))))
-
-    if (is.null(m$symbol)) m$symbol <- m$tx_id
-    gr <- GRanges(names(extra.seqs), IRanges(1L, width = nchar(extra.seqs)),
-      strand = "+", tx_id = m$tx_id, tx_biotype = m$tx_biotype,
-      symbol = m$symbol
-    )
-  }
-
+  # If splicing is to be resolved
   if (!is.null(resolveSplicing)) {
     gs <- genes(ensdb,
       filter = ~ tx_biotype != resolveSplicing,
@@ -109,6 +76,48 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
     tx <- tx[grep("tRNA", tx$tx_biotype, invert = T)]
   }
 
+  tx$tx_biotype[tx$tx_biotype == "miRNA"] <- ifelse(
+    test = width(tx[tx$tx_biotype == "miRNA"]) > 25,
+    yes = "miRNA_precursor", no = "miRNA"
+  )
+
+  
+  # If additional sequence files are provided
+  if (!is.null(extra.seqs)) {
+    stopifnot(is.list(extra.seqs) || is(extra.seqs, "DNAStringSet"))
+    
+  
+  # If additional sequence files are provided as a list
+  if (is.list(extra.seqs)) {
+    m <- dplyr::bind_rows(
+      lapply(extra.seqs, FUN = function(x) {
+        data.frame(
+          row.names = names(x), tx_id = names(x),
+          seq = as.character(x)
+        )
+      }),
+      .id = "tx_biotype"
+    )
+    
+    extra.seqs <- DNAStringSet(m$seq)
+    m$seq <- NULL
+    names(extra.seqs) <- row.names(m)
+    mcols(extra.seqs) <- m
+  }
+  m <- mcols(extra.seqs)
+  
+  if (is.null(m$tx_id)) m$tx_id <- names(extra.seqs)
+  names(extra.seqs) <- paste0("pseudoChr_", names(extra.seqs))
+  stopifnot(all(c("tx_id", "tx_biotype") %in% colnames(mcols(extra.seqs))))
+  
+  if (is.null(m$symbol)) m$symbol <- m$tx_id
+  gr <- GRanges(names(extra.seqs), IRanges(1L, width = nchar(extra.seqs)),
+                strand = "+", tx_id = m$tx_id, tx_biotype = m$tx_biotype,
+                symbol = m$symbol
+  )
+  }
+  
+  
   if (!is.null(resolveSplicing)) tx <- c(tx, gs)
 
   if (!is.null(extra.seqs)) tx <- c(tx, gr)
@@ -151,33 +160,29 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
   colnames(mcols(tx))[colnames(mcols(tx)) == "tx_type"] <- "tx_biotype"
 
   names(tx) <- NULL
+  
+  tx2 <- tx[grep("miRNA", tx$tx_biotype, invert = TRUE)]
+  
+  tx3 <- tx[grep("miRNA", tx$tx_biotype)]
+  tx4 <- tx3[startsWith(tx3$symbol, "Mir")]
+  tx3 <- tx3[!startsWith(tx3$symbol, "Mir")]
+  
+  tx4$symbol1 <- paste(tx4$symbol, tx4$tx_id, sep = "_")
+  tx4$tx_id1 <- tx4$symbol
+  tx4$tx_id1 <- gsub("Mir", "miR-", tx4$tx_id1)
+  tx4$symbol <- tx4$symbol1
+  tx4$tx_id <- tx4$tx_id1
 
-  tx$symbol1 <- NA
-  tx$symbol1[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")] <- paste(
-    tx$symbol[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")],
-    tx$tx_id[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")],
-    sep = "_"
-  )
-
-  tx$tx_id1 <- NA
-
-  tx$tx_id1[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")] <-
-    tx$symbol[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")]
-  tx$tx_id1[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")] <-
-    gsub(
-      "Mir", "miR-",
-      tx$tx_id1[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")]
-    )
-
-  tx$symbol[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")] <-
-    tx$symbol1[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")]
-  tx$tx_id[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")] <-
-    tx$tx_id1[tx$tx_biotype == "miRNA" & startsWith(tx$symbol, "Mir")]
-
+  tx4 <- tx4[, c("tx_id", "tx_biotype", "symbol")]
+  
+  tx <- Reduce(c, list(tx2, tx3, tx4))
+  
   tx <- tx[, c("tx_id", "tx_biotype", "symbol")]
 
-  if(clusterMiRNA) tx <- miRNAcluster(tx)
-  
+  if (clusterMiRNA) tx <- miRNAcluster(tx)
+
+  # tx <- as(tx, "GRangesList")
+
   saveRDS(tx, file = anno.out)
   message("Features saved in \n", anno.out)
 
@@ -334,11 +339,11 @@ getmiRNA <- function(sp = "mmu") {
 #'
 #' @examples
 miRNAcluster <- function(gr, minGap = 10000) {
-  
   gr_miRNA <- gr[grep("miRNA", gr$tx_biotype)]
   gr_o <- gr[grep("miRNA", gr$tx_biotype, invert = T)]
-  gr_o$miRNAcluster <- NA
   
+  if(length(gr_o) > 0) gr_o$miRNAcluster <- NA
+
   library(GenomicRanges)
   rd <- reduce(gr_miRNA, min.gapwidth = minGap)
   hits <- findOverlaps(rd, gr_miRNA)
@@ -436,9 +441,8 @@ getMttRNA <- function(sp = "Mus musculus", addCCA = TRUE) {
 #'
 #' @examples
 gettRNA <- function(sp = "mm10", mt = TRUE, addCCA = TRUE) {
-  
   match.arg(sp, c("hg19", "hg38", "mm10", "mm39"))
-  
+
   library(Biostrings)
   url <- "http://gtrnadb.ucsc.edu/genomes/eukaryota/"
   mt_sp <- NULL
@@ -666,6 +670,19 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
 
 # db_mmu <- getDB()
 # 
+# ensdb <- db_mmu$ensdb
+# genome <- "/mnt/IM/reference/genome/gencode/fasta/GRCm38.p5.genome.fa"
+# output_dir <- "/mnt/IM/projects/software/shortRNA/genome"
+# extra.gr <- list(piRNA = db_mmu$piRNA_GR, miRNA = db_mmu$miRNA_GR)
+# extra.seqs <- list(rRNA = db_mmu$rRNA_fa, tRNA = db_mmu$tRNA_fa)
+# resolveSplicing <- NULL
+# rules <- defaultAssignRules()
+# tRNAEnsembleRemove <- TRUE
+# clusterMiRNA <- TRUE
+
+
+
+
 # mm10_annoprep <- prepareAnnotation(
 #   ensdb = db_mmu$ensdb,
 #   genome = "/mnt/IM/reference/genome/gencode/fasta/GRCm38.p5.genome.fa",

@@ -230,8 +230,8 @@ getOverlapValidity <- function(sources, rules=defaultAssignRules()){
     if(!is.null(types[[typ]]$fallback) &&
        length(w <- which(sources$transcript_type == typ & !sources$valid))>0){
       if(is.factor(sources$transcript_type))
-        levels(sources$transcript_type) <- unique(c(sources$transcript_type,
-                                                    types[[typ]]$fallback))
+        levels(sources$transcript_type) <- unique(c(as.character(
+          sources$transcript_type), types[[typ]]$fallback))
       sources$transcript_type[w] <- types[[typ]]$fallback
       sources$valid[w] <- isValidOverlap(sources[w,,drop=FALSE], rules)
     }

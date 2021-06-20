@@ -122,7 +122,6 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NUL
   )
   for(f in setdiff(names(res),names(res2)))
     res2[[f]] <- NA
-  
   res <- rbind(res,res2[,colnames(res)])
   res$seq <- as.factor(res$seq)
   res

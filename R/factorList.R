@@ -149,23 +149,23 @@ fList2tree <- function(fL, addRoot = TRUE, collapseSingles = FALSE, root = "ROOT
 }
 
 
-.addNames2fL <- function(fL) {
-  nlvls <- length(levels(fL)[[1]])
-  lvls <- c(levels(fL)[[1]], names(fL))
-  x <- c(as.integer(unlist(fL, use.names = FALSE)), nlvls + seq_len(length(fL)))
-  x <- factor(x, seq_len(nlvls + length(fL)), lvls)
-  splitAsList(x, c(rep(seq_along(fL), lengths(fL)), seq_along(fL)))
+.addNames2fL <- function(fL){
+  nlvls <- length(levels(fL[[1]]))
+  lvls <- c(levels(fL[[1]]), names(fL))
+  x <- c(as.integer(unlist(fL,use.names=FALSE)),nlvls+seq_len(length(fL)))
+  x <- factor(x, seq_len(nlvls+length(fL)), lvls)
+  splitAsList( x, c(rep(seq_along(fL),lengths(fL)),seq_along(fL)) )
 }
 
 
 # library(data.tree) 
-# tRNAs as FL load('../../shortRNA_data/db/tRNA.rda')
+# tRNAs as FL load('../../../../shortRNA_data/db/tRNA.rda')
 # ps_tRNA <- ToDataFrameTable(tRNA, 'pathString')
 # names(ps_tRNA) <- gsub(pattern = '.*\\/', replacement = '', x = ps_tRNA) 
 # Data subset ar_tRNA <- readRDS('ar_tRNA.rds')
 # # Example ps <- ps_tRNA mappedFeaturesDF <- ar_tRNA featuresCol <- 'transcript_id' readsCol <- 'seq'
 
-addReadsToTree <- function(ps, mappedFeaturesDF, featuresCol = "transcript_id", readsCol = "seq", ...) {
+addReadsToTree <- function(fL, mappedFeaturesDF, featuresCol = "transcript_id", readsCol = "seq", ...) {
   suppressPackageStartupMessages({
     library(data.tree)
     library(plyr)
@@ -179,54 +179,78 @@ addReadsToTree <- function(ps, mappedFeaturesDF, featuresCol = "transcript_id", 
   # Parallel processing of apply functions
   plan(multisession)
 
-  # pathString to factorList
-  fl <- FactorList(strsplit(ps, "/"))
-
+  # # pathString to factorList
+  fl <- fl
+  # 
   # Features per sequence
-  features <- strsplit(mappedFeaturesDF[, featuresCol], ";")
-  featuresPerRead <- features
-  names(featuresPerRead) <- mappedFeaturesDF[, readsCol]
+  features <- mappedFeaturesDF[, featuresCol]
+  names(features) <- mappedFeaturesDF[, readsCol]
 
-
-  # Filtering out non-existing features
-  featuresPerRead <- lapply(featuresPerRead, function(x) intersect(x = x, y = names(fl)))
-  sm <- sum(lengths(featuresPerRead) == 0)
-
-  if (sm > 0) {
-    warning(paste(sm, "features were removed as they were not found in the tree!"))
-  }
-
-  featuresPerRead <- featuresPerRead[lengths(featuresPerRead) > 0]
+  # # Filtering out non-existing features
+  # featuresPerRead <- lapply(features, function(x) intersect(x = as.character(x), y = names(fl)))
+  # sm <- sum(lengths(featuresPerRead) == 0)
+  # 
+  # if (sm > 0) {
+  #   warning(paste(sm, "features were removed as they were not found in the tree!"))
+  # }
+  # 
+  # featuresPerRead <- featuresPerRead[lengths(featuresPerRead) > 0]
 
   # Features per sequence factorList
-  fpr_fl <- FactorList(featuresPerRead)
+  # fpr_fl <- FactorList(featuresPerRead)
+  fpr_fl <- features
 
   # For sequences overlapping with 1 feature
   fpr_fl_s <- fpr_fl[lengths(fpr_fl) == 1]
 
   fpr_fl_s_o <- fl[unlist(fpr_fl_s)]
   names(fpr_fl_s_o) <- names(fpr_fl_s)
-  fpr_fl_s_o <- .addNames2fL(fpr_fl_s_o)
+  fpr_fl_s_o <- .addNames2fL(fL = fpr_fl_s_o)
 
-  fpr_s_tree <- fList2tree(fL = fpr_fl_s_o, addRoot = T, collapseSingles = F)
+  # fpr_s_tree <- fList2tree(fL = fpr_fl_s_o, addRoot = T, collapseSingles = F)
 
   # For sequences overlapping with more than 1 feature
   fpr_fl_m <- fpr_fl[lengths(fpr_fl) > 1]
   fli <- IntegerList(fl)
-  fpr_fl_m_o <- future_lapply(fpr_fl_m, FUN = function(x) longestOrderedOverlap(fli[x]))
+  fpr_fl_m_o <- future_lapply(head(fpr_fl_m), FUN = function(x) longestOrderedOverlap(fli[x]))
   rm(fli)
 
   fpr_fl_m_o1 <- splitAsList(
     x = factor(as.numeric(unlist(fpr_fl_m_o)), levels = seq_along(levels(fl[[1]])), labels = levels(fl[[1]])),
     f = rep(names(fpr_fl_m_o), lengths(fpr_fl_m_o))
   )
+  
+  fpr_fl_m_o2 <- FactorList(as.list(as.character(paste(head(fpr_fl_m), collapse = "/"))))
+  
+  fpr_fl_m_of <- mergeAtomicLists(head(fpr_fl_m_o1), head(fpr_fl_m_o2))
+  names(fpr_fl_m_of) <- names(fpr_fl_m_o1)
 
-  fpr_fl_m_o1 <- .addNames2fL(fpr_fl_m_o1)
+  fpr_fl_m_of <- .addNames2fL(fpr_fl_m_of)
 
+  # Reads not assigned to any features
+  fpr_fl_n <- fpr_fl[lengths(fpr_fl) == 0]
+  fpr_fl_n <- .addNames2fL(fpr_fl_n)
+  
+  n <- length(fpr_fl_n)
+  
+  fpr_fl_n2 <- as.character(fpr_fl_s_o[[1]][1])
+  
+  
+  
+  a <- FactorList(as.list(LETTERS))
+  
+  x <- splitAsList(rep(factor("ambiguous"), n), seq_len(n))
+  mergeAtomicLists(x, a)
+  
+  fpr_fl_n1 <- c(as.character(fpr_fl_s_o[[1]][1]), "Unassigned")
+  fpr_fl_n1 <- FactorList(rep(list(fpr_fl_n1), length(fpr_fl_n)))
+  
+  fpr_fl_n_o <- mergeAtomicLists(fpr_fl_n1[1:10000], fpr_fl_n[1:10000])
+  
   # Features for the tree
-  fpr_tree <- c(fpr_fl_s_o, fpr_fl_m_o1)
+  fpr_tree <- c(fpr_fl_s_o, fpr_fl_m_of)
 
-  tree <- fList2tree(fL = fpr_tree, addRoot = T, collapseSingles = F, ...)
+  tree <- fList2tree(fL = fpr_tree, addRoot = FALSE, collapseSingles = F)
 
   plan(sequential)
 
