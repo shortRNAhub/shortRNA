@@ -23,7 +23,7 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NUL
     library(BiocParallel)
     library(futile.logger)
   })
-  mcols(annotation)$transcript_id <- as.factor(mcols(annotation)$transcript_id)
+  mcols(annotation)$tx_id <- as.factor(mcols(annotation)$tx_id)
   
   if(is.null(nbthreads) || nbthreads==1){
     bp <- SerialParam()
@@ -34,16 +34,22 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NUL
   # load bam as GAlignments
   param <- ScanBamParam(what=c("cigar", "seq"))
   bam <- readGAlignments(bamFile, param = param)
+  seqlevelsStyle(bam) <- "ensembl"
   bam <- as(bam, "GRangesList")
   bam@elementMetadata$seq <- as.character(bam@elementMetadata$seq)
   
   message(paste(length(bam), "alignments loaded, searching for overlaps..."))
   
-  suppressWarnings({
+  if(is(annotation, "GRanges")){
+    annotation <- as(annotation, "GRangesList")
+  }
+  
+  # suppressWarnings({
     OV <- findOverlapPairs(bam, annotation, ignore.strand=ignoreStrand)
+    # OV@second <- as(OV@second, "GRangesList")
     Rdiff <- GenomicRanges::setdiff(OV)
     OVinter <- GenomicRanges::intersect(OV)
-  })
+  # })
   
   message(paste("Found", length(OV), "overlaps."))
   message("Calculating positions relative to transcripts...")
@@ -93,8 +99,8 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NUL
     overlap=sum(width(OVinter)),
     startInFeature=posInFeature[,1],
     distanceToFeatureEnd=posInFeature[,2],
-    transcript_id=mcols(OV@second)$transcript_id,
-    transcript_type=factor(mcols(OV@second)$transcript_type),
+    transcript_id=mcols(OV@second)$tx_id,
+    transcript_type=factor(mcols(OV@second)$tx_biotype),
     transcript.strand=strands,
     transcript.length=sum(width(OV@second))
   )
@@ -116,7 +122,6 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NUL
   )
   for(f in setdiff(names(res),names(res2)))
     res2[[f]] <- NA
-  
   res <- rbind(res,res2[,colnames(res)])
   res$seq <- as.factor(res$seq)
   res

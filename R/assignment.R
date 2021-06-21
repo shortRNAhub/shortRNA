@@ -230,8 +230,8 @@ getOverlapValidity <- function(sources, rules=defaultAssignRules()){
     if(!is.null(types[[typ]]$fallback) &&
        length(w <- which(sources$transcript_type == typ & !sources$valid))>0){
       if(is.factor(sources$transcript_type))
-        levels(sources$transcript_type) <- unique(c(sources$transcript_type,
-                                                    types[[typ]]$fallback))
+        levels(sources$transcript_type) <- unique(c(as.character(
+          sources$transcript_type), types[[typ]]$fallback))
       sources$transcript_type[w] <- types[[typ]]$fallback
       sources$valid[w] <- isValidOverlap(sources[w,,drop=FALSE], rules)
     }
@@ -324,7 +324,7 @@ defaultAssignRules <- function(rules=list()){
 #' @return A factor of tRNA fragment types
 #' @export
 tRFtype <- function(srcs, rules=list(
-  "tRNA_internal_fragment"=function(x){ TRUE },
+  "tRNA_internal_fragment"=function(x){ rep(TRUE, nrow(x)) },
   "tRNA_5p_fragment"=function(x){ x$startInFeature < 5L & x$length < 30L },
   "tRNA_3p_fragment"=function(x){ x$distanceToFeatureEnd < 5L & x$length < 50L },
   "tRNA_5p_half"=function(x){ x$startInFeature %in% -1:1 & x$length %in% 30:34 },

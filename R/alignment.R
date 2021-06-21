@@ -154,13 +154,15 @@ shortRNAexp_parseBam <- function(bam,
 #' files
 listFilesFTP <- function(url) {
   library(RCurl)
-  library(stringr)
-  files <- getURL(url = url, ftp.use.epsv = FALSE, dirlistonly = TRUE)
-  files <- str_c(url, str_split(files, "\n")[[1]])
-  files <- str_trim(files)
+  library(XML)
+  # library(stringr)
+  files <- getHTMLLinks(getURL(url = url, 
+                               ftp.use.epsv = FALSE, 
+                               dirlistonly = TRUE))
+  
+  files <- paste0(url, files)
   return(files)
 }
-
 
 
 #' Build index for Rsubread
