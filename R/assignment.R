@@ -292,7 +292,7 @@ defaultAssignRules <- function(rules=list()){
     prioritizeKnown=TRUE,
     typeValidation=list(
       primary_piRNA=list(fun=isPrimaryPiRNA, fallback="piRNA_precursor"),
-      secondary_piRNA=list(fun=isPrimaryPiRNA, fallback="piRNA_precursor"),
+      secondary_piRNA=list(fun=isSecondaryPiRNA, fallback="piRNA_precursor"),
       miRNA=list(fun=isValidMiRNA, length=19:24, fallback="miRNA_precursor")
     ),
     reclassify=list(
