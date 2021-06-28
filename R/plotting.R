@@ -20,12 +20,16 @@ plotFeatureCoverage <- function(o, feature, exact = TRUE, includeAmbiguous = TRU
   }
   pmax <- max(o@sources[us, "posInFeature"] + o@sources[us, "length"] - 1)
   if (includeAmbiguous) {
-    plot(u + a, type = "l", lwd = 2, pch = 20, xlab = "Position across transcript (nt)", ylab = ifelse(logCounts, "log(total read count +1)", "total read count"), main = main)
+    plot(u + a, type = "l", lwd = 2, pch = 20, xlab = "Position across transcript (nt)", ylab = ifelse(logCounts, "log(total read count +1)",
+      "total read count"
+    ), main = main)
     polygon(c(1, 1:length(u), length(u)), c(0, u + a, 0), col = "red")
     polygon(c(1, 1:length(u), length(u)), c(0, u, 0), col = "blue")
     legend("topright", fill = c("blue", "red"), legend = c("Uniquely assigned", "Ambiguous"))
   } else {
-    plot(u, type = "l", lwd = 2, pch = 20, xlab = "Position across transcript (nt)", ylab = ifelse(logCounts, "log(total read count +1)", "total read count"), main = main)
+    plot(u, type = "l", lwd = 2, pch = 20, xlab = "Position across transcript (nt)", ylab = ifelse(logCounts, "log(total read count +1)",
+      "total read count"
+    ), main = main)
     polygon(c(1, 1:length(u), length(u)), c(0, u, 0), col = "blue")
   }
 }
@@ -39,7 +43,7 @@ plotFeatureCoverage <- function(o, feature, exact = TRUE, includeAmbiguous = TRU
 #' @param o An object of class shortRNAexp
 #' @param normalized Logical; whether normalized counts should be used (default TRUE)
 #' @param type Types of sequences to be fetched (e.g. miRNA, tRNA, etc.), fetches all by default.
-#' @param status Character vector of seq statuses to be selected (any combination of "unmapped","unknown","ambiguous", and "unique"). Fetches all mapped by default.
+#' @param status Character vector of seq statuses to be selected (any combination of 'unmapped','unknown','ambiguous', and 'unique'). Fetches all mapped by default.
 #' @param absfc Logical; whether to plot absolute log2-foldchange instead of log2-foldchange (default FALSE)
 #' @param samples Optional numeric vector indicating which sample(s) to compare. If NULL (default), all samples are used.
 #' @param ... any further arguments passed to the scatter.smooth funciton.
@@ -47,13 +51,20 @@ plotFeatureCoverage <- function(o, feature, exact = TRUE, includeAmbiguous = TRU
 #' @return Nothing, but plots multiple frames.
 #'
 #' @export
-plotMAs <- function(o, normalized = TRUE, type = NULL, status = c("unknown", "ambiguous", "unique"), absfc = FALSE, samples = NULL, average = FALSE, ...) {
-  if (!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
-  if (!is.null(samples) & !all(samples %in% 1:ncol(o@seqcounts))) stop("`samples` should be either NULL or an integer vector indicating which sample(s) to compare.")
+plotMAs <- function(o, normalized = TRUE, type = NULL, status = c("unknown", "ambiguous", "unique"), absfc = FALSE, samples = NULL,
+                    average = FALSE, ...) {
+  if (!is(o, "shortRNAexp")) {
+    stop("`o` should be an object of class `shortRNAexp`.")
+  }
+  if (!is.null(samples) & !all(samples %in% 1:ncol(o@seqcounts))) {
+    stop("`samples` should be either NULL or an integer vector indicating which sample(s) to compare.")
+  }
   m <- getSeqCounts(o, type = type, status = status, normalized = normalized)
   rm <- rowMeans(m)
 
-  if (!is.null(samples)) m <- m[, samples]
+  if (!is.null(samples)) {
+    m <- m[, samples]
+  }
 
   if (average) {
     fc <- m
@@ -65,7 +76,10 @@ plotMAs <- function(o, normalized = TRUE, type = NULL, status = c("unknown", "am
       }
     }
     fc <- rowMeans(fc)
-    scatter.smooth(log10(rm + 1), fc, xlab = "log10(count)", ylab = ifelse(absfc, "absolute log2FC over mean", "log2(foldchange) over mean"), pch = 20, col = maketrans("black"), main = "Averaged M", lpars = list(lwd = 2, col = "blue"), ...)
+    scatter.smooth(log10(rm + 1), fc,
+      xlab = "log10(count)", ylab = ifelse(absfc, "absolute log2FC over mean", "log2(foldchange) over mean"),
+      pch = 20, col = maketrans("black"), main = "Averaged M", lpars = list(lwd = 2, col = "blue"), ...
+    )
     abline(h = 0, lwd = 2)
   } else {
     nf <- autoLayout(ncol(m))
@@ -75,7 +89,10 @@ plotMAs <- function(o, normalized = TRUE, type = NULL, status = c("unknown", "am
       } else {
         fc <- log2((m[, i] + 1) / (rm + 1))
       }
-      scatter.smooth(log10(rm + 1), fc, xlab = "log10(count)", ylab = ifelse(absfc, "absolute log2FC over mean", "log2(foldchange) over mean"), pch = 20, col = maketrans("black"), main = colnames(m)[i], lpars = list(lwd = 2, col = "blue"), ...)
+      scatter.smooth(log10(rm + 1), fc,
+        xlab = "log10(count)", ylab = ifelse(absfc, "absolute log2FC over mean", "log2(foldchange) over mean"),
+        pch = 20, col = maketrans("black"), main = colnames(m)[i], lpars = list(lwd = 2, col = "blue"), ...
+      )
       abline(h = 0, lwd = 2)
     }
     if (nf > ncol(m)) {
@@ -102,21 +119,27 @@ plotMAs <- function(o, normalized = TRUE, type = NULL, status = c("unknown", "am
 #'
 #' @export
 plotComposition <- function(o, exclude = NULL, include = NULL, normalized = FALSE, abridged = TRUE, scale = TRUE, ...) {
-  if (!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
+  if (!is(o, "shortRNAexp")) {
+    stop("`o` should be an object of class `shortRNAexp`.")
+  }
   if (abridged) {
     af <- row.names(o@composition$raw$abridged)
   } else {
     af <- row.names(o@composition$raw$all)
   }
   if (!is.null(include)) {
-    if ("tRNA" %in% include & !abridged) include <- c(include, tRNAtype())
+    if ("tRNA" %in% include & !abridged) {
+      include <- c(include, tRNAtype())
+    }
     if (!is.null(exclude)) {
       exclude <- unique(c(exclude, setdiff(af, include)))
     } else {
       exclude <- setdiff(af, include)
     }
   } else {
-    if (is.null(exclude)) exclude <- c("unknown", "ambiguous")
+    if (is.null(exclude)) {
+      exclude <- c("unknown", "ambiguous")
+    }
   }
   su2 <- getComposition(o, abridged = abridged, normalized = normalized, scale = scale, exclude = exclude)
 
@@ -140,15 +163,18 @@ plotComposition <- function(o, exclude = NULL, include = NULL, normalized = FALS
   xlab <- paste0("PC 1 (", round(pca$sdev[1] / sum(pca$sdev) * 100, 0), "%)")
   ylab <- paste0("PC 2 (", round(pca$sdev[2] / sum(pca$sdev) * 100, 0), "%)")
 
-  plot(pp, pch = 20, col = .colorMap(polcomp), xlim = range(pp[, 1]) * 1.2, cex = 2.5, xlab = xlab, ylab = ylab, main = "Composition PCA", ...)
+  plot(pp,
+    pch = 20, col = .colorMap(polcomp), xlim = range(pp[, 1]) * 1.2, cex = 2.5, xlab = xlab, ylab = ylab, main = "Composition PCA",
+    ...
+  )
   text(pca$x[, 1:2], pos = 1, labels = row.names(pca$x))
   pd <- o@phenoData
   if ("group" %in% colnames(pd)) {
     group <- pd$group
-    legend("topright", bty = "n", legend = paste0(c("PC1~group=", "polar~group="), c(
-      format(summary(aov(pca$x[, 1] ~ group))[[1]]["group", 5], digits = 3),
-      format(summary(aov(polcomp ~ group))[[1]]["group", 5], digits = 3)
-    )), ...)
+    legend("topright", bty = "n", legend = paste0(c("PC1~group=", "polar~group="), c(format(summary(aov(pca$x[, 1] ~ group))[[1]][
+      "group",
+      5
+    ], digits = 3), format(summary(aov(polcomp ~ group))[[1]]["group", 5], digits = 3))), ...)
   }
 }
 
@@ -162,28 +188,36 @@ plotComposition <- function(o, exclude = NULL, include = NULL, normalized = FALS
 #' @param exact Logical; indicates whether `feature` should be interpreted as an exact name (default) rather than a regular expression.
 #' @param normalized Logical; whether to return the normalized counts (default TRUE)
 #' @param aggregated Logical; whether to return aggregated counts rather than per-sequence counts (default FALSE)
-#' @param plotType Either "barplot" (default), "heatmap", or "zheatmap" (heatmap of feature-wise z-scores").
+#' @param plotType Either 'barplot' (default), 'heatmap', or 'zheatmap' (heatmap of feature-wise z-scores').
 #' @param allowAmbiguous Logical; indicates whether to allow selection of ambiguous sequences when using exact=FALSE (default FALSE).
 #' @param proportion Logical; whether to plot proportions (i.e. sequences summing to 1) rather than actual/normalized counts (default FALSE).
 #' @param plotLegend Logical; whether to plot the legend (default TRUE); will be plotted on a distinct frame.
-#' @param dolog Logical; whether to plot log-transformed counts (default FALSE if plotType="barplot", TRUE otherwise).
+#' @param dolog Logical; whether to plot log-transformed counts (default FALSE if plotType='barplot', TRUE otherwise).
 #' @param main Plot title, defaults to the name of the feature queried.
 #' @param alignSeqs Logical; whether to show sequences as a multiple alignment (default TRUE).
-#' @param barplotLayout a matrix populated by 1s and 2s indicating the layout for the barplot (2) and legend (1). Defaults to matrix(c(1,2,2),nrow=1). Ignored if plotType!="barplot".
+#' @param barplotLayout a matrix populated by 1s and 2s indicating the layout for the barplot (2) and legend (1). Defaults to matrix(c(1,2,2),nrow=1). Ignored if plotType!='barplot'.
 #' @param ... arguments passed to the plotting function.
 #'
 #' @return Nothings but generates plots.
 #'
 #' @export
-plotFeature <- function(o, feature = NULL, sequences = NULL, exact = TRUE, normalized = TRUE, aggregated = FALSE, plotType = "barplot", proportion = FALSE, plotLegend = TRUE, dolog = plotType != "barplot", main = feature, ylab = NULL, allowAmbiguous = FALSE, alignSeqs = !aggregated, barplotLayout = matrix(c(1, 2, 2), nrow = 1), ...) {
-  if (!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
-  if (is.null(feature) & is.null(sequences) | (!is.null(feature) & !is.null(sequences))) stop("Exactly one of `feature` or `sequences` must be given.")
+plotFeature <- function(o, feature = NULL, sequences = NULL, exact = TRUE, normalized = TRUE, aggregated = FALSE, plotType = "barplot",
+                        proportion = FALSE, plotLegend = TRUE, dolog = plotType != "barplot", main = feature, ylab = NULL, allowAmbiguous = FALSE,
+                        alignSeqs = !aggregated, barplotLayout = matrix(c(1, 2, 2), nrow = 1), ...) {
+  if (!is(o, "shortRNAexp")) {
+    stop("`o` should be an object of class `shortRNAexp`.")
+  }
+  if (is.null(feature) & is.null(sequences) | (!is.null(feature) & !is.null(sequences))) {
+    stop("Exactly one of `feature` or `sequences` must be given.")
+  }
   if (!is.null(sequences) & aggregated) {
     aggregated <- FALSE
     message("Setting `aggregated` to FALSE because `sequences` is given.")
   }
   if (!is.null(sequences) & !all(sequences %in% row.names(o@seqcounts))) {
-    stop(paste("Some of the requested sequences are not found in this object:", paste(head(setdiff(sequences, row.names(o@seqcounts))), collapse = ", ")))
+    stop(paste("Some of the requested sequences are not found in this object:", paste(head(setdiff(sequences, row.names(o@seqcounts))),
+      collapse = ", "
+    )))
   }
   plotType <- match.arg(plotType, c("barplot", "heatmap", "zheatmap"))
   if (aggregated) {
@@ -209,7 +243,9 @@ plotFeature <- function(o, feature = NULL, sequences = NULL, exact = TRUE, norma
       }
     }
   }
-  if (nrow(m) == 0) stop("Feature not found!")
+  if (nrow(m) == 0) {
+    stop("Feature not found!")
+  }
   if (nrow(m) == 1 & plotType != "barplot") {
     message("Single element... reverting to barplot.")
     plotType <- "barplot"
@@ -227,17 +263,26 @@ plotFeature <- function(o, feature = NULL, sequences = NULL, exact = TRUE, norma
   if (plotType == "barplot") {
     m <- as.matrix(m[order(rowSums(m), decreasing = T), , drop = FALSE])
     if (nrow(m) > 22) {
-      m <- as.matrix(rbind(m[1:21, ], as.data.frame(t(colSums(m[22:nrow(m), , drop = F])), row.names = paste0("other (", nrow(m) - 21, ")"))))
+      m <- as.matrix(rbind(m[1:21, ], as.data.frame(t(colSums(m[22:nrow(m), , drop = F])), row.names = paste0(
+        "other (",
+        nrow(m) - 21, ")"
+      ))))
     }
     if (proportion) {
-      if (is.null(ylab)) ylab <- "Proportion of reads assigned to feature"
+      if (is.null(ylab)) {
+        ylab <- "Proportion of reads assigned to feature"
+      }
       m <- t(t(m) / colSums(m))
     } else {
       if (dolog) {
         m <- log(m + 1)
-        if (is.null(ylab)) ylab <- paste0("log(", ifelse(normalized, "normalized read count", "read count"), ")")
+        if (is.null(ylab)) {
+          ylab <- paste0("log(", ifelse(normalized, "normalized read count", "read count"), ")")
+        }
       } else {
-        if (is.null(ylab)) ylab <- ifelse(normalized, "normalized read count", "read count")
+        if (is.null(ylab)) {
+          ylab <- ifelse(normalized, "normalized read count", "read count")
+        }
       }
     }
     cols <- getQualitativePalette(nrow(m))
@@ -247,20 +292,27 @@ plotFeature <- function(o, feature = NULL, sequences = NULL, exact = TRUE, norma
       plot.new()
 
       pp <- par("family")
-      if (alignSeqs) par(family = "mono")
+      if (alignSeqs) {
+        par(family = "mono")
+      }
       legend("topleft", fill = rev(cols), legend = rev(row.names(m)), cex = 1, bty = "n", xpd = T)
       par(family = pp)
     }
     barplot(m, col = cols, main = main, ylab = ylab, ...)
   } else {
     ra <- data.frame(row.names = row.names(m), abundance = log10(rowSums(m) + 1))
-    if (dolog) m <- log(m + 1)
+    if (dolog) {
+      m <- log(m + 1)
+    }
     if (!aggregated) {
       row.names(m) <- apply(cbind(row.names(m), o@sources[row.names(m), "cigar"]), 1, FUN = function(x) {
         capitalizeRead(x[1], x[2])
       })
     }
-    .byheatmap(m, scale = ifelse(plotType == "zheatmap", "row", "none"), annotation_row = ra, annotation_col = phenoData(o), family = ifelse(alignSeqs, "mono", par("family")), ...)
+    .byheatmap(m,
+      scale = ifelse(plotType == "zheatmap", "row", "none"), annotation_row = ra, annotation_col = phenoData(o),
+      family = ifelse(alignSeqs, "mono", par("family")), ...
+    )
   }
 }
 
@@ -270,7 +322,9 @@ plotType <- function(o, types, aggregated = FALSE, ambiguous = FALSE, scaleFeatu
     m <- getAggCounts(o, type = types, normalized = TRUE)
   } else {
     status <- "unique"
-    if (ambiguous) status <- c("unique", "ambiguous")
+    if (ambiguous) {
+      status <- c("unique", "ambiguous")
+    }
     m <- getSeqCounts(o, type = types, status = status, normalized = TRUE)
   }
   if (nrow(m) > 1000) {
@@ -278,8 +332,12 @@ plotType <- function(o, types, aggregated = FALSE, ambiguous = FALSE, scaleFeatu
     m <- m[order(rowSums(m), decreasing = T)[1:1000], ]
   }
   ra <- data.frame(row.names = row.names(m), abundance = log10(rowSums(m) + 1))
-  if (dolog) m <- log(m + 1)
-  if (is.null(showNames)) showNames <- nrow(m) < 30
+  if (dolog) {
+    m <- log(m + 1)
+  }
+  if (is.null(showNames)) {
+    showNames <- nrow(m) < 30
+  }
   .byheatmap(m, scale = ifelse(scaleFeatures, "row", "none"), annotation_row = ra, annotation_col = phenoData(o), show_rownames = showNames)
 }
 
@@ -302,12 +360,14 @@ plotType <- function(o, types, aggregated = FALSE, ambiguous = FALSE, scaleFeatu
 #'
 #' @param o An object of class shortRNAexp
 #' @param type Types of sequences to be fetched (e.g. miRNA, tRNA, etc.), fetches all by default.
-#' @param status Character vector of seq statuses to be selected (any combination of "unmapped","invalid","unknown","ambiguous", and "unique"). Defaults to all mapped sequences.
+#' @param status Character vector of seq statuses to be selected (any combination of 'unmapped','invalid','unknown','ambiguous', and 'unique'). Defaults to all mapped sequences.
 #' @param trim Logical; whether to trim the 5\% most extreme values on each side before calculating mean (default TRUE).
 #'
 #' @export
 checkSizeSelection <- function(o, type = NULL, status = c("unknown", "invalid", "ambiguous", "unique"), trim = TRUE, onlyDetectedInAll = TRUE) {
-  if (!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
+  if (!is(o, "shortRNAexp")) {
+    stop("`o` should be an object of class `shortRNAexp`.")
+  }
   layout(matrix(1:4, nrow = 2))
   plotSizeAbundance(o, type, status, normalized = F, dolog10 = F, bty = "n", main = "sum of raw counts", plotLegend = TRUE)
   plotSizeAbundance(o, type, status, normalized = T, dolog10 = F, bty = "n", main = "sum of normalized counts")
@@ -327,7 +387,7 @@ checkSizeSelection <- function(o, type = NULL, status = c("unknown", "invalid", 
 #'
 #' @param o An object of class shortRNAexp
 #' @param type Types of sequences to be fetched (e.g. miRNA, tRNA, etc.), fetches all by default.
-#' @param status Character vector of seq statuses to be selected (any combination of "unmapped","unknown","ambiguous", and "unique"). Defaults to all mapped sequences.
+#' @param status Character vector of seq statuses to be selected (any combination of 'unmapped','unknown','ambiguous', and 'unique'). Defaults to all mapped sequences.
 #' @param normalized Logical; whether to return the normalized counts (default FALSE)
 #' @param plotLengthFrequencies Logical; whether to plot the number of sequences with each length (default TRUE)
 #' @param onlyDetectedInAll Logical; whether use counts only from sequences detected in all samples (default FALSE)
@@ -337,8 +397,11 @@ checkSizeSelection <- function(o, type = NULL, status = c("unknown", "invalid", 
 #' @return Nothing, but produces a plot.
 #'
 #' @export
-plotSizeAbundance <- function(o, type = NULL, status = c("unknown", "ambiguous", "unique"), normalized = TRUE, plotLengthFrequencies = TRUE, onlyDetectedInAll = FALSE, dolog10 = FALSE, agFun = sum, plotLegend = NULL, ...) {
-  if (!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
+plotSizeAbundance <- function(o, type = NULL, status = c("unknown", "ambiguous", "unique"), normalized = TRUE, plotLengthFrequencies = TRUE,
+                              onlyDetectedInAll = FALSE, dolog10 = FALSE, agFun = sum, plotLegend = NULL, ...) {
+  if (!is(o, "shortRNAexp")) {
+    stop("`o` should be an object of class `shortRNAexp`.")
+  }
   m <- getSeqCounts(o, type, status, normalized)
   if (onlyDetectedInAll) {
     m <- m[which(apply(m, 1, FUN = function(x) {
@@ -369,12 +432,17 @@ plotSizeAbundance <- function(o, type = NULL, status = c("unknown", "ambiguous",
   if (plotLengthFrequencies) {
     ln <- aggregate(sl, by = list(sl), FUN = length)
     ln[, 2] <- ln[, 2] * max(y) / max(ln[, 2])
-    plot(ln[, 1], ln[, 2], type = "l", lty = "dashed", lwd = 3, col = "lightgrey", xlab = "length", ylab = ylab, ylim = range(y), ...)
+    plot(ln[, 1], ln[, 2],
+      type = "l", lty = "dashed", lwd = 3, col = "lightgrey", xlab = "length", ylab = ylab, ylim = range(y),
+      ...
+    )
   } else {
     plot(0, 0, col = "white", xlab = "length", ylab = ylab, ylim = range(y), ...)
   }
   for (i in 1:nrow(y)) lines(x, y[i, ], type = "b", pch = pch, col = cols[i], lwd = lwd)
-  if (is.null(plotLegend)) plotLegend <- nrow(y) <= 5
+  if (is.null(plotLegend)) {
+    plotLegend <- nrow(y) <= 5
+  }
   if (plotLegend) {
     legend("topleft", bty = "n", fill = cols, legend = row.names(y))
   }
@@ -399,28 +467,75 @@ getQualitativePalette <- function(nbcolors) {
     return(rainbow_hcl(nbcolors))
   }
   switch(as.character(nbcolors),
-    "1" = c("#4477AA"),
-    "2" = c("#4477AA", "#CC6677"),
-    "3" = c("#4477AA", "#DDCC77", "#CC6677"),
-    "4" = c("#4477AA", "#117733", "#DDCC77", "#CC6677"),
-    "5" = c("#332288", "#88CCEE", "#117733", "#DDCC77", "#CC6677"),
-    "6" = c("#332288", "#88CCEE", "#117733", "#DDCC77", "#CC6677", "#AA4499"),
-    "7" = c("#332288", "#88CCEE", "#44AA99", "#117733", "#DDCC77", "#CC6677", "#AA4499"),
-    "8" = c("#332288", "#88CCEE", "#44AA99", "#117733", "#999933", "#DDCC77", "#CC6677", "#AA4499"),
-    "9" = c("#332288", "#88CCEE", "#44AA99", "#117733", "#999933", "#DDCC77", "#CC6677", "#882255", "#AA4499"),
-    "10" = c("#332288", "#88CCEE", "#44AA99", "#117733", "#999933", "#DDCC77", "#661100", "#CC6677", "#882255", "#AA4499"),
-    "11" = c("#332288", "#6699CC", "#88CCEE", "#44AA99", "#117733", "#999933", "#DDCC77", "#661100", "#CC6677", "#882255", "#AA4499"),
-    "12" = c("#332288", "#6699CC", "#88CCEE", "#44AA99", "#117733", "#999933", "#DDCC77", "#661100", "#CC6677", "#AA4466", "#882255", "#AA4499"),
-    "13" = c("#882E72", "#B178A6", "#1965B0", "#5289C7", "#7BAFDE", "#4EB265", "#90C987", "#CAE0AB", "#F7EE55", "#F6C141", "#F1932D", "#E8601C", "#DC050C"),
-    "14" = c("#882E72", "#B178A6", "#D6C1DE", "#1965B0", "#5289C7", "#7BAFDE", "#4EB265", "#90C987", "#CAE0AB", "#F7EE55", "#F6C141", "#F1932D", "#E8601C", "#DC050C"),
-    "15" = c("#114477", "#4477AA", "#77AADD", "#117755", "#44AA88", "#99CCBB", "#777711", "#AAAA44", "#DDDD77", "#771111", "#AA4444", "#DD7777", "#771144", "#AA4477", "#DD77AA"),
-    "16" = c("#114477", "#4477AA", "#77AADD", "#117755", "#44AA88", "#99CCBB", "#777711", "#AAAA44", "#DDDD77", "#771111", "#AA4444", "#DD7777", "#771144", "#AA4477", "#DD77AA", "black"),
-    "17" = c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#DD7788"),
-    "18" = c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#77CCCC", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#DD7788"),
-    "19" = c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#77CCCC", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#DD7788", "black"),
-    "20" = c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#117744", "#44AA77", "#88CCAA", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#DD7788"),
-    "21" = c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#77CCCC", "#117744", "#44AA77", "#88CCAA", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#DD7788"),
-    "22" = c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#77CCCC", "#117744", "#44AA77", "#88CCAA", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#DD7788", "black"),
+    `1` = c("#4477AA"),
+    `2` = c("#4477AA", "#CC6677"),
+    `3` = c("#4477AA", "#DDCC77", "#CC6677"),
+    `4` = c("#4477AA", "#117733", "#DDCC77", "#CC6677"),
+    `5` = c("#332288", "#88CCEE", "#117733", "#DDCC77", "#CC6677"),
+    `6` = c("#332288", "#88CCEE", "#117733", "#DDCC77", "#CC6677", "#AA4499"),
+    `7` = c(
+      "#332288", "#88CCEE", "#44AA99", "#117733",
+      "#DDCC77", "#CC6677", "#AA4499"
+    ),
+    `8` = c(
+      "#332288", "#88CCEE", "#44AA99", "#117733", "#999933", "#DDCC77", "#CC6677",
+      "#AA4499"
+    ),
+    `9` = c("#332288", "#88CCEE", "#44AA99", "#117733", "#999933", "#DDCC77", "#CC6677", "#882255", "#AA4499"),
+    `10` = c("#332288", "#88CCEE", "#44AA99", "#117733", "#999933", "#DDCC77", "#661100", "#CC6677", "#882255", "#AA4499"),
+    `11` = c(
+      "#332288", "#6699CC", "#88CCEE", "#44AA99", "#117733", "#999933", "#DDCC77", "#661100", "#CC6677", "#882255",
+      "#AA4499"
+    ),
+    `12` = c(
+      "#332288", "#6699CC", "#88CCEE", "#44AA99", "#117733", "#999933", "#DDCC77", "#661100", "#CC6677",
+      "#AA4466", "#882255", "#AA4499"
+    ),
+    `13` = c(
+      "#882E72", "#B178A6", "#1965B0", "#5289C7", "#7BAFDE", "#4EB265", "#90C987",
+      "#CAE0AB", "#F7EE55", "#F6C141", "#F1932D", "#E8601C", "#DC050C"
+    ),
+    `14` = c(
+      "#882E72", "#B178A6", "#D6C1DE", "#1965B0",
+      "#5289C7", "#7BAFDE", "#4EB265", "#90C987", "#CAE0AB", "#F7EE55", "#F6C141", "#F1932D", "#E8601C", "#DC050C"
+    ),
+    `15` = c(
+      "#114477",
+      "#4477AA", "#77AADD", "#117755", "#44AA88", "#99CCBB", "#777711", "#AAAA44", "#DDDD77", "#771111", "#AA4444", "#DD7777",
+      "#771144", "#AA4477", "#DD77AA"
+    ),
+    `16` = c(
+      "#114477", "#4477AA", "#77AADD", "#117755", "#44AA88", "#99CCBB", "#777711",
+      "#AAAA44", "#DDDD77", "#771111", "#AA4444", "#DD7777", "#771144", "#AA4477", "#DD77AA", "black"
+    ),
+    `17` = c(
+      "#771155",
+      "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#777711", "#AAAA44", "#DDDD77", "#774411",
+      "#AA7744", "#DDAA77", "#771122", "#AA4455", "#DD7788"
+    ),
+    `18` = c(
+      "#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA",
+      "#77AADD", "#117777", "#44AAAA", "#77CCCC", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122",
+      "#AA4455", "#DD7788"
+    ),
+    `19` = c(
+      "#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA",
+      "#77CCCC", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#DD7788", "black"
+    ),
+    `20` = c(
+      "#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#117744", "#44AA77",
+      "#88CCAA", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#DD7788"
+    ),
+    `21` = c(
+      "#771155",
+      "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#77CCCC", "#117744", "#44AA77", "#88CCAA",
+      "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#DD7788"
+    ),
+    `22` = c(
+      "#771155",
+      "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#77CCCC", "#117744", "#44AA77", "#88CCAA",
+      "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#DD7788", "black"
+    ),
     stop("Max 22 colors")
   )
 }
@@ -484,11 +599,17 @@ autoLayout <- function(nb, byrow = FALSE) {
 #'
 #' @export
 volcano <- function(res, writeTop = 0, useUncorrected = FALSE) {
-  if (class(res) != "data.frame") stop("`res` should be a data.frame.")
+  if (class(res) != "data.frame") {
+    stop("`res` should be a data.frame.")
+  }
   fdr <- ifelse(useUncorrected, .getPvalField(res), .getFDRfield(res))
-  LSD::heatscatter(res$logFC, -log10(res[[fdr]]), xlab = "log2(foldchange)", ylab = ifelse(useUncorrected, "-log10(p-value)", "-log10(FDR)"), bty = "n", main = "")
+  LSD::heatscatter(res$logFC, -log10(res[[fdr]]), xlab = "log2(foldchange)", ylab = ifelse(useUncorrected, "-log10(p-value)",
+    "-log10(FDR)"
+  ), bty = "n", main = "")
   abline(h = -log10(0.05), lty = "dashed")
-  if (writeTop > 0) text(res$logFC[1:writeTop], -log10(res[[fdr]][1:writeTop]), labels = row.names(res)[1:writeTop], xpd = TRUE)
+  if (writeTop > 0) {
+    text(res$logFC[1:writeTop], -log10(res[[fdr]][1:writeTop]), labels = row.names(res)[1:writeTop], xpd = TRUE)
+  }
 }
 
 
@@ -503,7 +624,9 @@ volcano <- function(res, writeTop = 0, useUncorrected = FALSE) {
 #'
 #' @export
 plotGC <- function(o, aggregateSamples = FALSE, ...) {
-  if (!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
+  if (!is(o, "shortRNAexp")) {
+    stop("`o` should be an object of class `shortRNAexp`.")
+  }
   m <- getSeqCounts(o, ...)
   gc <- .gcContents(row.names(m))
   if (aggregateSamples) {
@@ -539,13 +662,17 @@ msaWrapper <- function(seqs) {
 #'
 #' @export
 plotClipping <- function(o) {
-  if (!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
+  if (!is(o, "shortRNAexp")) {
+    stop("`o` should be an object of class `shortRNAexp`.")
+  }
   layout(matrix(1:2, nrow = 1))
   sc <- sapply(o@sources$cigar, FUN = function(x) {
     x <- .splitCigar(x)
     sum(as.numeric(x[which(x[, 1] %in% c("H", "S")), 2]))
   })
-  if (all(sc == 0)) stop("There does not seem to have been any soft-clipping allowed in this alignment.")
+  if (all(sc == 0)) {
+    stop("There does not seem to have been any soft-clipping allowed in this alignment.")
+  }
   d2 <- aggregate(o@seqcounts[row.names(o@sources), ], by = list(clipping = sc), FUN = sum)
   row.names(d2) <- as.character(d2[, 1])
   d2[, 1] <- NULL
@@ -578,7 +705,9 @@ plotClipping <- function(o) {
 #'
 #' @export
 plotAlignStats <- function(o) {
-  if (!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
+  if (!is(o, "shortRNAexp")) {
+    stop("`o` should be an object of class `shortRNAexp`.")
+  }
   if (is.null(nrow(o@alignStats$uniqueSeqs)) || nrow(o@alignStats$uniqueSeqs) == 1) {
     m <- cbind(o@alignStats$uniqueSeqs, o@alignStats$reads)
     colnames(m)[1] <- "unique\nseqs"

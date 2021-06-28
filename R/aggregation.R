@@ -9,36 +9,45 @@
 #'
 #' @export
 aggregateSequences <- function(o, quiet = FALSE) {
-  if (!quiet) message("- sequences of unique origins")
+  if (!quiet) {
+    message("- sequences of unique origins")
+  }
   o <- .aggUnambiguous(o)
 
-  if (!quiet) message("- sequences of ambiguous origins")
+  if (!quiet) {
+    message("- sequences of ambiguous origins")
+  }
   o <- .aggAmbiguous(o)
 
   return(o)
 }
 
 .aggUnambiguous <- function(o) {
-  if (!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
+  if (!is(o, "shortRNAexp")) {
+    stop("`o` should be an object of class `shortRNAexp`.")
+  }
   m <- o@seqcounts
   sources <- o@sources
   l1 <- .doag(m, sources, which(sources$status == "unique"))
   l2 <- .doag(m, sources, which(sources$transcript_type %in% c("tRNA", tRNAtype()) & sources$status == "unique"), nFUN = .tRNAbasename)
-  l3a <- .doag(m, sources, which(sources$transcript_type == "miRNA" & sources$status == "unique" & !grepl(";", sources$transcript_id)), by = "transcript_id")
+  l3a <- .doag(m, sources, which(sources$transcript_type == "miRNA" & sources$status == "unique" & !grepl(";", sources$transcript_id)),
+    by = "transcript_id"
+  )
   l3b <- .doag(m, sources, which(sources$transcript_type == "miRNA" & sources$status == "unique"), nFUN = .miRNAbasename)
   l4 <- .doag(m, sources, which(sources$transcript_type == "miRNA" & sources$status == "unique"), nFUN = function(x) {
     .miRNAbasename(x, T)
   })
   w <- which(sources$transcript_type %in% tRNAtype() & sources$status == "unique")
-  l5 <- list(
-    os = sources$gene_id[w],
-    as = paste(.tRNAbasename(sources$gene_id[w]), gsub("^tRNA_", "", sources$transcript_type[w]), sep = "_"),
-    ss = row.names(sources)[w]
-  )
+  l5 <- list(os = sources$gene_id[w], as = paste(.tRNAbasename(sources$gene_id[w]), gsub("^tRNA_", "", sources$transcript_type[w]),
+    sep = "_"
+  ), ss = row.names(sources)[w])
   l5$ag <- aggregate(m[l5$ss, , drop = F], by = list(l5$as), FUN = sum)
   l5$tt <- as.character(sources$transcript_type[w])
 
-  ag <- aggregate(rbind(l1$ag, l2$ag, l3a$ag, l3b$ag, l4$ag, l5$ag)[, -1, drop = F], by = list(c(l1$ag[, 1], l2$ag[, 1], l3a$ag[, 1], l3b$ag[, 1], l4$ag[, 1], l5$ag[, 1])), FUN = max)
+  ag <- aggregate(rbind(l1$ag, l2$ag, l3a$ag, l3b$ag, l4$ag, l5$ag)[, -1, drop = F], by = list(c(l1$ag[, 1], l2$ag[, 1], l3a$ag[
+    ,
+    1
+  ], l3b$ag[, 1], l4$ag[, 1], l5$ag[, 1])), FUN = max)
   row.names(ag) <- ag[, 1]
   ag[, 1] <- NULL
 
@@ -97,7 +106,9 @@ aggregateSequences <- function(o, quiet = FALSE) {
         if (all(grepl("5p", sr$transcript_type))) {
           type <- "5p_fragment"
         } else {
-          if (all(grepl("3p", sr$transcript_type))) type <- "3p_fragment"
+          if (all(grepl("3p", sr$transcript_type))) {
+            type <- "3p_fragment"
+          }
         }
       }
       if (!is.null(type)) {

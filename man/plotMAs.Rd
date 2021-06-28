@@ -22,7 +22,7 @@ plotMAs(
 
 \item{type}{Types of sequences to be fetched (e.g. miRNA, tRNA, etc.), fetches all by default.}
 
-\item{status}{Character vector of seq statuses to be selected (any combination of "unmapped","unknown","ambiguous", and "unique"). Fetches all mapped by default.}
+\item{status}{Character vector of seq statuses to be selected (any combination of 'unmapped','unknown','ambiguous', and 'unique'). Fetches all mapped by default.}
 
 \item{absfc}{Logical; whether to plot absolute log2-foldchange instead of log2-foldchange (default FALSE)}
 

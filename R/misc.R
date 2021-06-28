@@ -7,7 +7,9 @@
   }
   if (tryCatch(require("doParallel", character.only = TRUE), error = function(e) FALSE)) {
     library(doParallel)
-    if (is.null(ncores)) ncores <- min(detectCores() - 1, maxCores)
+    if (is.null(ncores)) {
+      ncores <- min(detectCores() - 1, maxCores)
+    }
     if (ncores > 1) {
       cl <- makeForkCluster(nnodes = ncores, outfile = "")
       registerDoParallel(cl)
@@ -98,14 +100,15 @@ capitalizeRead <- function(read, cigar, indels = FALSE) {
       }
     }
   }
-  if (!is.null(hyph)) .rehyphenate(read, hyph) ## Please see the .rehypernate function below
+  if (!is.null(hyph)) {
+    .rehyphenate(read, hyph)
+  } ## Please see the .rehypernate function below
   return(paste(read, collapse = ""))
 }
 
 
 
-## Function to split the cigar string.
-### This is used in `capitalizeRead` function
+## Function to split the cigar string.  This is used in `capitalizeRead` function
 .splitCigar <- function(cigar) {
   cigar <- as.character(cigar)
   p <- gregexpr("([0-9]*[MSXIH])", cigar)[[1]]
@@ -117,8 +120,7 @@ capitalizeRead <- function(read, cigar, indels = FALSE) {
 }
 
 
-## Function to rehypernate the read
-### This is used in `capitalizeRead` function
+## Function to rehypernate the read This is used in `capitalizeRead` function
 
 .rehyphenate <- function(r, h) {
   r2 <- r
@@ -137,44 +139,97 @@ capitalizeRead <- function(read, cigar, indels = FALSE) {
 }
 
 # use instead of `stop` to log the error and traceback
-.fstop <- function(x, object=NULL){
+.fstop <- function(x, object = NULL) {
   futile.logger::flog.error(x)
   futile.logger::flog.trace(traceback(4))
-  object <- futile.logger::ftry(object, error=function(x) NULL)
-  if(!is.null(object)) 
-    futile.logger::flog.trace("Offending object:", object, capture=TRUE)
-  stop(x, call.=FALSE)
+  object <- futile.logger::ftry(object, error = function(x) NULL)
+  if (!is.null(object)) {
+    futile.logger::flog.trace("Offending object:", object, capture = TRUE)
+  }
+  stop(x, call. = FALSE)
 }
 
 
 
-.fcheck <- function(x, fatal=TRUE, object=NULL){
+.fcheck <- function(x, fatal = TRUE, object = NULL) {
   cmd <- deparse(substitute(x))
-  x <- tryCatch( x, 
-                 warning=function(w) futile.logger::flog.warn(w), 
-                 error=function(e) .fstop(paste0("Error in `", cmd, "`: ", e$message))
-                )
-  msg <- paste0("(",cmd,") = ", x)
-  if(x || !fatal){
+  x <- tryCatch(x, warning = function(w) futile.logger::flog.warn(w), error = function(e) {
+    .fstop(paste0(
+      "Error in `", cmd,
+      "`: ", e$message
+    ))
+  })
+  msg <- paste0("(", cmd, ") = ", x)
+  if (x || !fatal) {
     futile.logger::flog.trace(msg)
     return(x)
   }
-  .fstop(msg, object=tryCatch( object, error=function(e) NULL))
+  .fstop(msg, object = tryCatch(object, error = function(e) NULL))
 }
 
 
-.fstop <- function(x, object=NULL){
+.fstop <- function(x, object = NULL) {
   cmd <- deparse(substitute(x))
-  x <- futile.logger::ftry(x, error=function(e) stop(e$message, call.=TRUE))
-  if(!is.null(x) && length(x)==1 && is.logical(x)){
-    if(x) return(invisible(TRUE))
-    x <- paste0("(",cmd,") == ", x)
+  x <- futile.logger::ftry(x, error = function(e) stop(e$message, call. = TRUE))
+  if (!is.null(x) && length(x) == 1 && is.logical(x)) {
+    if (x) {
+      return(invisible(TRUE))
+    }
+    x <- paste0("(", cmd, ") == ", x)
   }
   futile.logger::flog.error(x)
   futile.logger::flog.trace(traceback(4))
-  object <- futile.logger::ftry(object, error=function(e) NULL)
-  if(!is.null(object)) 
-    futile.logger::flog.trace("Offending object:", object, capture=TRUE)
-  stop(x, call.=FALSE)
+  object <- futile.logger::ftry(object, error = function(e) NULL)
+  if (!is.null(object)) {
+    futile.logger::flog.trace("Offending object:", object, capture = TRUE)
+  }
+  stop(x, call. = FALSE)
+}
+
+
+#' Run `lapply` function in parallel, if possible.
+#' @author Deepak Tanwar (tanward@ethz.ch)
+#'
+#' @import parallel
+#'
+#' @param any parameters for `lapply` or `mclapply`
+#' @return A `list`.
+#'
+#' @export
+mylapply <- function(...) {
+  if (require(parallel) && .Platform$OS.type == "unix") {
+    mclapply(..., mc.cores = detectCores(), mc.preschedule = F)
+  } else {
+    lapply(...)
+  }
+}
+
+
+
+#' longestCommonString
+#'
+#' Finds the longest common part of a set of character strings
+#'
+#' @param x A character vector
+#' @param delim The delimiter (by default, splits all letters)
+#'
+#' @return A character vector of length 1
+#'
+#' @examples
+#' a <- c("B1/B2/B3", "B1/B2/B3/B4", "B1/B2/B5")
+#' longestCommonString(a, "/")
+longestCommonString <- function(x, delim = "") {
+  if (length(x) == 1) {
+    return(x)
+  }
+  tmp <- strsplit(as.character(x), delim, fixed = TRUE)
+  if (any(lengths(tmp) == 1)) {
+    return("")
+  }
+  i <- 0
+  while (length(unique(vapply(tmp, FUN.VALUE = character(1), FUN = function(x) x[i + 1]))) == 1) {
+    i <- i + 1
+  }
+  paste(tmp[[1]][seq_len(i)], collapse = delim)
 }
 

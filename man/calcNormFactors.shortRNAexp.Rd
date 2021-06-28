@@ -15,7 +15,7 @@ calcNormFactors.shortRNAexp(
 \arguments{
 \item{object}{An object of class shortRNAexp}
 
-\item{method}{Normalization method (any accepted by edgeR). Defaults to "TMM".}
+\item{method}{Normalization method (any accepted by edgeR). Defaults to 'TMM'.}
 
 \item{normalizeOnType}{Types of sequences (e.g. miRNA, tRNA, etc.) to consider for calculating normalization factors (default all).}
 

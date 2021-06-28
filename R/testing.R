@@ -5,10 +5,10 @@
 #' @param o An object of class shortRNAexp
 #' @param formula The formula to test. Either this or `groups` should be given.
 #' @param groups Either NULL (if `formula` is given), or the name of a column in phenoData, or a vector of length equal to the number of samples.
-#' @param method DEA method, either "edgeR", "voom", or "DESeq2".
+#' @param method DEA method, either 'edgeR', 'voom', or 'DESeq2'.
 #' @param types The types of RNA to test (default all). A separate analysis will anyway be performed for miRNAs and piRNAs, but this parameter dictates the RNAs that are included in the global analyses.
 #' @param normalizeByType Logical; whether each RNA type should be analyzed on its own (default FALSE). If TRUE, the default normalization method is used.
-#' @param replicates An optional vector indicating (technical or 'incomplete') replicates (ignored unless method="voom")
+#' @param replicates An optional vector indicating (technical or 'incomplete') replicates (ignored unless method='voom')
 #' @param forceGLM Whether to force using GLM even when doing a simple comparison between two groups.
 #' @param coef Coefficient to be tested (defaults to the last one of the formula).
 #' @param ... Further arguments passed to the removeCorrelatedFeatures function.
@@ -16,21 +16,37 @@
 #' @return A list containing the DEA results on different sets of features.
 #'
 #' @export
-runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = NULL, normalizeByType = FALSE, replicates = NULL, forceGLM = FALSE, coef = NULL, filterFun = function(x) {
+runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = NULL, normalizeByType = FALSE, replicates = NULL,
+                   forceGLM = FALSE, coef = NULL, filterFun = function(x) {
                      sum(x > 20) > 2
                    }, ...) {
-  if (!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
-  if (any(is.na(o@norm$norm.factors))) stop("Run `calcNormFactors` first.")
+  if (!is(o, "shortRNAexp")) {
+    stop("`o` should be an object of class `shortRNAexp`.")
+  }
+  if (any(is.na(o@norm$norm.factors))) {
+    stop("Run `calcNormFactors` first.")
+  }
   method <- match.arg(method, c("voom", "edgeR", "DESeq2"))
-  if (method %in% c("voom", "edgeR")) library(edgeR)
-
-  if (!is.null(formula)) {
-    if (class(formula) == "character") formula <- as.formula(formula)
+  if (method %in% c("voom", "edgeR")) {
+    library(edgeR)
   }
 
-  res <- list(seqLevel = list(), aggregated = list(), info = list(types = types, norm = o@norm[c("method", "onType", "onStatus")], DEA.call = match.call(), assignmentRules = o@rules, phenoData = phenoData(o)))
-  if (is.null(res$info$DEA.call$method)) res$info$DEA.call$method <- "edgeR"
-  if (is.null(res$info$DEA.call$formula)) res$info$DEA.call$formula <- NA
+  if (!is.null(formula)) {
+    if (class(formula) == "character") {
+      formula <- as.formula(formula)
+    }
+  }
+
+  res <- list(seqLevel = list(), aggregated = list(), info = list(
+    types = types, norm = o@norm[c("method", "onType", "onStatus")],
+    DEA.call = match.call(), assignmentRules = o@rules, phenoData = phenoData(o)
+  ))
+  if (is.null(res$info$DEA.call$method)) {
+    res$info$DEA.call$method <- "edgeR"
+  }
+  if (is.null(res$info$DEA.call$formula)) {
+    res$info$DEA.call$formula <- NA
+  }
 
 
   if (o@norm$method == "cqn") {
@@ -43,28 +59,64 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
   if (normalizeByType) {
     message("normalizeByType=T; only miRNA and tRNA fragments will be tested.")
 
-    res$seqLevel$miRNA <- .deaWrapper(method, getSeqCounts(o, type = "miRNA", status = "unique", formatCase = T), calcNormFactors.shortRNAexp(o, normalizeOnType = "miRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
-    res$seqLevel$tRNA <- .deaWrapper(method, getSeqCounts(o, type = "tRNA", status = "unique", formatCase = T), calcNormFactors.shortRNAexp(o, normalizeOnType = "tRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
+    res$seqLevel$miRNA <- .deaWrapper(method, getSeqCounts(o, type = "miRNA", status = "unique", formatCase = T), calcNormFactors.shortRNAexp(o,
+      normalizeOnType = "miRNA"
+    ), filterFun, formula, groups, forceGLM, coef, replicates)
+    res$seqLevel$tRNA <- .deaWrapper(method, getSeqCounts(o, type = "tRNA", status = "unique", formatCase = T), calcNormFactors.shortRNAexp(o,
+      normalizeOnType = "tRNA"
+    ), filterFun, formula, groups, forceGLM, coef, replicates)
     res$seqLevel$tRNA$name <- o@sources[toupper(row.names(res$seqLevel$tRNA)), "gene_id"]
-    res$aggregated$miRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type = "miRNA", ambiguous = FALSE), o, ...), calcNormFactors.shortRNAexp(o, normalizeOnType = "miRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
-    res$aggregated$tRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type = "tRNA", ambiguous = FALSE), o, ...), calcNormFactors.shortRNAexp(o, normalizeOnType = "tRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
+    res$aggregated$miRNA <- .deaWrapper(method, removeCorrelatedFeatures(
+      getAggCounts(o, type = "miRNA", ambiguous = FALSE),
+      o, ...
+    ), calcNormFactors.shortRNAexp(o, normalizeOnType = "miRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
+    res$aggregated$tRNA <- .deaWrapper(method, removeCorrelatedFeatures(
+      getAggCounts(o, type = "tRNA", ambiguous = FALSE),
+      o, ...
+    ), calcNormFactors.shortRNAexp(o, normalizeOnType = "tRNA"), filterFun, formula, groups, forceGLM, coef, replicates)
   } else {
-    res$seqLevel$miRNA <- .deaWrapper(method, getSeqCounts(o, type = "miRNA", status = "unique", formatCase = T), o, filterFun, formula, groups, forceGLM, coef, replicates)
-    res$seqLevel$tRNA <- .deaWrapper(method, getSeqCounts(o, type = "tRNA", status = "unique", formatCase = T), o, filterFun, formula, groups, forceGLM, coef, replicates)
+    res$seqLevel$miRNA <- .deaWrapper(
+      method, getSeqCounts(o, type = "miRNA", status = "unique", formatCase = T), o, filterFun,
+      formula, groups, forceGLM, coef, replicates
+    )
+    res$seqLevel$tRNA <- .deaWrapper(
+      method, getSeqCounts(o, type = "tRNA", status = "unique", formatCase = T), o, filterFun,
+      formula, groups, forceGLM, coef, replicates
+    )
     res$seqLevel$tRNA$name <- o@sources[toupper(row.names(res$seqLevel$tRNA)), "gene_id"]
     res$seqLevel$primary_piRNA <- NULL
     if ("primary_piRNA" %in% row.names(o@composition$raw$all)) {
-      res$seqLevel$primary_piRNA <- .deaWrapper(method, getSeqCounts(o, type = "primary_piRNA", status = "unique", formatCase = T), o, filterFun, formula, groups, forceGLM, coef, replicates)
-      if (!is.null(res$seqLevel$primary_piRNA)) res$seqLevel$primary_piRNA$name <- o@sources[toupper(row.names(res$seqLevel$primary_piRNA)), "gene_id"]
+      res$seqLevel$primary_piRNA <- .deaWrapper(
+        method, getSeqCounts(o, type = "primary_piRNA", status = "unique", formatCase = T),
+        o, filterFun, formula, groups, forceGLM, coef, replicates
+      )
+      if (!is.null(res$seqLevel$primary_piRNA)) {
+        res$seqLevel$primary_piRNA$name <- o@sources[toupper(row.names(res$seqLevel$primary_piRNA)), "gene_id"]
+      }
     }
-    res$seqLevel$allKnownUnique <- .deaWrapper(method, getSeqCounts(o, type = types, status = "unique", formatCase = T), o, filterFun, formula, groups, forceGLM, coef, replicates)
+    res$seqLevel$allKnownUnique <- .deaWrapper(
+      method, getSeqCounts(o, type = types, status = "unique", formatCase = T),
+      o, filterFun, formula, groups, forceGLM, coef, replicates
+    )
     res$seqLevel$allKnownUnique$name <- o@sources[toupper(row.names(res$seqLevel$allKnownUnique)), "gene_id"]
-    res$seqLevel$ambiguous <- .deaWrapper(method, getSeqCounts(o, type = types, status = "ambiguous", formatCase = T), o, filterFun, formula, groups, forceGLM, coef, replicates)
+    res$seqLevel$ambiguous <- .deaWrapper(
+      method, getSeqCounts(o, type = types, status = "ambiguous", formatCase = T), o,
+      filterFun, formula, groups, forceGLM, coef, replicates
+    )
     res$seqLevel$ambiguous$name <- o@sources[toupper(row.names(res$seqLevel$ambiguous)), "gene_id"]
-    res$seqLevel$unknown <- .deaWrapper(method, getSeqCounts(o, status = "unknown", formatCase = T), o, filterFun, formula, groups, forceGLM, coef, replicates)
+    res$seqLevel$unknown <- .deaWrapper(
+      method, getSeqCounts(o, status = "unknown", formatCase = T), o, filterFun, formula,
+      groups, forceGLM, coef, replicates
+    )
 
-    res$aggregated$miRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type = "miRNA", ambiguous = FALSE), o, ...), o, filterFun, formula, groups, forceGLM, coef, replicates)
-    res$aggregated$tRNA <- .deaWrapper(method, removeCorrelatedFeatures(getAggCounts(o, type = "tRNA", ambiguous = FALSE), o, ...), o, filterFun, formula, groups, forceGLM, coef, replicates)
+    res$aggregated$miRNA <- .deaWrapper(method, removeCorrelatedFeatures(
+      getAggCounts(o, type = "miRNA", ambiguous = FALSE),
+      o, ...
+    ), o, filterFun, formula, groups, forceGLM, coef, replicates)
+    res$aggregated$tRNA <- .deaWrapper(method, removeCorrelatedFeatures(
+      getAggCounts(o, type = "tRNA", ambiguous = FALSE),
+      o, ...
+    ), o, filterFun, formula, groups, forceGLM, coef, replicates)
     res$aggregated$primary_piRNA <- NULL
     res$aggregated$piRNA_clusters <- NULL
 
@@ -84,7 +136,10 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
         res$aggregated$piRNA_clusters <- .deaWrapper(method, ag, o, filterFun, formula, groups, forceGLM, coef, replicates)
       }
     }
-    res$aggregated$allUnique <- .deaWrapper(method, getAggCounts(o, type = types, ambiguous = FALSE), o, filterFun, formula, groups, forceGLM, coef, replicates)
+    res$aggregated$allUnique <- .deaWrapper(
+      method, getAggCounts(o, type = types, ambiguous = FALSE), o, filterFun, formula,
+      groups, forceGLM, coef, replicates
+    )
     e <- getAggCounts(o, type = types, ambiguous = TRUE)
     e <- e[setdiff(row.names(e), row.names(res$aggregated$allUnique)), ]
     res$aggregated$ambiguous <- try(.deaWrapper(method, e, o, filterFun, formula, groups, forceGLM, coef, replicates), silent = T)
@@ -99,17 +154,23 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
   }
   return(switch(method,
     edgeR = .edgeRwrapper(e, o, formula, groups, forceGLM, coef),
-    voom = .voomWrapper(e, o, formula, groups, coef, replicates),
+    voom = .voomWrapper(
+      e, o, formula, groups,
+      coef, replicates
+    ),
     DESeq2 = .deseq2Wrapper(e, o, formula = formula, groups = groups, coef = coef),
     stop("Unknown DEA method requested.")
   ))
 }
 
 .edgeRwrapper <- function(e, o, formula = NULL, groups = NULL, forceGLM = FALSE, coef = NULL) {
-  if (!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
-  if (any(is.na(o@norm$norm.factors))) stop("Run `calcNormFactors` first.")
-  if ((!is.null(formula) & !is.null(groups))
-  | (is.null(formula) & is.null(groups))) {
+  if (!is(o, "shortRNAexp")) {
+    stop("`o` should be an object of class `shortRNAexp`.")
+  }
+  if (any(is.na(o@norm$norm.factors))) {
+    stop("Run `calcNormFactors` first.")
+  }
+  if ((!is.null(formula) & !is.null(groups)) | (is.null(formula) & is.null(groups))) {
     stop("Exactly one of `formula` or `groups` must be given.")
   }
   if (is.null(groups)) {
@@ -123,7 +184,9 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
         stop("`groups` should either be the name of a column in phenoData, or a vector of length equal to the number of samples.")
       }
     } else {
-      if (length(groups) != ncol(e)) stop("`groups` should either be the name of a column in phenoData, or a vector of length equal to the number of samples.")
+      if (length(groups) != ncol(e)) {
+        stop("`groups` should either be the name of a column in phenoData, or a vector of length equal to the number of samples.")
+      }
     }
     if (forceGLM | o@norm$method == "cqn") {
       mm <- model.matrix(~groups)
@@ -152,10 +215,13 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
 }
 
 .deseq2wrapper <- function(e, o, formula = NULL, groups = NULL, coef = NULL) {
-  if (!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
-  if (any(is.na(o@norm$norm.factors))) stop("Run `calcNormFactors` first.")
-  if ((!is.null(formula) & !is.null(groups))
-  | (is.null(formula) & is.null(groups))) {
+  if (!is(o, "shortRNAexp")) {
+    stop("`o` should be an object of class `shortRNAexp`.")
+  }
+  if (any(is.na(o@norm$norm.factors))) {
+    stop("Run `calcNormFactors` first.")
+  }
+  if ((!is.null(formula) & !is.null(groups)) | (is.null(formula) & is.null(groups))) {
     stop("Exactly one of `formula` or `groups` must be given.")
   }
   pd <- as.data.frame(phenoData(o))
@@ -165,12 +231,16 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
         stop("`groups` should either be the name of a column in phenoData, or a vector of length equal to the number of samples.")
       }
     } else {
-      if (length(groups) != ncol(e)) stop("`groups` should either be the name of a column in phenoData, or a vector of length equal to the number of samples.")
+      if (length(groups) != ncol(e)) {
+        stop("`groups` should either be the name of a column in phenoData, or a vector of length equal to the number of samples.")
+      }
       pd$groups <- groups
     }
     formula <- ~groups
   }
-  if (o@norm$method == "cqn") stop("cqn normalization is not currently supported with DESeq")
+  if (o@norm$method == "cqn") {
+    stop("cqn normalization is not currently supported with DESeq")
+  }
   library(DESeq2)
   dds <- DESeqDataSetFromMatrix(floor(as.matrix(e)), colData = pd, design = formula)
   sizeFactors(dds) <- 1 / (o@norm$norm.factors / o@norm$lib.sizes * mean(o@norm$lib.sizes))
@@ -184,10 +254,13 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
 
 
 .voomWrapper <- function(e, o, formula = NULL, groups = NULL, coef = NULL, replicates = NULL) {
-  if (!is(o, "shortRNAexp")) stop("`o` should be an object of class `shortRNAexp`.")
-  if (any(is.na(o@norm$norm.factors))) stop("Run `calcNormFactors` first.")
-  if ((!is.null(formula) & !is.null(groups))
-  | (is.null(formula) & is.null(groups))) {
+  if (!is(o, "shortRNAexp")) {
+    stop("`o` should be an object of class `shortRNAexp`.")
+  }
+  if (any(is.na(o@norm$norm.factors))) {
+    stop("Run `calcNormFactors` first.")
+  }
+  if ((!is.null(formula) & !is.null(groups)) | (is.null(formula) & is.null(groups))) {
     stop("Exactly one of `formula` or `groups` must be given.")
   }
   if (is.null(groups)) {
@@ -200,7 +273,9 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
         stop("`groups` should either be the name of a column in phenoData, or a vector of length equal to the number of samples.")
       }
     } else {
-      if (length(groups) != ncol(e)) stop("`groups` should either be the name of a column in phenoData, or a vector of length equal to the number of samples.")
+      if (length(groups) != ncol(e)) {
+        stop("`groups` should either be the name of a column in phenoData, or a vector of length equal to the number of samples.")
+      }
     }
     mm <- model.matrix(~groups)
   }
@@ -222,7 +297,9 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
         stop("If given, `replicates` should either be the name of a column in phenoData, or a vector of length equal to the number of samples.")
       }
     } else {
-      if (length(replicates) != ncol(e)) stop("If given, `replicates` should either be the name of a column in phenoData, or a vector of length equal to the number of samples.")
+      if (length(replicates) != ncol(e)) {
+        stop("If given, `replicates` should either be the name of a column in phenoData, or a vector of length equal to the number of samples.")
+      }
     }
     dc <- duplicateCorrelation(v, mm, block = replicates)
     v <- voom(dds, mm, block = replicates, correlation = dc$consensus.correlation)
@@ -231,7 +308,9 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
     fit <- lmFit(v, mm)
   }
   fit <- eBayes(fit)
-  if (is.null(coef)) coef <- colnames(mm)[ncol(mm)]
+  if (is.null(coef)) {
+    coef <- colnames(mm)[ncol(mm)]
+  }
   return(as.data.frame(topTable(eBayes(fit), coef = coef, number = nrow(e))))
 }
 
@@ -255,10 +334,14 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
 #'
 #' @export
 writeDEA <- function(res, file = "DEA.xlsx", fdr.threshold = NULL) {
-  if (!all(c("info", "seqLevel", "aggregated") %in% names(res))) stop("`res` does not seem to be a list such as produced by the `runDEA` function.")
+  if (!all(c("info", "seqLevel", "aggregated") %in% names(res))) {
+    stop("`res` does not seem to be a list such as produced by the `runDEA` function.")
+  }
   if (!is.null(fdr.threshold)) {
     ff <- .getFDRfield(res$seqLevel[[1]])
-    if (is.null(ff)) stop("Could not find FDR field!")
+    if (is.null(ff)) {
+      stop("Could not find FDR field!")
+    }
   }
   library(xlsx)
   write.xlsx(res$info$phenoData, file = file, sheetName = "design", row.names = TRUE)
@@ -277,7 +360,13 @@ writeDEA <- function(res, file = "DEA.xlsx", fdr.threshold = NULL) {
   pp <- function(x) {
     paste(x, collapse = ", ")
   }
-  d <- data.frame(param = c("Assignment rules", "Normalization on types", "Normalization on status", "Normalization method", "RNA types tested", "DEA method", "DEA formula", "DEA group"), value = c(NA, pp(res$info$norm$onType), pp(res$info$norm$onStatus), pp(res$info$norm$method), pp(res$info$types), res$info$DEA.call$method, as.character(res$info$DEA.call$formula), pp(res$info$DEA.call$group)))
+  d <- data.frame(param = c(
+    "Assignment rules", "Normalization on types", "Normalization on status", "Normalization method",
+    "RNA types tested", "DEA method", "DEA formula", "DEA group"
+  ), value = c(
+    NA, pp(res$info$norm$onType), pp(res$info$norm$onStatus),
+    pp(res$info$norm$method), pp(res$info$types), res$info$DEA.call$method, as.character(res$info$DEA.call$formula), pp(res$info$DEA.call$group)
+  ))
   write.xlsx(d, file = file, sheetName = "info", append = TRUE, row.names = FALSE)
 }
 
@@ -329,7 +418,8 @@ removeCorrelatedFeatures <- function(counts, o, cort = 0.6, cvt = 0.1, minmc = 5
   gr <- gr[which(sapply(gr, FUN = length) > 1)]
   gr <- gr[which(!duplicated(sapply(gr, collapse = ",", FUN = paste)))]
 
-  toRemove <- unique(unlist(lapply(gr, e = e, cort = cort, cvt = cvt, minmc = minmc, minmdiff = minmdiff, FUN = function(x, e, cort, cvt, minmc, minmdiff) {
+  toRemove <- unique(unlist(lapply(gr, e = e, cort = cort, cvt = cvt, minmc = minmc, minmdiff = minmdiff, FUN = function(x,
+                                                                                                                         e, cort, cvt, minmc, minmdiff) {
     a <- e[x, ]
     o <- matrix(0, nrow = length(x), ncol = length(x))
     for (i in 1:length(x)) {
@@ -350,7 +440,8 @@ removeCorrelatedFeatures <- function(counts, o, cort = 0.6, cvt = 0.1, minmc = 5
 .compareCounts <- function(x, y, cort = 0.6, cvt = 0.1, minmc = 5, minmdiff = 1) {
   x <- as.numeric(x)
   y <- as.numeric(y)
-  if (cor(x, y) > cort || all(c(sd(x) / mean(x), sd(y) / mean(y)) < cvt) || any(c(mean(x), mean(y)) < minmc) || mean(abs(x - y)) < minmdiff) {
+  if (cor(x, y) > cort || all(c(sd(x) / mean(x), sd(y) / mean(y)) < cvt) || any(c(mean(x), mean(y)) < minmc) || mean(abs(x - y)) <
+    minmdiff) {
     if (sum(x) < sum(y)) {
       return(1)
     }

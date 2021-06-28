@@ -27,7 +27,7 @@ assignReads <- function(sources, rules=defaultAssignRules()){
   }
   flags <- c("hasValid","hasOverlap","strand")
   ambiguities <- lapply(setNames(flags,flags),FUN=function(x) list())
-
+  
   # set aside fragments with zero or one overlap
   dups <- unique(sources$seq[duplicated(sources$seq)])
   dups <- which(sources$seq %in% dups)
@@ -69,7 +69,7 @@ assignReads <- function(sources, rules=defaultAssignRules()){
       unique(sources$seq[which(sources$seq %in% unique(sources$seq[w]))])
     sources <- sources[-w,]
   }
-
+  
   if(isTRUE(rules$prioritizeByOverlapSize)){
     mO <- max(splitAsList(sources$overlap,sources$seq))
     w <- which(sources$overlap < mO[sources$seq])
@@ -79,7 +79,7 @@ assignReads <- function(sources, rules=defaultAssignRules()){
       sources <- sources[-w,]
     }
   }
-
+  
   dups <- unique(sources$seq[duplicated(sources$seq)])
   dups <- which(sources$seq %in% dups)
   single.src2 <- sources[-dups,]
@@ -88,12 +88,12 @@ assignReads <- function(sources, rules=defaultAssignRules()){
     as.integer(!is.na(single.src$chr))
   sources <- sources[dups,]
   sources$status <- 5L # ambiguous
-
+  
   fields <- c("cigar","chr","read.start","read.end","overlap","startInFeature",
               "transcript.length", "distanceToFeatureEnd","transcript_id",
               "transcript.strand", "transcript_type", "reclassify")
   fields <- intersect(fields, colnames(sources))
-
+  
   if(nrow(sources)>0){
     nst <- lengths(unique(splitAsList(sources$strand, sources$seq)))
     sources$transcript.strand[which(nst>1L)] <- "*"
@@ -118,7 +118,7 @@ assignReads <- function(sources, rules=defaultAssignRules()){
   }
   sources <- rbind(DataFrame(single.src), DataFrame(single.src2), sources)
   for(f in fields) sources[[f]] <- sources[[f]][which(!is.na(sources[[f]]))]
-
+  
   stst <- c("unmapped","noFeature","unambiguous","resolvedAmbiguity","ambiguous")
   sources$status <- factor(sources$status, seq_along(stst), stst)
   a <- vapply(ambiguities, FUN.VALUE=logical(nrow(sources)), FUN=function(x){
@@ -129,7 +129,7 @@ assignReads <- function(sources, rules=defaultAssignRules()){
   a <- relist(factor(unlist(a),seq_along(ambiguities),names(ambiguities)),
               LogicalList(a))
   sources$resolvedAmbiguities <- a
-
+  
   sources$read.strand <- Rle(sources$read.strand)
   row.names(sources) <- sources$seq
   sources$length <- sources$seq <- NULL
@@ -230,8 +230,8 @@ getOverlapValidity <- function(sources, rules=defaultAssignRules()){
     if(!is.null(types[[typ]]$fallback) &&
        length(w <- which(sources$transcript_type == typ & !sources$valid))>0){
       if(is.factor(sources$transcript_type))
-        levels(sources$transcript_type) <- unique(c(sources$transcript_type,
-                                                    types[[typ]]$fallback))
+        levels(sources$transcript_type) <- unique(c(as.character(
+          sources$transcript_type), types[[typ]]$fallback))
       sources$transcript_type[w] <- types[[typ]]$fallback
       sources$valid[w] <- isValidOverlap(sources[w,,drop=FALSE], rules)
     }
@@ -292,7 +292,7 @@ defaultAssignRules <- function(rules=list()){
     prioritizeKnown=TRUE,
     typeValidation=list(
       primary_piRNA=list(fun=isPrimaryPiRNA, fallback="piRNA_precursor"),
-      secondary_piRNA=list(fun=isPrimaryPiRNA, fallback="piRNA_precursor"),
+      secondary_piRNA=list(fun=isSecondaryPiRNA, fallback="piRNA_precursor"),
       miRNA=list(fun=isValidMiRNA, length=19:24, fallback="miRNA_precursor")
     ),
     reclassify=list(
@@ -303,7 +303,7 @@ defaultAssignRules <- function(rules=list()){
       setNames(rep(1L,9), c("miRNA","tRNA","tRNAp","Mt_tRNA", "snRNA","snoRNA",
                             "antisense","primary_piRNA","secondary_piRNA")),
       setNames(rep(-1L,9), c("precursor","long_RNA","longRNA"))
-      )
+    )
   )
   for(f in names(rules)) defrules[[f]] <- rules[[f]]
   defrules
@@ -324,7 +324,7 @@ defaultAssignRules <- function(rules=list()){
 #' @return A factor of tRNA fragment types
 #' @export
 tRFtype <- function(srcs, rules=list(
-  "tRNA_internal_fragment"=function(x){ TRUE },
+  "tRNA_internal_fragment"=function(x){ rep(TRUE, nrow(x)) },
   "tRNA_5p_fragment"=function(x){ x$startInFeature < 5L & x$length < 30L },
   "tRNA_3p_fragment"=function(x){ x$distanceToFeatureEnd < 5L & x$length < 50L },
   "tRNA_5p_half"=function(x){ x$startInFeature %in% -1:1 & x$length %in% 30:34 },
@@ -343,7 +343,7 @@ tRFtype <- function(srcs, rules=list(
   revert <- FALSE
   flog.debug("Estimating strand match ratio")
   sbias <- sum(sources$transcript.strand==sources$read.strand,na.rm=T)/
-            sum(!is.na(sources$transcript.strand))
+    sum(!is.na(sources$transcript.strand))
   if(sbias>0.9){
     rules$sameStrand <- 'require'
     flog.info(paste("Strand bias",round(sbias,2),"; requiring reads and ",

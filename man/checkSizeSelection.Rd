@@ -17,7 +17,7 @@ checkSizeSelection(
 
 \item{type}{Types of sequences to be fetched (e.g. miRNA, tRNA, etc.), fetches all by default.}
 
-\item{status}{Character vector of seq statuses to be selected (any combination of "unmapped","invalid","unknown","ambiguous", and "unique"). Defaults to all mapped sequences.}
+\item{status}{Character vector of seq statuses to be selected (any combination of 'unmapped','invalid','unknown','ambiguous', and 'unique'). Defaults to all mapped sequences.}
 
 \item{trim}{Logical; whether to trim the 5\% most extreme values on each side before calculating mean (default TRUE).}
 }

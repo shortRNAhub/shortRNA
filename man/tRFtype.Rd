@@ -6,12 +6,12 @@
 \usage{
 tRFtype(
   srcs,
-  rules = list(tRNA_internal_fragment = function(x) {     TRUE }, tRNA_5p_fragment =
-    function(x) {     x$startInFeature < 5L & x$length < 30L }, tRNA_3p_fragment =
-    function(x) {     x$distanceToFeatureEnd < 5L & x$length < 50L }, tRNA_5p_half =
-    function(x) {     x$startInFeature \%in\% -1:1 & x$length \%in\% 30:34 },
-    tRNA_3p_half = function(x) {     x$distanceToFeatureEnd \%in\% -1:1 & x$length >= 34L
-    & x$length <= 50L & grepl("CCA$", x$seq) })
+  rules = list(tRNA_internal_fragment = function(x) {     rep(TRUE, nrow(x)) },
+    tRNA_5p_fragment = function(x) {     x$startInFeature < 5L & x$length < 30L },
+    tRNA_3p_fragment = function(x) {     x$distanceToFeatureEnd < 5L & x$length < 50L },
+    tRNA_5p_half = function(x) {     x$startInFeature \%in\% -1:1 & x$length \%in\% 30:34
+    }, tRNA_3p_half = function(x) {     x$distanceToFeatureEnd \%in\% -1:1 & x$length >=
+    34L & x$length <= 50L & grepl("CCA$", x$seq) })
 )
 }
 \arguments{
