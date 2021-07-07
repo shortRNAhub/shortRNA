@@ -4,7 +4,7 @@
 \alias{miRNAtoFL}
 \title{Convert miRNAs annotation GRanges to a Factor List}
 \usage{
-miRNAtoFL(gr, spMore = TRUE, sp)
+miRNAtoFL(gr, spMore = TRUE, sp = "mm10", cluster = TRUE)
 }
 \arguments{
 \item{gr}{annotation GRanges with columns: tx_id, tx_biotype, and symbol}

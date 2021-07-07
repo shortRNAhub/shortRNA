@@ -32,11 +32,11 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NUL
   }
   
   # load bam as GAlignments
-  param <- ScanBamParam(what=c("cigar", "seq"))
+  param <- ScanBamParam(what=c("cigar", "qname"))
   bam <- readGAlignments(bamFile, param = param)
   seqlevelsStyle(bam) <- "ensembl"
   bam <- as(bam, "GRangesList")
-  bam@elementMetadata$seq <- as.character(bam@elementMetadata$seq)
+  bam@elementMetadata$seq <- as.character(bam@elementMetadata$qname)
   
   message(paste(length(bam), "alignments loaded, searching for overlaps..."))
   
