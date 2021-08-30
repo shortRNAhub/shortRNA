@@ -26,7 +26,7 @@
 #' @export
 #'
 #' @import S4Vectors GenomicRanges Biostrings
-#' @importFrom Rsubread buildIndex
+#' @importFrom Rsubread buildindex
 prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
                               extra.gr = list(), extra.seqs = NULL,
                               resolveSplicing = NULL,
