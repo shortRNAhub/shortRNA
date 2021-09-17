@@ -20,6 +20,13 @@
 #' @export
 #'
 #' @examples
+#' ## Input
+#' fastq <- system.file("extdata", "case3_R1.fastq.gz", package = "shortRNA")
+#' 
+#' ## Analysis
+#' umiCollapse(fastq = fastq, UMIlength = 12, sequenceLength = 251, 
+#' outDir = getwd())
+#' 
 umiCollapse <- function(fastq,
                         UMIlocation = "R1",
                         UMIlength = 8,
@@ -37,8 +44,11 @@ umiCollapse <- function(fastq,
     library(Biostrings)
     library(stringdist)
     library(pryr)
+    library(parallel)
   })
 
+  message("Loaded required libraries successfully!")
+  
   # Results directory and log file
   if (!dir.exists(outDir)) dir.create(outDir)
   file.create(paste0(outDir, "/extra_info.txt"))
@@ -48,6 +58,8 @@ umiCollapse <- function(fastq,
 
   # read input file
   reads1 <- readFastq(fastq)
+  
+  message("FastQ file read!")
 
   start.time <- Sys.time()
   start.all <- proc.time()
@@ -100,13 +112,16 @@ umiCollapse <- function(fastq,
 
   # first consensus
   result_mean <- .groupingSingle(
-    intermediate.table,
-    full,
-    quality,
-    UMIlength
+    intermediate.table = intermediate.table,
+    full = full,
+    quality = quality,
+    UMIlength = UMIlength
   )
+  
+  message("First consensus!")
 
   memory[3] <- mem_used()
+  
   # UMI correction
   newUMIs <- .UMIcorrectionSingle(
     intermediate.table = intermediate.table,
@@ -116,8 +131,11 @@ umiCollapse <- function(fastq,
     outDir = outDir
   )
 
+  message("UMI correction!")
+  
   rm(intermediate.table)
   memory[4] <- mem_used()
+  
   # final consensus
   consensus_mean <- .groupingFinalSingle(
     newUMIs = newUMIs,
@@ -126,6 +144,8 @@ umiCollapse <- function(fastq,
     first_consensus = result_mean,
     UMIlength = UMIlength
   )
+  
+  message("Final consensus!")
 
   memory[5] <- mem_used()
 
@@ -172,15 +192,17 @@ umiCollapse <- function(fastq,
     # ,
     # BStringSet(paste0(newUMIs$ID1, " ", consensus_mean$UMI))
   )
+  
+  message("ShortRead object generated!")
 
-
-  fileSplit <- as.data.table(str_split(filepath1, "\\/"))
+  fileSplit <- as.data.table(str_split(fastq, "\\/"))
   fileSplit <- as.data.table(str_split(fileSplit[nrow(fileSplit)], "\\."))
   output <- paste0(outDir, "/", fileSplit[1], "_corrected.fastq.gz")
   part <- fileSplit[1]
   file.create(output)
   writeFastq(file, output, mode = "a")
 
+  message("ShortRead object saved!")
 
   ## For now, these lines are commenting unless we can add the names to the
   ## sequences
@@ -198,7 +220,7 @@ umiCollapse <- function(fastq,
   #             paste0(outDir, "/", part, "_summary_table.csv"),
   #             sep = "\t", row.names = F)
 
-  remove(part, file, output, fileSplit, output.csv)
+  # remove(part, file, output, fileSplit, output.csv)
 }
 
 
@@ -243,7 +265,7 @@ umiCollapse <- function(fastq,
 
   if (nrow(intermediate.table.c2) > 0) {
     res2 <- plyr::ldply(
-      parallel::mclapply(intermediate.table.c2[, 1], function(x) {
+      parallel::mclapply(intermediate.table.c2$UMI, function(x) {
         r1 <- x
 
         # reads with specific UMI
@@ -267,7 +289,7 @@ umiCollapse <- function(fastq,
 
         rm(grouping, quality.1)
 
-        result1 <- calculationsFunction(grouping_q)
+        result1 <- .calculationsFunction(grouping_q = grouping_q)
 
         result.2 <- data.table(
           UMI = substr(r1, 1, UMIlength),
@@ -375,7 +397,6 @@ umiCollapse <- function(fastq,
     list.best <- best$UMI[1]
     list.counts <- intermediate.table$count[1]
 
-
     temp.intermediate <- intermediate.table[2:nrow(intermediate.table), ]
 
     base_dist <- stringdist::stringdistmatrix(
@@ -476,7 +497,10 @@ umiCollapse <- function(fastq,
   rm(cons)
 
   ##
-  cons_corr <- lapply(grouping_q, .one.run.calculationsFunction)
+  cons_corr <- parallel::mclapply(grouping_q, function(x) 
+    .one.run.calculationsFunction(one.base = x), mc.preschedule = FALSE, 
+    mc.cores = detectCores())
+  
   cons_corr <- rbindlist(cons_corr)
 
   # join again in one final sequence

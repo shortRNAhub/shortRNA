@@ -49,3 +49,12 @@ https://github.com/BiodataAnalysisGroup/UMIc. The function is adapted as the
 original code was throwing some errors and was extremely slow for big `fastq`
 files. Here, we try to make it a bit faster.
 }
+\examples{
+## Input
+fastq <- system.file("extdata", "case3_R1.fastq.gz", package = "shortRNA")
+
+## Analysis
+umiCollapse(fastq = fastq, UMIlength = 12, sequenceLength = 251, 
+outDir = getwd())
+
+}
