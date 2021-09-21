@@ -334,6 +334,7 @@ tRFtype <- function(srcs, rules=list(
   valids <- vapply(rules, FUN.VALUE=logical(nrow(srcs)), FUN=function(fn){
     fn(srcs)
   })
+  if(nrow(srcs) == 1) valids <- t(valids)
   factor(apply(valids, 1, FUN=function(x) max(which(x))),
          seq_len(ncol(valids)), colnames(valids))
 }
