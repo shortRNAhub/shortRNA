@@ -602,7 +602,14 @@ getrRNA <- function(sp = "Mus musculus", release = "138.1") {
 
 #' Obtain databases for species (currently supported for mouse only)
 #'
-#' @param species GRCm38 or GRCm39
+#' @param species 3 alphabet code for the species. Default: "mmu"
+#' @param genomeVersion genome version to be used for the species. 
+#' Default: "GRCm38"
+#' @param ensemblVer Ensemble version to be used for genome. Default: 102
+#' @param tRNA_addCCA Wether to add "CCA" modifications to the tRNA sequences. 
+#' Default: TRUE
+#' @param tRNA_includeMt Whether to include mitochondrial tRNAs. Default: TRUE
+#' @param rRNA_release the version of rRNA database to be used. Default: "138.1"
 #'
 #' @return A list of databases (DNAstringSet or GRanges)
 #'
@@ -610,6 +617,7 @@ getrRNA <- function(sp = "Mus musculus", release = "138.1") {
 #'
 #' @examples
 getDB <- function(species = "mmu", genomeVersion = "GRCm38",
+                  ensemblVer = "102",
                   tRNA_addCCA = TRUE, tRNA_includeMt = TRUE,
                   rRNA_release = "138.1") {
   if (species == "mmu") {
@@ -619,7 +627,8 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
     # EnsDb
     library(AnnotationHub)
     ah <- AnnotationHub()
-    ensdb <- rev(query(ah, genomeVersion, "Ensdb"))[[1]]
+    # ensdb <- rev(query(ah, genomeVersion, "Ensdb"))[[1]]
+    ensdb <- query(ah, c(genomeVersion, "EnsDb", ensemblVer))[[1]]
 
     # miRNA
     miRNA <- getmiRNA(sp = species)$gtf
