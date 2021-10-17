@@ -95,7 +95,7 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NUL
     chr=as.factor(unlist(seqnames(OV@first))),
     read.start=min(start(OV@first)),
     read.end=max(end(OV@first)),
-    read.strand=as.factor(unlist(seqnames(OV@first))),
+    read.strand=as.factor(unlist(strand(OV@first))),
     overlap=sum(width(OVinter)),
     startInFeature=posInFeature[,1],
     distanceToFeatureEnd=posInFeature[,2],
@@ -118,7 +118,7 @@ overlapWithTx2 <- function(bamFile, annotation, ignoreStrand=TRUE, nbthreads=NUL
     chr=as.factor(unlist(unique(seqnames(nonOV)))),
     read.start=min(start(nonOV)),
     read.end=max(end(nonOV)),
-    read.strand=as.factor(unlist(seqnames(nonOV)))
+    read.strand=as.factor(unlist(strand(nonOV)))
   )
   for(f in setdiff(names(res),names(res2)))
     res2[[f]] <- NA
