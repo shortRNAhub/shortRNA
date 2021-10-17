@@ -230,6 +230,7 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
     "Genome including eventual extra chromosomes was saved in:\n",
     genome.out, "\nNow building the index..."
   )
+  
   Rsubread::buildindex(
     basename = paste0(output_dir, "/customGenome"),
     reference = ifelse(test = isCompressed,
@@ -565,6 +566,7 @@ getrRNA <- function(sp = "Mus musculus", release = "138.1") {
 
     ssm <- fread(input = ssm)
     ssm <- data.frame(ssm[ssm$acc %in% names(ss), ])
+    ssm <- ssm[!duplicated(ssm$acc),]
     rownames(ssm) <- ssm$acc
 
 
@@ -584,6 +586,7 @@ getrRNA <- function(sp = "Mus musculus", release = "138.1") {
 
     lsm <- fread(input = lsm)
     lsm <- data.frame(lsm[lsm$acc %in% names(ls), ])
+    lsm <- lsm[!duplicated(lsm$acc),]
     rownames(lsm) <- lsm$acc
 
     names(ss) <- paste0("SSU-", names(ss), "(", ssm[names(ss), "product"], ")")
@@ -595,7 +598,8 @@ getrRNA <- function(sp = "Mus musculus", release = "138.1") {
 
   res <- c(ss, ls)
   names(res) <- gsub(pattern = "\\()", replacement = "", x = names(res))
-
+  names(res) <- make.unique(names(res), sep = "_")
+  names(res) <- gsub(pattern = " ", replacement = "_", x = names(res))
   return(res)
 }
 
@@ -671,12 +675,58 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
       rRNA_fa = rRNA
     )
     return(db)
+    
+  } else if (species == "hsa") {
+    library(rtracklayer)
+    library(R.utils)
+    
+    # EnsDb
+    library(AnnotationHub)
+    ah <- AnnotationHub()
+    # ensdb <- rev(query(ah, genomeVersion, "Ensdb"))[[1]]
+    ensdb <- query(ah, c(genomeVersion, "EnsDb", ensemblVer))[[1]]
+    
+    # miRNA
+    miRNA <- getmiRNA(sp = species)$gtf
+    
+    # tRNA
+    if (genomeVersion == "GRCh38") {
+      tRNA <- gettRNA(sp = "hg38", addCCA = tRNA_addCCA, mt = tRNA_includeMt)
+    } else if (genomeVersion == "GRCh19") {
+      tRNA <- gettRNA(sp = "hg19", addCCA = tRNA_addCCA, mt = tRNA_includeMt)
+    }
+    
+    # rRNA
+    rRNA <- getrRNA(sp = "Homo sapiens", release = rRNA_release)
+    
+    db <- list(
+      ensdb = ensdb,
+      miRNA_GR = miRNA,
+      tRNA_fa = tRNA,
+      rRNA_fa = rRNA
+    )
+    return(db)
   }
 }
 
 
 # devtools::load_all("../")
-
+# 
+# db_hg38 <- getDB(species = "hsa", genomeVersion = "GRCh38", ensemblVer = "102")
+# 
+# hg38_annoprep <- prepareAnnotation(
+#   ensdb = db_hg38$ensdb,
+#   genome = "/mnt/IM/reference/genome/gencode/hg38/fasta/GRCh38.p13.genome.fa",
+#   output_dir = "../../shortRNA_reports/schratt_human/shortRNA/genome/",
+#   extra.gr = list(miRNA = db_hg38$miRNA_GR),
+#   extra.seqs = list(rRNA = db_hg38$rRNA_fa, tRNA = db_hg38$tRNA_fa),
+#   resolveSplicing = NULL,
+#   rules = defaultAssignRules(),
+#   tRNAEnsembleRemove = TRUE,
+#   clusterMiRNA = TRUE
+# )
+# 
+# 
 # db_mmu <- getDB()
 # 
 # ensdb <- db_mmu$ensdb
