@@ -22,7 +22,13 @@ repSoftClip <- function(GA) {
     cigar <- gr$cigar
     st <- strand(gr)
     st <- as.character(st@values)
-    seq <- as.character(gr$seq)
+    seq <- sequenceLayer(x = DNAStringSet(gr$seq), cigar = cigar)
+    seq <- as.character(
+      sequenceLayer(x = seq, cigar = cigar, 
+                         from="query-after-soft-clipping", 
+                         to="query",,
+                         S.letter = "S")
+    )
 
     if (st == "-") seq <- as.character(reverseComplement(DNAStringSet(seq)))
 
@@ -36,7 +42,7 @@ repSoftClip <- function(GA) {
       stop("Please provide corect sequence and matching cigar.")
     }
 
-    wh <- which(seqCigar == "M")
+    wh <- which(seqCigar != "S")
     seqCigar[wh] <- seqS[wh]
 
     # if (st == "-") seqCigar <- rev(seqCigar)
@@ -44,7 +50,7 @@ repSoftClip <- function(GA) {
     gr$seqC <- paste(seqCigar, collapse = "")
     gr$seqN <- gsub(pattern = "S", replacement = "", x = gr$seqC)
 
-    nr[nr == "M"] <- start(gr):end(gr)
+    nr[nr != "S"] <- start(gr):end(gr)
 
     wh1 <- which(nr != "S")
     wh1 <- wh[c(1, length(wh1))]
@@ -90,19 +96,24 @@ makeTracks <- function(gr,
     library(Biostrings)
   })
 
-  ga <- readGAlignments(bamFile, param = param)
-  names(ga) <- ga@elementMetadata$seq
-  seqlevelsStyle(ga) <- "Ensembl"
-
-  if (!is.null(bamFile)) bamFile <- BamFile(bamfile)
+  if(class(bamFile) == "GAlignments"){
+    seqlevelsStyle(ga) <- "Ensembl"
+  } else{
+    ga <- readGAlignments(bamFile, param = param)
+    names(ga) <- ga@elementMetadata$seq
+    seqlevelsStyle(ga) <- "Ensembl"  
+  }
+  
+  if (!is.null(bamFile) & class(bamFile) != "GAlignments") bamFile <- BamFile(bamfile)
 
   gr <- suppressWarnings(
     subsetByOverlaps(features, reduce(gr), minoverlap = 1)
   )
+  
   gar <- suppressWarnings(
     subsetByOverlaps(ga, gr)
   )
-
+  
   mt <- data.frame(strand = gar@strand, gar@elementMetadata)
   mt$Counts <- NA
 
@@ -120,7 +131,7 @@ makeTracks <- function(gr,
 
   gar@elementMetadata <- DataFrame(mt[, -1])
 
-  gr <- repSoftClip(gar)
+  gr <- repSoftClip(GA = gar)
 
   chrs <- unique(seqnames(gr))
 
@@ -146,7 +157,10 @@ makeTracks <- function(gr,
         id = i
       )
     },
-    s = start(gr), e = start(gr) + nchar(gr$seq) - 1, seq = strsplit(gr$seqC, ""), i = seq_along(gr),
+    s = start(gr), 
+    e = start(gr) + nchar(gr$seqC) - 1, 
+    seq = strsplit(gr$seqC, ""), 
+    i = seq_along(gr),
     SIMPLIFY = FALSE
     )
 
@@ -177,7 +191,7 @@ makeTracks <- function(gr,
       scale_fill_manual(values = cl) +
       theme_linedraw()
 
-    if (plotCoverage) {
+    if (plotCoverage & class(bamFile) != "GAlignments") {
       wh <- reduce(gr)
       seqlevelsStyle(wh) <- "UCSC"
       p3 <- suppressMessages(

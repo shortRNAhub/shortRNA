@@ -745,7 +745,7 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
 # mm10_annoprep <- prepareAnnotation(
 #   ensdb = db_mmu$ensdb,
 #   genome = "/mnt/IM/reference/genome/gencode/fasta/GRCm38.p5.genome.fa",
-#   output_dir = "../genome",
+#   output_dir = "./",
 #   extra.gr = list(piRNA = db_mmu$piRNA_GR, miRNA = db_mmu$miRNA_GR),
 #   extra.seqs = list(rRNA = db_mmu$rRNA_fa, tRNA = db_mmu$tRNA_fa),
 #   resolveSplicing = NULL,
