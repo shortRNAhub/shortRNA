@@ -34,7 +34,7 @@ mergeAtomicLists <- function(x, y) {
     n <- as.factor(n)
   }
   if (is(x, "FactorList") && is(y, "FactorList")) {
-    lvls <- union(levels(x)[[1]], levels(y)[[1]])
+    lvls <- union(levels(x[[1]]), levels(y[[1]]))
     fx <- factor(unlist(x, use.names = FALSE), lvls)
     fy <- factor(unlist(y, use.names = FALSE), lvls)
     return(splitAsList(factor(c(fx, fy), levels = seq_along(lvls), lvls), c(rep(n, lengths(x)), rep(n, lengths(y)))))
@@ -158,14 +158,30 @@ fList2tree <- function(fL, addRoot = TRUE, collapseSingles = FALSE, root = "ROOT
 }
 
 
-# library(data.tree) 
-# tRNAs as FL load('../../../../shortRNA_data/db/tRNA.rda')
-# ps_tRNA <- ToDataFrameTable(tRNA, 'pathString')
-# names(ps_tRNA) <- gsub(pattern = '.*\\/', replacement = '', x = ps_tRNA) 
-# Data subset ar_tRNA <- readRDS('ar_tRNA.rds')
-# # Example ps <- ps_tRNA mappedFeaturesDF <- ar_tRNA featuresCol <- 'transcript_id' readsCol <- 'seq'
 
-addReadsToTree <- function(fL, mappedFeaturesDF, featuresCol = "transcript_id", readsCol = "seq", ...) {
+#' Add reads to the tree
+#'
+#' @param fL factorList of the annotation
+#' @param mappedFeaturesDF `DFrame` with Sequences and transcript IDs
+#' @param featuresCol Feature name column
+#' @param readsCol Column with sequences
+#' @param unassigned If unassigned reads to be included in the tree or not
+#' @param extraTreeBranch Additional sequences as `FactorList` to be added to
+#'  the tree. One can obtain unaligned reads using `getReadsFromBam` to obtain
+#'  reads from bam files.
+#' @param ... Other parameters to be passed to `fList2tree`
+#'
+#' @return
+#' @export
+#'
+#' @examples
+addReadsToTree <- function(fL, 
+                           mappedFeaturesDF,
+                           featuresCol = "transcript_id", 
+                           readsCol = "seq",
+                           unassigned = FALSE,
+                           extraTreeBranch = NULL,
+                           ...) {
   suppressPackageStartupMessages({
     library(data.tree)
     library(plyr)
@@ -177,7 +193,7 @@ addReadsToTree <- function(fL, mappedFeaturesDF, featuresCol = "transcript_id", 
   })
 
   # Parallel processing of apply functions
-  plan(multisession)
+  # plan(multisession)
 
   # Features per sequence
   features <- mappedFeaturesDF[, featuresCol]
@@ -209,22 +225,28 @@ addReadsToTree <- function(fL, mappedFeaturesDF, featuresCol = "transcript_id", 
   # For sequences overlapping with more than 1 feature
   fpr_fl_m <- fpr_fl[lengths(fpr_fl) > 1]
   fli <- IntegerList(fL)
-  fpr_fl_m_o <- future_lapply(head(fpr_fl_m), FUN = function(x) longestOrderedOverlap(fli[x]))
+  fpr_fl_m_o <- lapply(fpr_fl_m, FUN = function(x) longestOrderedOverlap(fli[x]))
   rm(fli)
 
   fpr_fl_m_o1 <- splitAsList(
-    x = factor(as.numeric(unlist(fpr_fl_m_o)), levels = seq_along(levels(fl[[1]])), labels = levels(fL[[1]])),
+    x = factor(as.numeric(unlist(fpr_fl_m_o)), levels = seq_along(levels(fl[[1]])),
+               labels = levels(fL[[1]])),
     f = rep(names(fpr_fl_m_o), lengths(fpr_fl_m_o))
   )
   
   fpr_fl_m_o2 <- FactorList(as.list(as.character(paste(fpr_fl_m, collapse = "/"))))
   
-  fpr_fl_m_of <- mergeAtomicLists(head(fpr_fl_m_o1), head(fpr_fl_m_o2))
+  fpr_fl_m_of <- mergeAtomicLists(x = fpr_fl_m_o1, y = fpr_fl_m_o2)
   names(fpr_fl_m_of) <- names(fpr_fl_m_o1)
 
   fpr_fl_m_of <- .addNames2fL(fpr_fl_m_of)
 
+  
+  # Features for the tree
+  fpr_tree <- c(fpr_fl_s_o, fpr_fl_m_of)
+  
   # Reads not assigned to any features
+  if(unassigned){
   fpr_fl_n <- fpr_fl[lengths(fpr_fl) == 0]
   fpr_fl_n <- .addNames2fL(fpr_fl_n)
   fpr_fl_n <- as.character(unlist(fpr_fl_n))
@@ -237,22 +259,46 @@ addReadsToTree <- function(fL, mappedFeaturesDF, featuresCol = "transcript_id", 
   
   fpr_fl_n_o <- mergeAtomicLists(x, fpr_fl_n)
   
-  # Features for the tree
-  fpr_tree <- c(fpr_fl_s_o, fpr_fl_m_of, fpr_fl_n_o)
+  fpr_tree <- c(fpr_tree, fpr_fl_n_o)
+  }
+  
+  
+  # If additional branch is provided
+  if(!is.null(extraTreeBranch)) fpr_tree <- c(fpr_tree, extraTreeBranch)
+  
+  tree <- fList2tree(fL = fpr_tree, addRoot = FALSE, collapseSingles = F, ...)
 
-  tree <- fList2tree(fL = fpr_tree, addRoot = FALSE, collapseSingles = F)
-
-  plan(sequential)
+  # plan(sequential)
 
   return(tree)
 }
 
-# tree_tRNA <- addReadsToTree(ps = ps_tRNA, mappedFeaturesDF = ar_tRNA, featuresCol = 'transcript_id', readsCol = 'seq', root
-# = 'mm10')
 
-
-# library(TreeSummarizedExperiment) m <- readRDS('reads_with_counts.rds') rownames(m) <- m$seq m <- m[,grep(pattern =
-# 'sample', x = colnames(m))] cd <- data.frame(Samples = colnames(m), Group = rep(c('CTRL', 'MSUS'), rep = 6)) rownames(cd)
-# <- cd$Samples tse <- TreeSummarizedExperiment(assay = list(counts = m), rowTree = tree_tRNA, colData = cd)
-# library(treeclimbR) res <- runDA(TSE = tse, feature_on_row = TRUE, assay = 1, option = 'glm', group_column = 'Group',
-# design_terms = 'Group') out <- nodeResult(object = res, n = Inf)
+#' Get reads from BAM file for a specific samFlag
+#'
+#' @param bam path to the BAM file.
+#' @param flag Flag for which reads are to be obtained. Default: 4 (Unaligned)
+#' @param bam A label to be given to reads
+#'
+#' @return A `FactorList` of reads with labels
+#' @export
+#'
+#' @examples
+getReadsFromBam <- function(bam, flag = 4, label = "unaligned"){
+  suppressPackageStartupMessages({
+    library(Rsamtools)
+    library(IRanges)
+  })
+  
+  bamFile <- BamFile(bam)
+  aln <- scanBam(bamFile)[[1]]
+  ua <- aln$qname[aln$flag == flag]
+  
+  n <- length(ua)
+  uafl <- FactorList(splitAsList(ua, seq_len(n)))
+  
+  x <- splitAsList(rep(factor(label), n), seq_len(n))
+  res <- mergeAtomicLists(x, uafl)
+  
+  return(res)
+}

@@ -15,6 +15,8 @@ assignReads <- function(sources, rules=defaultAssignRules()){
   levels(sources$transcript.strand) <-
     unique(c(levels(sources$transcript.strand),"*"))
   sources <- sources[order(sources$seq,sources$chr,sources$read.start),]
+  
+  s1 <- table(sources$transcript_type)
   # identify valid overlaps
   sources <- getOverlapValidity(sources)
   if(!is.null(rules$reclassify) && length(rules$reclassify)>0){
@@ -208,6 +210,7 @@ isSecondaryPiRNA <- function(src, allowRevComp=FALSE, length=26:32){
   valid
 }
 
+
 #' getOverlapValidity
 #'
 #' @param sources A data.frame of overlaps, as produced by
@@ -230,8 +233,8 @@ getOverlapValidity <- function(sources, rules=defaultAssignRules()){
     if(!is.null(types[[typ]]$fallback) &&
        length(w <- which(sources$transcript_type == typ & !sources$valid))>0){
       if(is.factor(sources$transcript_type))
-        levels(sources$transcript_type) <- unique(c(as.character(
-          sources$transcript_type), types[[typ]]$fallback))
+        levels(sources$transcript_type) <- unique(c(
+          levels(sources$transcript_type), types[[typ]]$fallback))
       sources$transcript_type[w] <- types[[typ]]$fallback
       sources$valid[w] <- isValidOverlap(sources[w,,drop=FALSE], rules)
     }
@@ -334,6 +337,7 @@ tRFtype <- function(srcs, rules=list(
   valids <- vapply(rules, FUN.VALUE=logical(nrow(srcs)), FUN=function(fn){
     fn(srcs)
   })
+  if(nrow(srcs) == 1) valids <- t(valids)
   factor(apply(valids, 1, FUN=function(x) max(which(x))),
          seq_len(ncol(valids)), colnames(valids))
 }
