@@ -230,6 +230,7 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
     "Genome including eventual extra chromosomes was saved in:\n",
     genome.out, "\nNow building the index..."
   )
+  
   Rsubread::buildindex(
     basename = paste0(output_dir, "/customGenome"),
     reference = ifelse(test = isCompressed,
@@ -565,6 +566,7 @@ getrRNA <- function(sp = "Mus musculus", release = "138.1") {
 
     ssm <- fread(input = ssm)
     ssm <- data.frame(ssm[ssm$acc %in% names(ss), ])
+    ssm <- ssm[!duplicated(ssm$acc),]
     rownames(ssm) <- ssm$acc
 
 
@@ -584,6 +586,7 @@ getrRNA <- function(sp = "Mus musculus", release = "138.1") {
 
     lsm <- fread(input = lsm)
     lsm <- data.frame(lsm[lsm$acc %in% names(ls), ])
+    lsm <- lsm[!duplicated(lsm$acc),]
     rownames(lsm) <- lsm$acc
 
     names(ss) <- paste0("SSU-", names(ss), "(", ssm[names(ss), "product"], ")")
@@ -595,14 +598,22 @@ getrRNA <- function(sp = "Mus musculus", release = "138.1") {
 
   res <- c(ss, ls)
   names(res) <- gsub(pattern = "\\()", replacement = "", x = names(res))
-
+  names(res) <- make.unique(names(res), sep = "_")
+  names(res) <- gsub(pattern = " ", replacement = "_", x = names(res))
   return(res)
 }
 
 
 #' Obtain databases for species (currently supported for mouse only)
 #'
-#' @param species GRCm38 or GRCm39
+#' @param species 3 alphabet code for the species. Default: "mmu"
+#' @param genomeVersion genome version to be used for the species. 
+#' Default: "GRCm38"
+#' @param ensemblVer Ensemble version to be used for genome. Default: 102
+#' @param tRNA_addCCA Wether to add "CCA" modifications to the tRNA sequences. 
+#' Default: TRUE
+#' @param tRNA_includeMt Whether to include mitochondrial tRNAs. Default: TRUE
+#' @param rRNA_release the version of rRNA database to be used. Default: "138.1"
 #'
 #' @return A list of databases (DNAstringSet or GRanges)
 #'
@@ -610,6 +621,7 @@ getrRNA <- function(sp = "Mus musculus", release = "138.1") {
 #'
 #' @examples
 getDB <- function(species = "mmu", genomeVersion = "GRCm38",
+                  ensemblVer = "102",
                   tRNA_addCCA = TRUE, tRNA_includeMt = TRUE,
                   rRNA_release = "138.1") {
   if (species == "mmu") {
@@ -619,7 +631,8 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
     # EnsDb
     library(AnnotationHub)
     ah <- AnnotationHub()
-    ensdb <- rev(query(ah, genomeVersion, "Ensdb"))[[1]]
+    # ensdb <- rev(query(ah, genomeVersion, "Ensdb"))[[1]]
+    ensdb <- query(ah, c(genomeVersion, "EnsDb", ensemblVer))[[1]]
 
     # miRNA
     miRNA <- getmiRNA(sp = species)$gtf
@@ -662,12 +675,58 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
       rRNA_fa = rRNA
     )
     return(db)
+    
+  } else if (species == "hsa") {
+    library(rtracklayer)
+    library(R.utils)
+    
+    # EnsDb
+    library(AnnotationHub)
+    ah <- AnnotationHub()
+    # ensdb <- rev(query(ah, genomeVersion, "Ensdb"))[[1]]
+    ensdb <- query(ah, c(genomeVersion, "EnsDb", ensemblVer))[[1]]
+    
+    # miRNA
+    miRNA <- getmiRNA(sp = species)$gtf
+    
+    # tRNA
+    if (genomeVersion == "GRCh38") {
+      tRNA <- gettRNA(sp = "hg38", addCCA = tRNA_addCCA, mt = tRNA_includeMt)
+    } else if (genomeVersion == "GRCh19") {
+      tRNA <- gettRNA(sp = "hg19", addCCA = tRNA_addCCA, mt = tRNA_includeMt)
+    }
+    
+    # rRNA
+    rRNA <- getrRNA(sp = "Homo sapiens", release = rRNA_release)
+    
+    db <- list(
+      ensdb = ensdb,
+      miRNA_GR = miRNA,
+      tRNA_fa = tRNA,
+      rRNA_fa = rRNA
+    )
+    return(db)
   }
 }
 
 
 # devtools::load_all("../")
-
+# 
+# db_hg38 <- getDB(species = "hsa", genomeVersion = "GRCh38", ensemblVer = "102")
+# 
+# hg38_annoprep <- prepareAnnotation(
+#   ensdb = db_hg38$ensdb,
+#   genome = "/mnt/IM/reference/genome/gencode/hg38/fasta/GRCh38.p13.genome.fa",
+#   output_dir = "../../shortRNA_reports/schratt_human/shortRNA/genome/",
+#   extra.gr = list(miRNA = db_hg38$miRNA_GR),
+#   extra.seqs = list(rRNA = db_hg38$rRNA_fa, tRNA = db_hg38$tRNA_fa),
+#   resolveSplicing = NULL,
+#   rules = defaultAssignRules(),
+#   tRNAEnsembleRemove = TRUE,
+#   clusterMiRNA = TRUE
+# )
+# 
+# 
 # db_mmu <- getDB()
 # 
 # ensdb <- db_mmu$ensdb
@@ -686,7 +745,7 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
 # mm10_annoprep <- prepareAnnotation(
 #   ensdb = db_mmu$ensdb,
 #   genome = "/mnt/IM/reference/genome/gencode/fasta/GRCm38.p5.genome.fa",
-#   output_dir = "../genome",
+#   output_dir = "./",
 #   extra.gr = list(piRNA = db_mmu$piRNA_GR, miRNA = db_mmu$miRNA_GR),
 #   extra.seqs = list(rRNA = db_mmu$rRNA_fa, tRNA = db_mmu$tRNA_fa),
 #   resolveSplicing = NULL,

@@ -7,13 +7,26 @@
 getDB(
   species = "mmu",
   genomeVersion = "GRCm38",
+  ensemblVer = "102",
   tRNA_addCCA = TRUE,
   tRNA_includeMt = TRUE,
   rRNA_release = "138.1"
 )
 }
 \arguments{
-\item{species}{GRCm38 or GRCm39}
+\item{species}{3 alphabet code for the species. Default: "mmu"}
+
+\item{genomeVersion}{genome version to be used for the species. 
+Default: "GRCm38"}
+
+\item{ensemblVer}{Ensemble version to be used for genome. Default: 102}
+
+\item{tRNA_addCCA}{Wether to add "CCA" modifications to the tRNA sequences. 
+Default: TRUE}
+
+\item{tRNA_includeMt}{Whether to include mitochondrial tRNAs. Default: TRUE}
+
+\item{rRNA_release}{the version of rRNA database to be used. Default: "138.1"}
 }
 \value{
 A list of databases (DNAstringSet or GRanges)
