@@ -1,22 +1,36 @@
 #' assignReads
+#' 
+#' Given a set of overlaps (between reads and features) and their properties, 
+#' this function assigns reads to features using a set of rules.
 #'
 #' @param sources A data.frame of overlaps, as produced by
 #' \code{\link{overlapWithTx}}
 #' @param rules Assignment rules (see \code{\link{defaultAssignmentRules}})
+#' @param reportResolved Logical; whether the report the different ambiguities
+#' that were resolved for each fragment.
 #'
 #' @return A \code{\link[S4Vectors]{DataFrame-class}}
 #' @export
-assignReads <- function(sources, rules=defaultAssignRules()){
-  sources <- as.data.frame(sources)
+assignReads <- function(sources, rules=defaultAssignRules(), reportResolved=FALSE){
+  sources <- DataFrame(sources)
   sources$length <- nchar(as.character(sources$seq))
   sources$seq <- as.factor(sources$seq)
+  # temporarily get rid of sequences to increase speed
+  seqlvls <- levels(sources$seq)
+  sources$seq <- as.integer(sources$seq)
+  
   sources$transcript_type <- as.factor(sources$transcript_type)
   sources$transcript_id <- as.factor(sources$transcript_id)
   levels(sources$transcript.strand) <-
     unique(c(levels(sources$transcript.strand),"*"))
   sources <- sources[order(sources$seq,sources$chr,sources$read.start),]
   
-  s1 <- table(sources$transcript_type)
+  # wrap alignments
+  alig <- GRanges(sources$chr, IRanges(sources$read.start, sources$read.end), 
+                  strand=sources$read.strand, cigar=sources$cigar)
+  alig <- unique( split(alig, sources$seq) )
+  readFieldsToRemove <- c("chr","read.start","read.end","read.strand","cigar")
+  
   # identify valid overlaps
   sources <- getOverlapValidity(sources)
   if(!is.null(rules$reclassify) && length(rules$reclassify)>0){
@@ -33,7 +47,11 @@ assignReads <- function(sources, rules=defaultAssignRules()){
   # set aside fragments with zero or one overlap
   dups <- unique(sources$seq[duplicated(sources$seq)])
   dups <- which(sources$seq %in% dups)
-  single.src <- sources[-dups,]
+  single.src <- sources[-dups, setdiff(colnames(sources),readFieldsToRemove)]
+  if(nrow(single.src)>0){
+    single.src$status <- 1L+as.integer(!is.na(single.src$transcript_id)) +
+                          as.integer(!is.na(sources[-dups,"chr"]))
+  }
   sources <- sources[dups,]
   # is there are valid overlaps, discard invalid ones
   hasValid <- unique(sources$seq[sources$valid])
@@ -62,10 +80,13 @@ assignReads <- function(sources, rules=defaultAssignRules()){
     }
   }
   # eliminate low-priority matches
-  prio <- as.integer(rules$priorities[sources$transcript_type])
+  sources <- sources[order(sources$seq),]
+  prio <- rules$priorities[levels(sources$transcript_type)]
   prio[is.na(prio)] <- 0L
+  prio <- prio[as.integer(sources$transcript_type)]
+  names(prio) <- NULL
   mP <- max(splitAsList(prio,sources$seq))
-  w <- which(prio < mP[sources$seq])
+  w <- which(prio < rep(mP,runLength(Rle(sources$seq))))
   if(length(w)>0){
     ambiguities$priority <-
       unique(sources$seq[which(sources$seq %in% unique(sources$seq[w]))])
@@ -73,6 +94,7 @@ assignReads <- function(sources, rules=defaultAssignRules()){
   }
   
   if(isTRUE(rules$prioritizeByOverlapSize)){
+    # when there is an ambiguity, assign to the largest overlap
     mO <- max(splitAsList(sources$overlap,sources$seq))
     w <- which(sources$overlap < mO[sources$seq])
     if(length(w)>0){
@@ -83,63 +105,76 @@ assignReads <- function(sources, rules=defaultAssignRules()){
   }
   
   dups <- unique(sources$seq[duplicated(sources$seq)])
-  dups <- which(sources$seq %in% dups)
-  single.src2 <- sources[-dups,]
-  single.src2$status <- 4L # resolved ambiguity
-  single.src$status <- 1L + as.integer(!is.na(single.src$transcript_id)) +
-    as.integer(!is.na(single.src$chr))
-  sources <- sources[dups,]
-  sources$status <- 5L # ambiguous
+  dups <- sources$seq %in% dups
+  if(sum(!dups)>0){
+    # set aside reads for which only 1 overlap was retained
+    single.src2 <- sources[!dups, setdiff(colnames(sources),readFieldsToRemove)]
+    single.src2$status <- rep(4L,nrow(single.src2)) # resolved ambiguity
+    single.src <- rbind(single.src, single.src2)
+    rm(single.src2)
+  }
   
-  fields <- c("cigar","chr","read.start","read.end","overlap","startInFeature",
+  # the remaining reads are ambiguous, and will be reported as such
+  sources <- sources[which(dups),]
+  sources$status <- rep(5L, nrow(sources)) # ambiguous
+  
+  fields <- c("overlap","startInFeature",
               "transcript.length", "distanceToFeatureEnd","transcript_id",
               "transcript.strand", "transcript_type", "reclassify")
   fields <- intersect(fields, colnames(sources))
-  
+
   if(nrow(sources)>0){
-    nst <- lengths(unique(splitAsList(sources$strand, sources$seq)))
-    sources$transcript.strand[which(nst>1L)] <- "*"
-    s2 <- DataFrame(sources[!duplicated(sources$seq),])
+    # we collapse the table so that each fragment is a single row, converting
+    # columns to atomic lists
+    s2 <- sources[!duplicated(sources$seq),
+                  setdiff(colnames(sources), readFieldsToRemove)]
+    s2 <- s2[order(s2$seq),]
     for(f in fields){
-      s2[[f]] <- unique(splitAsList(sources[[f]], sources$seq))[s2$seq]
+      s2[[f]] <- unique(splitAsList(sources[[f]], sources$seq))
+      names(s2[[f]]) <- NULL
     }
     sources <- s2
     rm(s2)
   }
+  # also convert single-hits columns to atomic lists
   for(f in fields){
     if(is.factor(single.src[[f]])){
       single.src[[f]] <- as(single.src[[f]], "FactorList")
-      single.src2[[f]] <- as(single.src2[[f]], "FactorList")
     }else if(is.character(single.src[[f]])){
       single.src[[f]] <- as(single.src[[f]], "CharacterList")
-      single.src2[[f]] <- as(single.src2[[f]], "CharacterList")
     }else{
       single.src[[f]] <- as(single.src[[f]], "IntegerList")
-      single.src2[[f]] <- as(single.src2[[f]], "IntegerList")
     }
   }
-  sources <- rbind(DataFrame(single.src), DataFrame(single.src2), sources)
+  # merge back assignments and get rid of NA values
+  sources <- rbind(DataFrame(single.src), sources)
   for(f in fields) sources[[f]] <- sources[[f]][which(!is.na(sources[[f]]))]
   
+  # give labels to the different status flags
   stst <- c("unmapped","noFeature","unambiguous","resolvedAmbiguity","ambiguous")
   sources$status <- factor(sources$status, seq_along(stst), stst)
-  a <- vapply(ambiguities, FUN.VALUE=logical(nrow(sources)), FUN=function(x){
-    sources$seq %in% x
-  })
-  dimnames(a) <- NULL
-  a <- apply(a,1,FUN=which)
-  a <- relist(factor(unlist(a),seq_along(ambiguities),names(ambiguities)),
-              LogicalList(a))
-  sources$resolvedAmbiguities <- a
+  if(reportResolved){
+    # gather the ambiguities that were resolved
+    a <- vapply(ambiguities, FUN.VALUE=logical(nrow(sources)), FUN=function(x){
+      sources$seq %in% x
+    })
+    if(!is.matrix(a)) a <- t(a)
+    dimnames(a) <- NULL
+    a <- apply(a,1,FUN=which)
+    a <- relist(factor(unlist(a),seq_along(ambiguities),names(ambiguities)),
+                LogicalList(a))
+    sources$resolvedAmbiguities <- a
+  }
   
-  sources$read.strand <- Rle(sources$read.strand)
-  row.names(sources) <- sources$seq
-  sources$length <- sources$seq <- NULL
   if(!is.null(sources$reclassify) && any(!is.na(sources$reclassify))){
     sources$reclassify <- FactorList(sources$reclassify)
   }else{
     sources$reclassify <- NULL
   }
+  
+  sources$alignment <- alig[as.character(sources$seq)]
+  row.names(sources) <- seqlvls[sources$seq]
+  sources$length <- sources$seq <- NULL
   sources
 }
 
@@ -155,8 +190,8 @@ assignReads <- function(sources, rules=defaultAssignRules()){
 #' @return A logical vector of the same length as there are rows in `src`
 #' @export
 isValidMiRNA <- function(src, length=19:24, minOverlap=16L, maxNonOverlap=3L){
-  src$length %in% length &&
-    src$overlap >= minOverlap &&
+  src$length %in% length &
+    src$overlap >= minOverlap &
     (src$length - src$overlap) <= maxNonOverlap
 }
 
@@ -227,18 +262,19 @@ getOverlapValidity <- function(sources, rules=defaultAssignRules()){
     rules$sameStrand <- stra$rule
   }
   sources$valid <- isValidOverlap(sources, rules=rules)
-  types <- list()
-  if(!is.null(rules$typeValidation)) types <- rules$typeValidation
-  for(typ in names(types)){
-    if(!is.null(types[[typ]]$fallback) &&
-       length(w <- which(sources$transcript_type == typ & !sources$valid))>0){
-      if(is.factor(sources$transcript_type))
-        levels(sources$transcript_type) <- unique(c(
-          levels(sources$transcript_type), types[[typ]]$fallback))
-      sources$transcript_type[w] <- types[[typ]]$fallback
-      sources$valid[w] <- isValidOverlap(sources[w,,drop=FALSE], rules)
-    }
-  }
+  # types <- list()
+  # if(!is.null(rules$typeValidation)) types <- rules$typeValidation
+  # for(typ in names(types)){
+  #   if(!is.null(types[[typ]]$fallback) &&
+  #      length(w <- which(sources$transcript_type == typ & !sources$valid))>0){
+  #     if(is.factor(sources$transcript_type))
+  #       levels(sources$transcript_type) <- unique(c(
+  #         levels(sources$transcript_type), types[[typ]]$fallback))
+  #     
+  #     sources$transcript_type[w] <- types[[typ]]$fallback
+  #     sources$valid[w] <- isValidOverlap(sources[w,,drop=FALSE], rules)
+  #   }
+  # }
   sources
 }
 
@@ -267,9 +303,9 @@ isValidOverlap <- function(srcs, rules=defaultAssignRules){
     if(!is.null(types[[typ]]$fun)){
       if("length" %in% names(formals(types[[typ]]$fun)) &&
          !is.null(types[[typ]]$length)){
-        valid[w] <- valid[w] & types[[typ]]$fun(srcs, length=types[[typ]]$length)
+        valid[w] <- valid[w] & types[[typ]]$fun(srcs[w,], length=types[[typ]]$length)
       }else{
-        valid[w] <- valid[w] & types[[typ]]$fun(srcs)
+        valid[w] <- valid[w] & types[[typ]]$fun(srcs[w,])
       }
     }
   }
@@ -305,7 +341,7 @@ defaultAssignRules <- function(rules=list()){
     priorities=c(
       setNames(rep(1L,9), c("miRNA","tRNA","tRNAp","Mt_tRNA", "snRNA","snoRNA",
                             "antisense","primary_piRNA","secondary_piRNA")),
-      setNames(rep(-1L,9), c("precursor","long_RNA","longRNA"))
+      setNames(rep(-1L,3), c("precursor","long_RNA","longRNA"))
     )
   )
   for(f in names(rules)) defrules[[f]] <- rules[[f]]
