@@ -1,31 +1,36 @@
 #' assignReads
+#' 
+#' Given a set of overlaps (between reads and features) and their properties, 
+#' this function assigns reads to features using a set of rules.
 #'
 #' @param sources A data.frame of overlaps, as produced by
 #' \code{\link{overlapWithTx}}
 #' @param rules Assignment rules (see \code{\link{defaultAssignmentRules}})
+#' @param reportResolved Logical; whether the report the different ambiguities
+#' that were resolved for each fragment.
 #'
 #' @return A \code{\link[S4Vectors]{DataFrame-class}}
 #' @export
-assignReads <- function(sources, rules=defaultAssignRules()){
+assignReads <- function(sources, rules=defaultAssignRules(), reportResolved=FALSE){
   sources <- DataFrame(sources)
   sources$length <- nchar(as.character(sources$seq))
   sources$seq <- as.factor(sources$seq)
+  # temporarily get rid of sequences to increase speed
   seqlvls <- levels(sources$seq)
   sources$seq <- as.integer(sources$seq)
+  
   sources$transcript_type <- as.factor(sources$transcript_type)
   sources$transcript_id <- as.factor(sources$transcript_id)
   levels(sources$transcript.strand) <-
     unique(c(levels(sources$transcript.strand),"*"))
   sources <- sources[order(sources$seq,sources$chr,sources$read.start),]
   
+  # wrap alignments
   alig <- GRanges(sources$chr, IRanges(sources$read.start, sources$read.end), 
                   strand=sources$read.strand, cigar=sources$cigar)
   alig <- unique( split(alig, sources$seq) )
   readFieldsToRemove <- c("chr","read.start","read.end","read.strand","cigar")
   
-  
-  
-  s1 <- table(sources$transcript_type)
   # identify valid overlaps
   sources <- getOverlapValidity(sources)
   if(!is.null(rules$reclassify) && length(rules$reclassify)>0){
@@ -89,6 +94,7 @@ assignReads <- function(sources, rules=defaultAssignRules()){
   }
   
   if(isTRUE(rules$prioritizeByOverlapSize)){
+    # when there is an ambiguity, assign to the largest overlap
     mO <- max(splitAsList(sources$overlap,sources$seq))
     w <- which(sources$overlap < mO[sources$seq])
     if(length(w)>0){
@@ -101,11 +107,14 @@ assignReads <- function(sources, rules=defaultAssignRules()){
   dups <- unique(sources$seq[duplicated(sources$seq)])
   dups <- sources$seq %in% dups
   if(sum(!dups)>0){
+    # set aside reads for which only 1 overlap was retained
     single.src2 <- sources[!dups, setdiff(colnames(sources),readFieldsToRemove)]
     single.src2$status <- rep(4L,nrow(single.src2)) # resolved ambiguity
     single.src <- rbind(single.src, single.src2)
     rm(single.src2)
   }
+  
+  # the remaining reads are ambiguous, and will be reported as such
   sources <- sources[which(dups),]
   sources$status <- rep(5L, nrow(sources)) # ambiguous
   
@@ -115,6 +124,8 @@ assignReads <- function(sources, rules=defaultAssignRules()){
   fields <- intersect(fields, colnames(sources))
 
   if(nrow(sources)>0){
+    # we collapse the table so that each fragment is a single row, converting
+    # columns to atomic lists
     s2 <- sources[!duplicated(sources$seq),
                   setdiff(colnames(sources), readFieldsToRemove)]
     s2 <- s2[order(s2$seq),]
@@ -125,6 +136,7 @@ assignReads <- function(sources, rules=defaultAssignRules()){
     sources <- s2
     rm(s2)
   }
+  # also convert single-hits columns to atomic lists
   for(f in fields){
     if(is.factor(single.src[[f]])){
       single.src[[f]] <- as(single.src[[f]], "FactorList")
@@ -134,20 +146,25 @@ assignReads <- function(sources, rules=defaultAssignRules()){
       single.src[[f]] <- as(single.src[[f]], "IntegerList")
     }
   }
+  # merge back assignments and get rid of NA values
   sources <- rbind(DataFrame(single.src), sources)
   for(f in fields) sources[[f]] <- sources[[f]][which(!is.na(sources[[f]]))]
   
+  # give labels to the different status flags
   stst <- c("unmapped","noFeature","unambiguous","resolvedAmbiguity","ambiguous")
   sources$status <- factor(sources$status, seq_along(stst), stst)
-  a <- vapply(ambiguities, FUN.VALUE=logical(nrow(sources)), FUN=function(x){
-    sources$seq %in% x
-  })
-  if(!is.matrix(a)) a <- t(a)
-  dimnames(a) <- NULL
-  a <- apply(a,1,FUN=which)
-  a <- relist(factor(unlist(a),seq_along(ambiguities),names(ambiguities)),
-              LogicalList(a))
-  sources$resolvedAmbiguities <- a
+  if(reportResolved){
+    # gather the ambiguities that were resolved
+    a <- vapply(ambiguities, FUN.VALUE=logical(nrow(sources)), FUN=function(x){
+      sources$seq %in% x
+    })
+    if(!is.matrix(a)) a <- t(a)
+    dimnames(a) <- NULL
+    a <- apply(a,1,FUN=which)
+    a <- relist(factor(unlist(a),seq_along(ambiguities),names(ambiguities)),
+                LogicalList(a))
+    sources$resolvedAmbiguities <- a
+  }
   
   if(!is.null(sources$reclassify) && any(!is.na(sources$reclassify))){
     sources$reclassify <- FactorList(sources$reclassify)
