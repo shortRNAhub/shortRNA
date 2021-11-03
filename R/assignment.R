@@ -21,7 +21,7 @@ assignReads <- function(sources, rules=defaultAssignRules()){
   alig <- GRanges(sources$chr, IRanges(sources$read.start, sources$read.end), 
                   strand=sources$read.strand, cigar=sources$cigar)
   alig <- unique( split(alig, sources$seq) )
-  readFieldsToRemove <- c("read.start","read.end","read.strand","cigar")
+  readFieldsToRemove <- c("chr","read.start","read.end","read.strand","cigar")
   
   
   
@@ -43,9 +43,10 @@ assignReads <- function(sources, rules=defaultAssignRules()){
   dups <- unique(sources$seq[duplicated(sources$seq)])
   dups <- which(sources$seq %in% dups)
   single.src <- sources[-dups, setdiff(colnames(sources),readFieldsToRemove)]
-  iv <- 1L+as.integer(!is.na(single.src$transcript_id)) +
-           as.integer(!is.na(single.src$chr))
-  single.src$status <- rep(iv, nrow(single.src))
+  if(nrow(single.src)>0){
+    single.src$status <- 1L+as.integer(!is.na(single.src$transcript_id)) +
+                          as.integer(!is.na(sources[-dups,"chr"]))
+  }
   sources <- sources[dups,]
   # is there are valid overlaps, discard invalid ones
   hasValid <- unique(sources$seq[sources$valid])
@@ -244,19 +245,19 @@ getOverlapValidity <- function(sources, rules=defaultAssignRules()){
     rules$sameStrand <- stra$rule
   }
   sources$valid <- isValidOverlap(sources, rules=rules)
-  types <- list()
-  if(!is.null(rules$typeValidation)) types <- rules$typeValidation
-  for(typ in names(types)){
-    if(!is.null(types[[typ]]$fallback) &&
-       length(w <- which(sources$transcript_type == typ & !sources$valid))>0){
-      if(is.factor(sources$transcript_type))
-        levels(sources$transcript_type) <- unique(c(
-          levels(sources$transcript_type), types[[typ]]$fallback))
-
-      sources$transcript_type[w] <- types[[typ]]$fallback
-      sources$valid[w] <- isValidOverlap(sources[w,,drop=FALSE], rules)
-    }
-  }
+  # types <- list()
+  # if(!is.null(rules$typeValidation)) types <- rules$typeValidation
+  # for(typ in names(types)){
+  #   if(!is.null(types[[typ]]$fallback) &&
+  #      length(w <- which(sources$transcript_type == typ & !sources$valid))>0){
+  #     if(is.factor(sources$transcript_type))
+  #       levels(sources$transcript_type) <- unique(c(
+  #         levels(sources$transcript_type), types[[typ]]$fallback))
+  #     
+  #     sources$transcript_type[w] <- types[[typ]]$fallback
+  #     sources$valid[w] <- isValidOverlap(sources[w,,drop=FALSE], rules)
+  #   }
+  # }
   sources
 }
 
