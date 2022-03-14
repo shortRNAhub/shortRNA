@@ -4,17 +4,21 @@
 \alias{assignReads}
 \title{assignReads}
 \usage{
-assignReads(sources, rules = defaultAssignRules())
+assignReads(sources, rules = defaultAssignRules(), reportResolved = FALSE)
 }
 \arguments{
 \item{sources}{A data.frame of overlaps, as produced by
 \code{\link{overlapWithTx}}}
 
 \item{rules}{Assignment rules (see \code{\link{defaultAssignmentRules}})}
+
+\item{reportResolved}{Logical; whether the report the different ambiguities
+that were resolved for each fragment.}
 }
 \value{
 A \code{\link[S4Vectors]{DataFrame-class}}
 }
 \description{
-assignReads
+Given a set of overlaps (between reads and features) and their properties, 
+this function assigns reads to features using a set of rules.
 }

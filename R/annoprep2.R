@@ -260,7 +260,7 @@ getmiRNA <- function(sp = "mmu") {
   library(plyr)
 
   sp <- tolower(sp)
-  link <- paste0("ftp://mirbase.org/pub/mirbase/CURRENT/genomes/", sp, ".gff3")
+  link <- paste0("https://www.mirbase.org/ftp/CURRENT/genomes/", sp, ".gff3")
   gr <- rtracklayer::import(link)
 
   gr$transcript_id <- gr$Name
@@ -308,7 +308,7 @@ getmiRNA <- function(sp = "mmu") {
 
   gtf <- gtf[, c("tx_id", "symbol", "tx_type")]
 
-  miRNA <- import("ftp://mirbase.org/pub/mirbase/CURRENT/mature.fa.gz",
+  miRNA <- import("https://www.mirbase.org/ftp/CURRENT/mature.fa.gz",
     format = "fasta"
   )
   miRNA <- miRNA[grep(pattern = paste0("^", sp), x = names(miRNA))]
@@ -320,7 +320,7 @@ getmiRNA <- function(sp = "mmu") {
     )
   })
 
-  miRNA_h <- import("ftp://mirbase.org/pub/mirbase/CURRENT/hairpin.fa.gz",
+  miRNA_h <- import("https://www.mirbase.org/ftp/CURRENT/hairpin.fa.gz",
     format = "fasta"
   )
   miRNA_h <- miRNA_h[grep(pattern = paste0("^", sp), x = names(miRNA_h))]

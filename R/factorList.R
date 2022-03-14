@@ -224,7 +224,9 @@ addReadsToTree <- function(fL,
 
   # For sequences overlapping with more than 1 feature
   fpr_fl_m <- fpr_fl[lengths(fpr_fl) > 1]
-  fli <- IntegerList(fL)
+  
+  if(length(fpr_fl_m) > 0){
+    fli <- IntegerList(fL)  
   fpr_fl_m_o <- lapply(fpr_fl_m, FUN = function(x) longestOrderedOverlap(fli[x]))
   rm(fli)
 
@@ -240,10 +242,14 @@ addReadsToTree <- function(fL,
   names(fpr_fl_m_of) <- names(fpr_fl_m_o1)
 
   fpr_fl_m_of <- .addNames2fL(fpr_fl_m_of)
-
-  
   # Features for the tree
   fpr_tree <- c(fpr_fl_s_o, fpr_fl_m_of)
+  } else{
+    fpr_tree <- fpr_fl_s_o
+  }
+  
+  # Features for the tree
+  # fpr_tree <- c(fpr_fl_s_o, fpr_fl_m_of)
   
   # Reads not assigned to any features
   if(unassigned){
