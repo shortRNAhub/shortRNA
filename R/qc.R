@@ -168,7 +168,10 @@ makeBeforeFiltDF <- function(json) {
   q_20_rate <- js$summary$before_filtering$q20_rate * 100
   q_30_bases <- js$read1_before_filtering$q30_bases
   q_30_rate <- js$summary$before_filtering$q30_rate * 100
-  gc <- paste0(round(x = js$summary$before_filtering$gc_content * 100, digits = 2), "%")
+  gc <- paste0(round(
+    x = js$summary$before_filtering$gc_content * 100,
+    digits = 2
+  ), "%")
 
   df <- data.frame(
     test = c(
@@ -902,7 +905,8 @@ baseRatioProportionPlot <- function(json = NULL,
 #'
 #' @param fq A fastq file
 #'
-#' @return A data frame with reads length (read_length) and number of reads (num_reads)
+#' @return A data frame with reads length (read_length)
+#' and number of reads (num_reads)
 #'
 #' @examples
 #' # Input

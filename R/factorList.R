@@ -37,7 +37,10 @@ mergeAtomicLists <- function(x, y) {
     lvls <- union(levels(x[[1]]), levels(y[[1]]))
     fx <- factor(unlist(x, use.names = FALSE), lvls)
     fy <- factor(unlist(y, use.names = FALSE), lvls)
-    return(splitAsList(factor(c(fx, fy), levels = seq_along(lvls), lvls), c(rep(n, lengths(x)), rep(n, lengths(y)))))
+    return(splitAsList(
+      factor(c(fx, fy), levels = seq_along(lvls), lvls),
+      c(rep(n, lengths(x)), rep(n, lengths(y)))
+    ))
   } else {
     if (is(x, "FactorList")) {
       x <- CharacterList(x)
@@ -46,7 +49,10 @@ mergeAtomicLists <- function(x, y) {
       y <- CharacterList(y)
     }
   }
-  splitAsList(c(unlist(x, use.names = FALSE), unlist(y, use.names = FALSE)), c(rep(n, lengths(x)), rep(n, lengths(y))))
+  splitAsList(
+    c(unlist(x, use.names = FALSE), unlist(y, use.names = FALSE)),
+    c(rep(n, lengths(x)), rep(n, lengths(y)))
+  )
 }
 
 #' longestOrderedOverlap
@@ -98,7 +104,8 @@ longestOrderedOverlap <- function(x) {
 #'
 #' @return A `phylo` object
 #' @export
-fList2tree <- function(fL, addRoot = TRUE, collapseSingles = FALSE, root = "ROOT") {
+fList2tree <- function(fL, addRoot = TRUE,
+                       collapseSingles = FALSE, root = "ROOT") {
   fL <- relist(droplevels(unlist(fL, use.names = FALSE)), fL)
   lvls <- levels(fL[[1]])
   # temporarily get rid of levels
@@ -227,7 +234,9 @@ addReadsToTree <- function(fL,
 
   if (length(fpr_fl_m) > 0) {
     fli <- IntegerList(fL)
-    fpr_fl_m_o <- lapply(fpr_fl_m, FUN = function(x) longestOrderedOverlap(fli[x]))
+    fpr_fl_m_o <- lapply(fpr_fl_m, FUN = function(x) {
+      longestOrderedOverlap(fli[x])
+    })
     rm(fli)
 
     fpr_fl_m_o1 <- splitAsList(
@@ -238,7 +247,8 @@ addReadsToTree <- function(fL,
       f = rep(names(fpr_fl_m_o), lengths(fpr_fl_m_o))
     )
 
-    fpr_fl_m_o2 <- FactorList(as.list(as.character(paste(fpr_fl_m, collapse = "/"))))
+    fpr_fl_m_o2 <-
+      FactorList(as.list(as.character(paste(fpr_fl_m, collapse = "/"))))
 
     fpr_fl_m_of <- mergeAtomicLists(x = fpr_fl_m_o1, y = fpr_fl_m_o2)
     names(fpr_fl_m_of) <- names(fpr_fl_m_o1)
@@ -261,7 +271,10 @@ addReadsToTree <- function(fL,
     n <- length(fpr_fl_n)
     fpr_fl_n <- splitAsList(as.character(unlist(fpr_fl_n)), seq_len(n))
 
-    x1 <- splitAsList(rep(factor(as.character(fpr_fl_m_of[[1]][1])), n), seq_len(n))
+    x1 <- splitAsList(
+      rep(factor(as.character(fpr_fl_m_of[[1]][1])), n),
+      seq_len(n)
+    )
     x2 <- splitAsList(rep(factor("unassigned"), n), seq_len(n))
     x <- mergeAtomicLists(x1, x2)
 

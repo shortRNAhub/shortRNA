@@ -51,34 +51,3 @@ fastq2SeqCountMatrix <- function(files,
   df <- df[which(rowSums(df, na.rm = T) >= discardBelowCount), ]
   df[order(row.names(df)), ]
 }
-
-
-#' List files on a FTP server
-#' @import RCurl stringr
-#'
-#' @param url A url of FTP location
-#'
-#' @return A list of files
-#'
-#' @examples
-#' # Input
-#' url <- "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M18/"
-#'
-#' # Analysis
-#' files <- listFilesFTP(url)
-#'
-#' # Output
-#' files
-listFilesFTP <- function(url) {
-  library(RCurl)
-  library(XML)
-  # library(stringr)
-  files <- getHTMLLinks(getURL(
-    url = url,
-    ftp.use.epsv = FALSE,
-    dirlistonly = TRUE
-  ))
-
-  files <- paste0(url, files)
-  return(files)
-}

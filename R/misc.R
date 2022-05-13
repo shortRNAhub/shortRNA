@@ -5,7 +5,9 @@
       return(NULL)
     }
   }
-  if (tryCatch(require("doParallel", character.only = TRUE), error = function(e) FALSE)) {
+  if (tryCatch(require("doParallel", character.only = TRUE),
+    error = function(e) FALSE
+  )) {
     library(doParallel)
     if (is.null(ncores)) {
       ncores <- min(detectCores() - 1, maxCores)
@@ -26,7 +28,8 @@
 #' Creates a layout for a given (minimum) number of frames
 #'
 #' @param nb Minimum number of frames
-#' @param byrow Whether to fill frames by row instead of by column (default FALSE, i.e. fill by column)
+#' @param byrow Whether to fill frames by row instead of by column
+#'  (default FALSE, i.e. fill by column)
 #'
 #' @return The total number of frames in the layout.
 #'
@@ -64,11 +67,14 @@ LCS <- function(x) {
 
 #' capitalizeRead
 #'
-#' Alters a sequence read capitalization according to it's alignment characteristics (cigar).
+#' Alters a sequence read capitalization according to it's
+#' alignment characteristics (cigar).
 #'
 #' @param read A character vector of length 1 containing the sequnce.
 #' @param cigar A character vector of length 1 containing the cigar.
-#' @param indels Logical; whether to also indicate insertions/deletions (default FALSE). This cannot be enablied if the read already includes any hyphen ('-').
+#' @param indels Logical; whether to also indicate insertions/deletions
+#'  (default FALSE). This cannot be enablied if the read already includes
+#'   any hyphen ('-').
 #'
 #' @return A character vector of length 1 containing the formatted sequence.
 #'
@@ -153,12 +159,15 @@ capitalizeRead <- function(read, cigar, indels = FALSE) {
 
 .fcheck <- function(x, fatal = TRUE, object = NULL) {
   cmd <- deparse(substitute(x))
-  x <- tryCatch(x, warning = function(w) futile.logger::flog.warn(w), error = function(e) {
-    .fstop(paste0(
-      "Error in `", cmd,
-      "`: ", e$message
-    ))
-  })
+  x <- tryCatch(x,
+    warning = function(w) futile.logger::flog.warn(w),
+    error = function(e) {
+      .fstop(paste0(
+        "Error in `", cmd,
+        "`: ", e$message
+      ))
+    }
+  )
   msg <- paste0("(", cmd, ") = ", x)
   if (x || !fatal) {
     futile.logger::flog.trace(msg)
@@ -227,8 +236,41 @@ longestCommonString <- function(x, delim = "") {
     return("")
   }
   i <- 0
-  while (length(unique(vapply(tmp, FUN.VALUE = character(1), FUN = function(x) x[i + 1]))) == 1) {
+  while (length(unique(vapply(tmp,
+    FUN.VALUE = character(1),
+    FUN = function(x) x[i + 1]
+  ))) == 1) {
     i <- i + 1
   }
   paste(tmp[[1]][seq_len(i)], collapse = delim)
+}
+
+#' List files on a FTP server
+#' @import RCurl stringr
+#'
+#' @param url A url of FTP location
+#'
+#' @return A list of files
+#'
+#' @examples
+#' # Input
+#' url <- "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M18/"
+#'
+#' # Analysis
+#' files <- listFilesFTP(url)
+#'
+#' # Output
+#' files
+listFilesFTP <- function(url) {
+  library(RCurl)
+  library(XML)
+  # library(stringr)
+  files <- getHTMLLinks(getURL(
+    url = url,
+    ftp.use.epsv = FALSE,
+    dirlistonly = TRUE
+  ))
+  
+  files <- paste0(url, files)
+  return(files)
 }

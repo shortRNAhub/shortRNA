@@ -27,7 +27,7 @@ repSoftClip <- function(GA) {
       sequenceLayer(
         x = seq, cigar = cigar,
         from = "query-after-soft-clipping",
-        to = "query", ,
+        to = "query",
         S.letter = "S"
       )
     )

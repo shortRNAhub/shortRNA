@@ -78,7 +78,9 @@ miRNAtoFL <- function(gr, spMore = TRUE, sp = "mm10", cluster = TRUE) {
       if (spMore) {
         test <- grepl("[a-z]", x[2])
         if (test) {
-          x1 <- strsplit(x[2], "(?=[A-Za-z])(?<=[0-9])|(?=[0-9])(?<=[A-Za-z])", perl = TRUE)[[1]]
+          x1 <- strsplit(x[2], "(?=[A-Za-z])(?<=[0-9])|(?=[0-9])(?<=[A-Za-z])",
+            perl = TRUE
+          )[[1]]
           x1 <- c(x1[1], paste0(x1[1], x1[2]))
           x <- c(x[1], x1, if (length(x) > 2) x[3:length(x)])
           x <- x[!x %in% ""]
@@ -89,12 +91,18 @@ miRNAtoFL <- function(gr, spMore = TRUE, sp = "mm10", cluster = TRUE) {
       if (length(x) > 2) {
         if (spMore) {
           if (test) {
-            x1 <- c(x1, sapply(3:length(x), FUN = function(i) paste(x[c(1, 3:i)], collapse = "-")))
+            x1 <- c(x1, sapply(3:length(x), FUN = function(i) {
+              paste(x[c(1, 3:i)], collapse = "-")
+            }))
           } else {
-            x1 <- c(x1, sapply(3:length(x), FUN = function(i) paste(x[c(1, 2:i)], collapse = "-")))
+            x1 <- c(x1, sapply(3:length(x), FUN = function(i) {
+              paste(x[c(1, 2:i)], collapse = "-")
+            }))
           }
         } else {
-          x1 <- c(x1, sapply(3:length(x), FUN = function(i) paste(x[c(1, 2:i)], collapse = "-")))
+          x1 <- c(x1, sapply(3:length(x), FUN = function(i) {
+            paste(x[c(1, 2:i)], collapse = "-")
+          }))
         }
       }
 

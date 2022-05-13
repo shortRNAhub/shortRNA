@@ -301,7 +301,8 @@ getmiRNA <- function(sp = "mmu") {
   )
 
 
-  gtf$transcript_id[gtf$transcript_type == "miRNA_precursor"] <- gtf$ID[gtf$transcript_type == "miRNA_precursor"]
+  gtf$transcript_id[gtf$transcript_type == "miRNA_precursor"] <-
+    gtf$ID[gtf$transcript_type == "miRNA_precursor"]
 
   gtf$tx_id <- gtf$transcript_id
   gtf$tx_type <- gtf$transcript_type
@@ -351,7 +352,10 @@ miRNAcluster <- function(gr, minGap = 10000) {
   idx1 <- subjectHits(hits)
   idx2 <- queryHits(hits)
   r1 <- data.frame(rd[idx2])
-  r1$miRNAcluster <- paste0("miRNAcluster_", r1$seqnames, ":", r1$start, "-", r1$end, r1$strand)
+  r1$miRNAcluster <- paste0(
+    "miRNAcluster_", r1$seqnames, ":",
+    r1$start, "-", r1$end, r1$strand
+  )
   values <- data.frame(gr_miRNA[idx1])
 
   df <- GRanges(data.frame(values, miRNAcluster = r1$miRNAcluster))
@@ -463,7 +467,10 @@ gettRNA <- function(sp = "mm10", mt = TRUE, addCCA = TRUE) {
   }
 
   trna <- readDNAStringSet(url)
-  names(trna) <- trimws(gsub(pattern = ".*_|\\(.*", replacement = "", x = names(trna)))
+  names(trna) <- trimws(gsub(
+    pattern = ".*_|\\(.*", replacement = "",
+    x = names(trna)
+  ))
 
   if (any(grepl("His", names(trna)))) {
     trna <- as.character(trna)

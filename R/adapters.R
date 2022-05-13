@@ -3,7 +3,8 @@
 #' Looks for multiple 3'-end adapters in reads, and identifies the top ones.
 #'
 #' @param fq1 Path to a fastq (or fastq.gz) file containing Read1.
-#' @param fq2 Path to a fastq (or fastq.gz) file containing Read 2 (for paired-end data).
+#' @param fq2 Path to a fastq (or fastq.gz) file containing Read 2 (for
+#' paired-end data).
 #' @param adapters Path to a fasta file containing adapter sequences. If
 #' not provided, a set of common adapters will be used.
 #' @param addReverseComplement Whether to also test the reverse-complement of
@@ -119,14 +120,17 @@ tryAdapters <- function(fq1, fq2 = NULL, adapters = NULL,
 #' @param showCoocurrence Logical; whether to plot adapter co-occurence instead
 #' of adapter frequency by position (default FALSE)
 #' @param minFreq Minimum frequency for an adapter to be displayed (default
-#' 0.05). Frequency is calculated at the 4th nucleotide from the end of the read.
+#' 0.05). Frequency is calculated at the 4th nucleotide from the end of
+#'  the read.
 #' @param addSeq Logical; whether to add the adapter sequence to the row.names.
 #' @param row_names_width Width of the row names.
 #'
 #' @export
 plotAdapterResults <- function(o, showCoocurrence = FALSE,
                                minFreq = 0.05, addSeq = TRUE,
-                               row_names_width = ifelse(showCoocurrence, 10, 16)) {
+                               row_names_width = ifelse(
+                                 showCoocurrence, 10, 16
+                               )) {
   suppressPackageStartupMessages(library(ComplexHeatmap))
   if (!is.null(minFreq)) {
     w <- row.names(o$all.results)[which(o$all.results[, ncol(o$all.results) -
