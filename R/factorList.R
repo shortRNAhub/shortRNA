@@ -149,12 +149,12 @@ fList2tree <- function(fL, addRoot = TRUE, collapseSingles = FALSE, root = "ROOT
 }
 
 
-.addNames2fL <- function(fL){
+.addNames2fL <- function(fL) {
   nlvls <- length(levels(fL[[1]]))
   lvls <- c(levels(fL[[1]]), names(fL))
-  x <- c(as.integer(unlist(fL,use.names=FALSE)),nlvls+seq_len(length(fL)))
-  x <- factor(x, seq_len(nlvls+length(fL)), lvls)
-  splitAsList( x, c(rep(seq_along(fL),lengths(fL)),seq_along(fL)) )
+  x <- c(as.integer(unlist(fL, use.names = FALSE)), nlvls + seq_len(length(fL)))
+  x <- factor(x, seq_len(nlvls + length(fL)), lvls)
+  splitAsList(x, c(rep(seq_along(fL), lengths(fL)), seq_along(fL)))
 }
 
 
@@ -175,9 +175,9 @@ fList2tree <- function(fL, addRoot = TRUE, collapseSingles = FALSE, root = "ROOT
 #' @export
 #'
 #' @examples
-addReadsToTree <- function(fL, 
+addReadsToTree <- function(fL,
                            mappedFeaturesDF,
-                           featuresCol = "transcript_id", 
+                           featuresCol = "transcript_id",
                            readsCol = "seq",
                            unassigned = FALSE,
                            extraTreeBranch = NULL,
@@ -202,11 +202,11 @@ addReadsToTree <- function(fL,
   # # Filtering out non-existing features
   # featuresPerRead <- lapply(features, function(x) intersect(x = as.character(x), y = names(fl)))
   # sm <- sum(lengths(featuresPerRead) == 0)
-  # 
+  #
   # if (sm > 0) {
   #   warning(paste(sm, "features were removed as they were not found in the tree!"))
   # }
-  # 
+  #
   # featuresPerRead <- featuresPerRead[lengths(featuresPerRead) > 0]
 
   # Features per sequence factorList
@@ -224,54 +224,56 @@ addReadsToTree <- function(fL,
 
   # For sequences overlapping with more than 1 feature
   fpr_fl_m <- fpr_fl[lengths(fpr_fl) > 1]
-  
-  if(length(fpr_fl_m) > 0){
-    fli <- IntegerList(fL)  
-  fpr_fl_m_o <- lapply(fpr_fl_m, FUN = function(x) longestOrderedOverlap(fli[x]))
-  rm(fli)
 
-  fpr_fl_m_o1 <- splitAsList(
-    x = factor(as.numeric(unlist(fpr_fl_m_o)), levels = seq_along(levels(fl[[1]])),
-               labels = levels(fL[[1]])),
-    f = rep(names(fpr_fl_m_o), lengths(fpr_fl_m_o))
-  )
-  
-  fpr_fl_m_o2 <- FactorList(as.list(as.character(paste(fpr_fl_m, collapse = "/"))))
-  
-  fpr_fl_m_of <- mergeAtomicLists(x = fpr_fl_m_o1, y = fpr_fl_m_o2)
-  names(fpr_fl_m_of) <- names(fpr_fl_m_o1)
+  if (length(fpr_fl_m) > 0) {
+    fli <- IntegerList(fL)
+    fpr_fl_m_o <- lapply(fpr_fl_m, FUN = function(x) longestOrderedOverlap(fli[x]))
+    rm(fli)
 
-  fpr_fl_m_of <- .addNames2fL(fpr_fl_m_of)
-  # Features for the tree
-  fpr_tree <- c(fpr_fl_s_o, fpr_fl_m_of)
-  } else{
+    fpr_fl_m_o1 <- splitAsList(
+      x = factor(as.numeric(unlist(fpr_fl_m_o)),
+        levels = seq_along(levels(fl[[1]])),
+        labels = levels(fL[[1]])
+      ),
+      f = rep(names(fpr_fl_m_o), lengths(fpr_fl_m_o))
+    )
+
+    fpr_fl_m_o2 <- FactorList(as.list(as.character(paste(fpr_fl_m, collapse = "/"))))
+
+    fpr_fl_m_of <- mergeAtomicLists(x = fpr_fl_m_o1, y = fpr_fl_m_o2)
+    names(fpr_fl_m_of) <- names(fpr_fl_m_o1)
+
+    fpr_fl_m_of <- .addNames2fL(fpr_fl_m_of)
+    # Features for the tree
+    fpr_tree <- c(fpr_fl_s_o, fpr_fl_m_of)
+  } else {
     fpr_tree <- fpr_fl_s_o
   }
-  
+
   # Features for the tree
   # fpr_tree <- c(fpr_fl_s_o, fpr_fl_m_of)
-  
+
   # Reads not assigned to any features
-  if(unassigned){
-  fpr_fl_n <- fpr_fl[lengths(fpr_fl) == 0]
-  fpr_fl_n <- .addNames2fL(fpr_fl_n)
-  fpr_fl_n <- as.character(unlist(fpr_fl_n))
-  n <- length(fpr_fl_n)
-  fpr_fl_n <- splitAsList(as.character(unlist(fpr_fl_n)), seq_len(n))
-  
-  x1 <- splitAsList(rep(factor(as.character(fpr_fl_m_of[[1]][1])), n), seq_len(n))
-  x2 <- splitAsList(rep(factor("unassigned"), n), seq_len(n))
-  x <- mergeAtomicLists(x1, x2)
-  
-  fpr_fl_n_o <- mergeAtomicLists(x, fpr_fl_n)
-  
-  fpr_tree <- c(fpr_tree, fpr_fl_n_o)
+  if (unassigned) {
+    fpr_fl_n <- fpr_fl[lengths(fpr_fl) == 0]
+    fpr_fl_n <- .addNames2fL(fpr_fl_n)
+    fpr_fl_n <- as.character(unlist(fpr_fl_n))
+    n <- length(fpr_fl_n)
+    fpr_fl_n <- splitAsList(as.character(unlist(fpr_fl_n)), seq_len(n))
+
+    x1 <- splitAsList(rep(factor(as.character(fpr_fl_m_of[[1]][1])), n), seq_len(n))
+    x2 <- splitAsList(rep(factor("unassigned"), n), seq_len(n))
+    x <- mergeAtomicLists(x1, x2)
+
+    fpr_fl_n_o <- mergeAtomicLists(x, fpr_fl_n)
+
+    fpr_tree <- c(fpr_tree, fpr_fl_n_o)
   }
-  
-  
+
+
   # If additional branch is provided
-  if(!is.null(extraTreeBranch)) fpr_tree <- c(fpr_tree, extraTreeBranch)
-  
+  if (!is.null(extraTreeBranch)) fpr_tree <- c(fpr_tree, extraTreeBranch)
+
   tree <- fList2tree(fL = fpr_tree, addRoot = FALSE, collapseSingles = F, ...)
 
   # plan(sequential)
@@ -290,21 +292,21 @@ addReadsToTree <- function(fL,
 #' @export
 #'
 #' @examples
-getReadsFromBam <- function(bam, flag = 4, label = "unaligned"){
+getReadsFromBam <- function(bam, flag = 4, label = "unaligned") {
   suppressPackageStartupMessages({
     library(Rsamtools)
     library(IRanges)
   })
-  
+
   bamFile <- BamFile(bam)
   aln <- scanBam(bamFile)[[1]]
   ua <- aln$qname[aln$flag == flag]
-  
+
   n <- length(ua)
   uafl <- FactorList(splitAsList(ua, seq_len(n)))
-  
+
   x <- splitAsList(rep(factor(label), n), seq_len(n))
   res <- mergeAtomicLists(x, uafl)
-  
+
   return(res)
 }

@@ -54,8 +54,6 @@ fastq2SeqCountMatrix <- function(files,
 
 
 #' List files on a FTP server
-#' @author Deepak Tanwar (tanward@ethz.ch)
-#'
 #' @import RCurl stringr
 #'
 #' @param url A url of FTP location
@@ -75,10 +73,12 @@ listFilesFTP <- function(url) {
   library(RCurl)
   library(XML)
   # library(stringr)
-  files <- getHTMLLinks(getURL(url = url, 
-                               ftp.use.epsv = FALSE, 
-                               dirlistonly = TRUE))
-  
+  files <- getHTMLLinks(getURL(
+    url = url,
+    ftp.use.epsv = FALSE,
+    dirlistonly = TRUE
+  ))
+
   files <- paste0(url, files)
   return(files)
 }

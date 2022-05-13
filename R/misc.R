@@ -232,4 +232,3 @@ longestCommonString <- function(x, delim = "") {
   }
   paste(tmp[[1]][seq_len(i)], collapse = delim)
 }
-
