@@ -1,6 +1,22 @@
+#' tryAdapters
+#'
+#' Looks for multiple 3'-end adapters in reads, and identifies the top ones.
+#'
+#' @param fq1 Path to a fastq (or fastq.gz) file containing Read1.
+#' @param fq2 Path to a fastq (or fastq.gz) file containing Read 2 (for paired-end data).
+#' @param adapters Path to a fasta file containing adapter sequences. If
+#' not provided, a set of common adapters will be used.
+#' @param addReverseComplement Whether to also test the reverse-complement of
+#' the adapters (default TRUE).
+#' @param maxReads The maximum number of reads to use (default 500k)
+#'
+#' @return A list.
+#' @export
+#'
+#' @examples
 tryAdapters <- function(fq1, fq2 = NULL, adapters = NULL,
                         addReverseComplement = TRUE,
-                        maxReads = 5e+05, ...) {
+                        maxReads = 500000) {
   library(ShortRead)
   library(stringi)
   library(Biostrings)
@@ -97,8 +113,17 @@ tryAdapters <- function(fq1, fq2 = NULL, adapters = NULL,
 }
 
 
-
-
+#' plotAdapterResults
+#'
+#' @param o An object of class `adapterResults`, as produced by `tryAdapters`
+#' @param showCoocurrence Logical; whether to plot adapter co-occurence instead
+#' of adapter frequency by position (default FALSE)
+#' @param minFreq Minimum frequency for an adapter to be displayed (default
+#' 0.05). Frequency is calculated at the 4th nucleotide from the end of the read.
+#' @param addSeq Logical; whether to add the adapter sequence to the row.names.
+#' @param row_names_width Width of the row names.
+#'
+#' @export
 plotAdapterResults <- function(o, showCoocurrence = FALSE,
                                minFreq = 0.05, addSeq = TRUE,
                                row_names_width = ifelse(showCoocurrence, 10, 16)) {
@@ -112,8 +137,7 @@ plotAdapterResults <- function(o, showCoocurrence = FALSE,
   }
   if (showCoocurrence) {
     res <- o$coocurrence[w, rev(w)]
-  }
-  else {
+  } else {
     res <- o$all.results[w, ] * 100
   }
   if (addSeq) {

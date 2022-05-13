@@ -269,7 +269,8 @@ makeTracks <- function(gr,
         theme(
           legend.key.size = unit(0.3, "cm"),
           legend.text = element_text(size = 8),
-          legend.title = element_text(size = 9)) +
+          legend.title = element_text(size = 9)
+        ) +
         guides(fill = guide_legend(title = "Transcript type")) +
         scale_alpha(guide = "none")
     )

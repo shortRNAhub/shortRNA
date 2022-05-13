@@ -10,11 +10,13 @@
 otherRNA2FL <- function(gr, sp = "mm10") {
   # gr <- unique(gr)
   if (all(gr$tx_id == gr$symbol)) {
-    fl <- FactorList(lapply(1:length(gr), function(x) 
-      c(sp, gr$tx_biotype[x], gr$symbol[x])))
+    fl <- FactorList(lapply(1:length(gr), function(x) {
+      c(sp, gr$tx_biotype[x], gr$symbol[x])
+    }))
   } else {
-    fl <- FactorList(lapply(1:length(gr), function(x) 
-      c(sp, gr$tx_biotype[x], gr$symbol[x], gr$tx_id[x])))
+    fl <- FactorList(lapply(1:length(gr), function(x) {
+      c(sp, gr$tx_biotype[x], gr$symbol[x], gr$tx_id[x])
+    }))
   }
   return(fl)
 }
@@ -78,7 +80,7 @@ miRNAtoFL <- function(gr, spMore = TRUE, sp = "mm10", cluster = TRUE) {
         if (test) {
           x1 <- strsplit(x[2], "(?=[A-Za-z])(?<=[0-9])|(?=[0-9])(?<=[A-Za-z])", perl = TRUE)[[1]]
           x1 <- c(x1[1], paste0(x1[1], x1[2]))
-          x <- c(x[1], x1, if(length(x) > 2) x[3:length(x)])
+          x <- c(x[1], x1, if (length(x) > 2) x[3:length(x)])
           x <- x[!x %in% ""]
         }
       }
@@ -103,7 +105,6 @@ miRNAtoFL <- function(gr, spMore = TRUE, sp = "mm10", cluster = TRUE) {
       }
 
       return(res)
-      
     } else {
       if (cluster) {
         res <- c(sp, gr$tx_biotype[1], x3, x2, x)

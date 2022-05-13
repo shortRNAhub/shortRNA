@@ -1,9 +1,9 @@
 #' umiCollapse
-#' This function is adapted from the code available on: 
+#' This function is adapted from the code available on:
 #' https://github.com/BiodataAnalysisGroup/UMIc. The function is adapted as the
 #' original code was throwing some errors and was extremely slow for big `fastq`
 #' files. Here, we try to make it a bit faster.
-#' 
+#'
 #' @param fastq path to a fastq file
 #' @param UMIlocation UMI located. Default: in Read1 --> "R1"
 #' @param UMIlength UMI length in base-pair. Default: 8
@@ -22,11 +22,13 @@
 #' @examples
 #' ## Input
 #' fastq <- system.file("extdata", "case3_R1.fastq.gz", package = "shortRNA")
-#' 
+#'
 #' ## Analysis
-#' umiCollapse(fastq = fastq, UMIlength = 12, sequenceLength = 251, 
-#' outDir = getwd())
-#' 
+#' umiCollapse(
+#'   fastq = fastq, UMIlength = 12, sequenceLength = 251,
+#'   outDir = getwd()
+#' )
+#'
 umiCollapse <- function(fastq,
                         UMIlocation = "R1",
                         UMIlength = 8,
@@ -48,7 +50,7 @@ umiCollapse <- function(fastq,
   })
 
   message("Loaded required libraries successfully!")
-  
+
   # Results directory and log file
   if (!dir.exists(outDir)) dir.create(outDir)
   file.create(paste0(outDir, "/extra_info.txt"))
@@ -58,7 +60,7 @@ umiCollapse <- function(fastq,
 
   # read input file
   reads1 <- readFastq(fastq)
-  
+
   message("FastQ file read!")
 
   start.time <- Sys.time()
@@ -117,11 +119,11 @@ umiCollapse <- function(fastq,
     quality = quality,
     UMIlength = UMIlength
   )
-  
+
   message("First consensus!")
 
   memory[3] <- mem_used()
-  
+
   # UMI correction
   newUMIs <- .UMIcorrectionSingle(
     intermediate.table = intermediate.table,
@@ -132,10 +134,10 @@ umiCollapse <- function(fastq,
   )
 
   message("UMI correction!")
-  
+
   rm(intermediate.table)
   memory[4] <- mem_used()
-  
+
   # final consensus
   consensus_mean <- .groupingFinalSingle(
     newUMIs = newUMIs,
@@ -144,7 +146,7 @@ umiCollapse <- function(fastq,
     first_consensus = result_mean,
     UMIlength = UMIlength
   )
-  
+
   message("Final consensus!")
 
   memory[5] <- mem_used()
@@ -192,7 +194,7 @@ umiCollapse <- function(fastq,
     # ,
     # BStringSet(paste0(newUMIs$ID1, " ", consensus_mean$UMI))
   )
-  
+
   message("ShortRead object generated!")
 
   fileSplit <- as.data.table(str_split(fastq, "\\/"))
@@ -497,10 +499,13 @@ umiCollapse <- function(fastq,
   rm(cons)
 
   ##
-  cons_corr <- parallel::mclapply(grouping_q, function(x) 
-    .one.run.calculationsFunction(one.base = x), mc.preschedule = FALSE, 
-    mc.cores = detectCores())
-  
+  cons_corr <- parallel::mclapply(grouping_q, function(x) {
+    .one.run.calculationsFunction(one.base = x)
+  },
+  mc.preschedule = FALSE,
+  mc.cores = detectCores()
+  )
+
   cons_corr <- rbindlist(cons_corr)
 
   # join again in one final sequence

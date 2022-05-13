@@ -26,8 +26,7 @@ plPCA <- function(x, normalize.genes = F, plot.components = c(1, 2),
         shade = TRUE, sub = "", xlab = xlab, ylab = ylab,
         ...
       )
-    }
-    else {
+    } else {
       plot(pca$x[, plot.components[1]], pca$x[, plot.components[2]],
         xlab = xlab, ylab = ylab, col = points.color,
         ...
@@ -50,8 +49,7 @@ plPCA <- function(x, normalize.genes = F, plot.components = c(1, 2),
           a = divline$intercept, b = divline$slope,
           lty = "dashed", lwd = 2, col = "grey"
         )
-      }
-      else {
+      } else {
         warning("tsplit is not a vector of length=ncol(x) factorizable to two levels, and will therefore be ignored.")
       }
     }
