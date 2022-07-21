@@ -1,0 +1,146 @@
+---
+title: "Test data"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+
+# Required
+## Subset of annotations
+1. A smaller EnsemblDB
+2. A handful of features
+
+## Reference genome
+3. A smaller reference genome
+
+## Dataset
+4. Small dataset overlapping with subset of annotattions
+
+
+
+## Datasets to be used
+```{r}
+features <- readRDS("~/Desktop/features.rds")
+
+# url <- "https://raw.githubusercontent.com/dktanwar/sperm_GSE162112/main/shortRNA/03_tse/"
+
+
+
+# ar <- readRDS(url(paste0(url, "align/assignedReads.rds")))
+# m <- readRDS(url(paste0(url, "fastq/counts.rds")))
+# tree <- readRDS(url(paste0(url, "annotation/tree.rds")))
+# 
+# library(TreeSummarizedExperiment)
+# 
+# tse <- TreeSummarizedExperiment(
+#   assays = list(counts = m),
+#   rowTree = tree
+#   # rowData = ar[row.names(m),]
+# )
+
+# rowData(tse) <- ar[rownames(tse),]
+```
+
+# Selecting biotypes and features for the test data
+```{r}
+# nn <- names(rev(sort(rowSums(tse@assays@data$counts)))[1:20000])
+# tse1 <- tse[nn,]
+#
+# rd1 <- rowData(tse1)
+#
+# # sort(unique(unlist(rd1$transcript_type)))
+#
+# 
+#
+# miRNA <- rd2[any(rd2$transcript_type == "miRNA") | any(rd2$transcript_type == "miRNA_precursor"),]
+# tRNA <- rd2[any(rd2$transcript_type == "tRNA"),]
+# piRNA <- rd2[any(rd2$transcript_type == "piRNA_precursor"),]
+# rRNA <- rd2[any(rd2$transcript_type == "rRNA"),]
+# snRNA <- rd2[any(rd2$transcript_type == "snRNA"),]
+# snoRNA <- rd2[any(rd2$transcript_type == "snoRNA"),]
+# lincRNA <- rd2[any(rd2$transcript_type == "lincRNA"),]
+# protein_coding <- rd2[any(rd2$transcript_type == "protein_coding"),]
+
+# head(rev(sort(table(unlist(tRNA$transcript_id)))),20)
+# head(rev(sort(table(unlist(miRNA$transcript_id)))),30)
+
+# unique(features$tx_biotype)
+
+# f1 <- features[grep(
+#   pattern = "miRNA|tRNA|piRNA|snoRNA|snRNA|rRNA|protein_coding|lincRNA",
+#              x = features$tx_biotype
+#   )]
+
+get_biotypes <- function(fe = features, pattern){
+  bt <- features[grep(pattern, x = features$tx_id),]
+  features[grep(pattern = paste(paste0("^", unique(bt$symbol)), collapse = "|"),
+                x = features$symbol),]
+}
+
+tRNA <- get_biotypes(pattern = "^tRNA-Gly|^tRNA-Glu|^tRNA-His")
+
+piRNA <- get_biotypes(pattern = "pi-Il17rd.1|pi-Ctdsp2.3|pi-Ctdsp2.2|pi-Ctdsp2.1")
+  
+rRNA <- get_biotypes(pattern = "n-R5s124|n-R5s112|n-R5s33|n-R5s139")
+
+snRNA <- get_biotypes(pattern = "ENSMUST00000101973|ENSMUST00000083435|ENSMUST00000178250")
+
+snoRNA <- get_biotypes(pattern = "ENSMUST00000083347|ENSMUST00000083262|ENSMUST00000199023")
+
+lincRNA <- get_biotypes(pattern = "Gm45702|Gm10685|Gm11290")
+
+pc <- get_biotypes(pattern = "Kitl|Vac14|Pou6f2")
+
+miRNA <- get_biotypes(pattern = "miR-10|miR-191-|miR-99|miR-30a")
+
+gr <- c(miRNA, pc, tRNA, piRNA, rRNA, lincRNA, snRNA, snoRNA)
+
+loc <- reduce(gr)
+loc <- paste(seqnames(gr), ranges(gr), sep = ":")
+loc <- loc[grep(pattern = "^pseu", x = loc, invert = T)]
+write.table(x = loc, file = "~/Desktop/data_sh/loc.txt", sep = "\n", quote = F, row.names = F, col.names = F)
+```
+
+
+# Prepare annotation
+```{r}
+db_mmu <- getDB()
+
+ensdb <- db_mmu$ensdb
+db <- filter(ensdb, filter = ~ tx_name %in% gr$tx_id)
+# db <- filter(ensdb, filter = ~ symbol %in% gr$symbol)
+
+db_mmu$tRNA_fa <- db_mmu$tRNA_fa[names(db_mmu$tRNA_fa) %in% gr$symbol]
+db_mmu$rRNA_fa <- db_mmu$rRNA_fa[names(db_mmu$rRNA_fa) %in% gr$symbol]
+db_mmu$miRNA_GR <- db_mmu$miRNA_GR[db_mmu$miRNA_GR$symbol %in% gr$symbol]
+db_mmu$piRNA_GR <- db_mmu$piRNA_GR[db_mmu$piRNA_GR$symbol %in% gr$symbol]
+
+mm10_annoprep <- prepareAnnotation(
+  ensdb = db,
+  genome = "~/Desktop/data_sh/genome/custom_genome.fa",
+  output_dir = "~/Desktop/data_sh",
+  extra.gr = list(piRNA = db_mmu$piRNA_GR, miRNA = db_mmu$miRNA_GR),
+  extra.seqs = list(rRNA = db_mmu$rRNA_fa, tRNA = db_mmu$tRNA_fa),
+  resolveSplicing = NULL,
+  rules = defaultAssignRules(),
+  tRNAEnsembleRemove = TRUE,
+  clusterMiRNA = TRUE
+)
+```
+
+# Aligments subset
+```{r}
+o <- readRDS(url(paste0(url, "align/overlapBAM.rds")))
+os <- o[o$transcript_id %in% gr$tx_id,]
+
+ars <- ar[any(ar$transcript_id %in% gr$tx_id),]
+
+aln <- unlist(ars$alignment)
+
+library(GenomicAlignments)
+bam <- readGAlignments("~/Desktop/data_sh/align/unique.bam")
+
+sbam <- subsetByOverlaps(bam, aln) # did not work (vector memory exhausted (limit reached?)
+```
