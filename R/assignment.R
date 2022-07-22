@@ -11,7 +11,8 @@
 #'
 #' @return A \code{\link[S4Vectors]{DataFrame-class}}
 #' @export
-assignReads <- function(sources, rules = defaultAssignRules(), reportResolved = FALSE) {
+assignReads <- function(sources, rules = defaultAssignRules(),
+                        reportResolved = FALSE) {
   sources <- DataFrame(sources)
   sources$length <- nchar(as.character(sources$seq))
   sources$seq <- as.factor(sources$seq)
@@ -30,7 +31,10 @@ assignReads <- function(sources, rules = defaultAssignRules(), reportResolved = 
     strand = sources$read.strand, cigar = sources$cigar
   )
   alig <- unique(split(alig, sources$seq))
-  readFieldsToRemove <- c("chr", "read.start", "read.end", "read.strand", "cigar")
+  readFieldsToRemove <- c(
+    "chr", "read.start", "read.end",
+    "read.strand", "cigar"
+  )
 
   # identify valid overlaps
   sources <- getOverlapValidity(sources)
@@ -38,7 +42,8 @@ assignReads <- function(sources, rules = defaultAssignRules(), reportResolved = 
     sources$reclassify <- NA_character_
     for (f in names(rules$reclassify)) {
       if (length(w <- which(sources$transcript_type == f)) > 0) {
-        sources$reclassify[w] <- rules$reclassify[[f]](sources[w, , drop = FALSE])
+        sources$reclassify[w] <-
+          rules$reclassify[[f]](sources[w, , drop = FALSE])
       }
     }
   }
@@ -109,7 +114,10 @@ assignReads <- function(sources, rules = defaultAssignRules(), reportResolved = 
   dups <- sources$seq %in% dups
   if (sum(!dups) > 0) {
     # set aside reads for which only 1 overlap was retained
-    single.src2 <- sources[!dups, setdiff(colnames(sources), readFieldsToRemove)]
+    single.src2 <- sources[!dups, setdiff(
+      colnames(sources),
+      readFieldsToRemove
+    )]
     single.src2$status <- rep(4L, nrow(single.src2)) # resolved ambiguity
     single.src <- rbind(single.src, single.src2)
     rm(single.src2)
@@ -156,13 +164,19 @@ assignReads <- function(sources, rules = defaultAssignRules(), reportResolved = 
   for (f in fields) sources[[f]] <- sources[[f]][which(!is.na(sources[[f]]))]
 
   # give labels to the different status flags
-  stst <- c("unmapped", "noFeature", "unambiguous", "resolvedAmbiguity", "ambiguous")
+  stst <- c(
+    "unmapped", "noFeature", "unambiguous",
+    "resolvedAmbiguity", "ambiguous"
+  )
   sources$status <- factor(sources$status, seq_along(stst), stst)
   if (reportResolved) {
     # gather the ambiguities that were resolved
-    a <- vapply(ambiguities, FUN.VALUE = logical(nrow(sources)), FUN = function(x) {
-      sources$seq %in% x
-    })
+    a <- vapply(ambiguities,
+      FUN.VALUE = logical(nrow(sources)),
+      FUN = function(x) {
+        sources$seq %in% x
+      }
+    )
     if (!is.matrix(a)) a <- t(a)
     dimnames(a) <- NULL
     a <- apply(a, 1, FUN = which)
@@ -196,7 +210,8 @@ assignReads <- function(sources, rules = defaultAssignRules(), reportResolved = 
 #'
 #' @return A logical vector of the same length as there are rows in `src`
 #' @export
-isValidMiRNA <- function(src, length = 19:24, minOverlap = 16L, maxNonOverlap = 3L) {
+isValidMiRNA <- function(src, length = 19:24,
+                         minOverlap = 16L, maxNonOverlap = 3L) {
   src$length %in% length &
     src$overlap >= minOverlap &
     (src$length - src$overlap) <= maxNonOverlap
@@ -277,7 +292,8 @@ getOverlapValidity <- function(sources, rules = defaultAssignRules()) {
   if (isTRUE(rules$sameStrand == "auto")) {
     stra <- .strandedness(sources, rules)
     if (isTRUE(stra$revert)) {
-      sources$read.strand <- as.factor(ifelse(sources$read.strand == "-", "+", "-"))
+      sources$read.strand <-
+        as.factor(ifelse(sources$read.strand == "-", "+", "-"))
     }
     rules$sameStrand <- stra$rule
   }
@@ -325,7 +341,9 @@ isValidOverlap <- function(srcs, rules = defaultAssignRules) {
     if (!is.null(types[[typ]]$fun)) {
       if ("length" %in% names(formals(types[[typ]]$fun)) &&
         !is.null(types[[typ]]$length)) {
-        valid[w] <- valid[w] & types[[typ]]$fun(srcs[w, ], length = types[[typ]]$length)
+        valid[w] <- valid[w] & types[[typ]]$fun(srcs[w, ],
+          length = types[[typ]]$length
+        )
       } else {
         valid[w] <- valid[w] & types[[typ]]$fun(srcs[w, ])
       }
@@ -352,9 +370,18 @@ defaultAssignRules <- function(rules = list()) {
     # (auto will prioritize if bias > 70%, and will require if bias > 90%)
     prioritizeKnown = TRUE,
     typeValidation = list(
-      primary_piRNA = list(fun = isPrimaryPiRNA, fallback = "piRNA_precursor"),
-      secondary_piRNA = list(fun = isSecondaryPiRNA, fallback = "piRNA_precursor"),
-      miRNA = list(fun = isValidMiRNA, length = 19:24, fallback = "miRNA_precursor")
+      primary_piRNA = list(
+        fun = isPrimaryPiRNA,
+        fallback = "piRNA_precursor"
+      ),
+      secondary_piRNA = list(
+        fun = isSecondaryPiRNA,
+        fallback = "piRNA_precursor"
+      ),
+      miRNA = list(
+        fun = isValidMiRNA, length = 19:24,
+        fallback = "miRNA_precursor"
+      )
     ),
     reclassify = list(
       "tRNA" = tRFtype,

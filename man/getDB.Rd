@@ -16,12 +16,12 @@ getDB(
 \arguments{
 \item{species}{3 alphabet code for the species. Default: "mmu"}
 
-\item{genomeVersion}{genome version to be used for the species. 
+\item{genomeVersion}{genome version to be used for the species.
 Default: "GRCm38"}
 
 \item{ensemblVer}{Ensemble version to be used for genome. Default: 102}
 
-\item{tRNA_addCCA}{Wether to add "CCA" modifications to the tRNA sequences. 
+\item{tRNA_addCCA}{Wether to add "CCA" modifications to the tRNA sequences.
 Default: TRUE}
 
 \item{tRNA_includeMt}{Whether to include mitochondrial tRNAs. Default: TRUE}

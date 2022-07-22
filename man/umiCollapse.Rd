@@ -3,7 +3,7 @@
 \name{umiCollapse}
 \alias{umiCollapse}
 \title{umiCollapse
-This function is adapted from the code available on: 
+This function is adapted from the code available on:
 https://github.com/BiodataAnalysisGroup/UMIc. The function is adapted as the
 original code was throwing some errors and was extremely slow for big `fastq`
 files. Here, we try to make it a bit faster.}
@@ -39,12 +39,9 @@ Default: 3}
 \item{outDir}{Output directory for results. Default: current working
 directory}
 }
-\value{
-
-}
 \description{
 umiCollapse
-This function is adapted from the code available on: 
+This function is adapted from the code available on:
 https://github.com/BiodataAnalysisGroup/UMIc. The function is adapted as the
 original code was throwing some errors and was extremely slow for big `fastq`
 files. Here, we try to make it a bit faster.
@@ -54,7 +51,9 @@ files. Here, we try to make it a bit faster.
 fastq <- system.file("extdata", "case3_R1.fastq.gz", package = "shortRNA")
 
 ## Analysis
-umiCollapse(fastq = fastq, UMIlength = 12, sequenceLength = 251, 
-outDir = getwd())
+umiCollapse(
+  fastq = fastq, UMIlength = 12, sequenceLength = 251,
+  outDir = getwd()
+)
 
 }

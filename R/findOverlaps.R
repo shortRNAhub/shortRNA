@@ -15,7 +15,8 @@
 #'
 #' @return A data.table.
 #' @export
-overlapWithTx2 <- function(bamFile, annotation, ignoreStrand = TRUE, nbthreads = NULL) {
+overlapWithTx2 <- function(bamFile, annotation,
+                           ignoreStrand = TRUE, nbthreads = NULL) {
   suppressPackageStartupMessages({
     library(GenomicAlignments)
     library(GenomicFeatures)

@@ -7,8 +7,8 @@
 qcFastq(
   file,
   outDir = ".",
-  name = gsub(pattern = "\\\\.fq|\\\\.fq.gz|\\\\.fastq|\\\\.fastq.gz", replacement =
-    "", x = basename(file)),
+  name = gsub(pattern = "\\\\.fq|\\\\.fq.gz|\\\\.fastq|\\\\.fastq.gz", replacement = "",
+    x = basename(file)),
   adapterSeq = "auto",
   adaptersFa = "",
   minLength = 15,

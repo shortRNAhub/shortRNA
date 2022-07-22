@@ -12,9 +12,6 @@ getMttRNA(sp = "Mus musculus", addCCA = TRUE)
 \item{addCCA}{Whether to add CCA modifications to sequences or not.
 Default: TRUE}
 }
-\value{
-
-}
 \description{
 Obtain mitiochondrial tRNAs from mitotRNA batabase
 }

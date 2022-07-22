@@ -11,11 +11,14 @@ capitalizeRead(read, cigar, indels = FALSE)
 
 \item{cigar}{A character vector of length 1 containing the cigar.}
 
-\item{indels}{Logical; whether to also indicate insertions/deletions (default FALSE). This cannot be enablied if the read already includes any hyphen ('-').}
+\item{indels}{Logical; whether to also indicate insertions/deletions
+(default FALSE). This cannot be enablied if the read already includes
+ any hyphen ('-').}
 }
 \value{
 A character vector of length 1 containing the formatted sequence.
 }
 \description{
-Alters a sequence read capitalization according to it's alignment characteristics (cigar).
+Alters a sequence read capitalization according to it's
+alignment characteristics (cigar).
 }

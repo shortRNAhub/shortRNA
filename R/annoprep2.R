@@ -301,7 +301,8 @@ getmiRNA <- function(sp = "mmu") {
   )
 
 
-  gtf$transcript_id[gtf$transcript_type == "miRNA_precursor"] <- gtf$ID[gtf$transcript_type == "miRNA_precursor"]
+  gtf$transcript_id[gtf$transcript_type == "miRNA_precursor"] <-
+    gtf$ID[gtf$transcript_type == "miRNA_precursor"]
 
   gtf$tx_id <- gtf$transcript_id
   gtf$tx_type <- gtf$transcript_type
@@ -351,7 +352,10 @@ miRNAcluster <- function(gr, minGap = 10000) {
   idx1 <- subjectHits(hits)
   idx2 <- queryHits(hits)
   r1 <- data.frame(rd[idx2])
-  r1$miRNAcluster <- paste0("miRNAcluster_", r1$seqnames, ":", r1$start, "-", r1$end, r1$strand)
+  r1$miRNAcluster <- paste0(
+    "miRNAcluster_", r1$seqnames, ":",
+    r1$start, "-", r1$end, r1$strand
+  )
   values <- data.frame(gr_miRNA[idx1])
 
   df <- GRanges(data.frame(values, miRNAcluster = r1$miRNAcluster))
@@ -463,7 +467,10 @@ gettRNA <- function(sp = "mm10", mt = TRUE, addCCA = TRUE) {
   }
 
   trna <- readDNAStringSet(url)
-  names(trna) <- trimws(gsub(pattern = ".*_|\\(.*", replacement = "", x = names(trna)))
+  names(trna) <- trimws(gsub(
+    pattern = ".*_|\\(.*", replacement = "",
+    x = names(trna)
+  ))
 
   if (any(grepl("His", names(trna)))) {
     trna <- as.character(trna)
@@ -745,6 +752,21 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
 #   ensdb = db_mmu$ensdb,
 #   genome = "/mnt/IM/reference/genome/gencode/fasta/GRCm38.p5.genome.fa",
 #   output_dir = "./",
+#   extra.gr = list(piRNA = db_mmu$piRNA_GR, miRNA = db_mmu$miRNA_GR),
+#   extra.seqs = list(rRNA = db_mmu$rRNA_fa, tRNA = db_mmu$tRNA_fa),
+#   resolveSplicing = NULL,
+#   rules = defaultAssignRules(),
+#   tRNAEnsembleRemove = TRUE,
+#   clusterMiRNA = TRUE
+# )
+
+
+# devtools::load_all("./")
+# db_mmu <- getDB()
+# mm10_annoprep <- prepareAnnotation(
+#   ensdb = db_mmu$ensdb,
+#   genome = "/mnt/IM/reference/genome/gencode/fasta/GRCm38.p5.genome.fa",
+#   output_dir = "~/Desktop",
 #   extra.gr = list(piRNA = db_mmu$piRNA_GR, miRNA = db_mmu$miRNA_GR),
 #   extra.seqs = list(rRNA = db_mmu$rRNA_fa, tRNA = db_mmu$tRNA_fa),
 #   resolveSplicing = NULL,

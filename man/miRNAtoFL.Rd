@@ -11,9 +11,6 @@ miRNAtoFL(gr, spMore = TRUE, sp = "mm10", cluster = TRUE)
 
 \item{sp}{name of the species}
 }
-\value{
-
-}
 \description{
 Convert miRNAs annotation GRanges to a Factor List
 }

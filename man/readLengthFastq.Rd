@@ -10,7 +10,8 @@ readLengthFastq(fq)
 \item{fq}{A fastq file}
 }
 \value{
-A data frame with reads length (read_length) and number of reads (num_reads)
+A data frame with reads length (read_length)
+and number of reads (num_reads)
 }
 \description{
 Extract reads length information from a fastq file
