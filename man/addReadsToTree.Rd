@@ -31,9 +31,6 @@ reads from bam files.}
 
 \item{...}{Other parameters to be passed to `fList2tree`}
 }
-\value{
-
-}
 \description{
 Add reads to the tree
 }

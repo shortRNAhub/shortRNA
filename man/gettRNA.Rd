@@ -15,9 +15,6 @@ mitotRNA database. Please see also `getMttRNA`}
 
 \item{addCCA}{Whether to add CCA modifications to sequences or not.}
 }
-\value{
-
-}
 \description{
 Obtain tRNA sequences from the GttRNA database
 }

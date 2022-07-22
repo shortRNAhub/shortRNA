@@ -11,9 +11,6 @@ tRNAtoFL(gr, sp = "mm10")
 
 \item{sp}{name of the species}
 }
-\value{
-
-}
 \description{
 Convert tRNAs annotation GRanges to a Factor List
 }

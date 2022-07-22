@@ -19,6 +19,6 @@ that were resolved for each fragment.}
 A \code{\link[S4Vectors]{DataFrame-class}}
 }
 \description{
-Given a set of overlaps (between reads and features) and their properties, 
+Given a set of overlaps (between reads and features) and their properties,
 this function assigns reads to features using a set of rules.
 }

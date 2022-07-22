@@ -11,9 +11,6 @@ otherRNA2FL(gr, sp = "mm10")
 
 \item{sp}{name of the species}
 }
-\value{
-
-}
 \description{
 Convert RNAs annotation GRanges to a Factor List
 }
