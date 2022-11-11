@@ -12,18 +12,13 @@
 #' assignment stage.
 #' @param nbthreads A positive integer indicating the number of threads to use.
 #' Defaults to `min(c(8, bpworkers()))`.
+#' 
+#' @import GenomicAlignments GenomicFeatures data.table BiocParallel futile.logger GenomicRanges
 #'
 #' @return A data.table.
 #' @export
 overlapWithTx2 <- function(bamFile, annotation,
                            ignoreStrand = TRUE, nbthreads = NULL) {
-  suppressPackageStartupMessages({
-    library(GenomicAlignments)
-    library(GenomicFeatures)
-    library(data.table)
-    library(BiocParallel)
-    library(futile.logger)
-  })
   mcols(annotation)$tx_id <- as.factor(mcols(annotation)$tx_id)
 
   if (is.null(nbthreads) || nbthreads == 1) {

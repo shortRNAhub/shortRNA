@@ -11,6 +11,8 @@
 #' the adapters (default TRUE).
 #' @param maxReads The maximum number of reads to use (default 500k)
 #'
+#' @import ShortRead stringi Biostrings seqTools Rbowtie2 msa
+#' 
 #' @return A list.
 #' @export
 #'
@@ -18,11 +20,6 @@
 tryAdapters <- function(fq1, fq2 = NULL, adapters = NULL,
                         addReverseComplement = TRUE,
                         maxReads = 500000) {
-  library(ShortRead)
-  library(stringi)
-  library(Biostrings)
-  library(seqTools)
-  library(Rbowtie2)
 
   o <- identify_adapters(
     file1 = fq1, file2 = fq2,
@@ -94,7 +91,6 @@ tryAdapters <- function(fq1, fq2 = NULL, adapters = NULL,
   }
   m <- tryCatch(
     {
-      library(msa)
       m <- as.data.frame(msa(ad[w], type = "dna")@unmasked)
     },
     error = function(e) {
@@ -124,6 +120,8 @@ tryAdapters <- function(fq1, fq2 = NULL, adapters = NULL,
 #'  the read.
 #' @param addSeq Logical; whether to add the adapter sequence to the row.names.
 #' @param row_names_width Width of the row names.
+#' 
+#' @import ComplexHeatmap
 #'
 #' @export
 plotAdapterResults <- function(o, showCoocurrence = FALSE,
@@ -131,7 +129,6 @@ plotAdapterResults <- function(o, showCoocurrence = FALSE,
                                row_names_width = ifelse(
                                  showCoocurrence, 10, 16
                                )) {
-  suppressPackageStartupMessages(library(ComplexHeatmap))
   if (!is.null(minFreq)) {
     w <- row.names(o$all.results)[which(o$all.results[, ncol(o$all.results) -
       2] >= minFreq)]

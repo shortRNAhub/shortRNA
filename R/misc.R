@@ -251,6 +251,8 @@ longestCommonString <- function(x, delim = "") {
 #' @param url A url of FTP location
 #'
 #' @return A list of files
+#' 
+#' @import RCurl XML
 #'
 #' @examples
 #' # Input
@@ -262,9 +264,6 @@ longestCommonString <- function(x, delim = "") {
 #' # Output
 #' files
 listFilesFTP <- function(url) {
-  library(RCurl)
-  library(XML)
-  # library(stringr)
   files <- getHTMLLinks(getURL(
     url = url,
     ftp.use.epsv = FALSE,
