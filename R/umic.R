@@ -15,6 +15,7 @@
 #' Default: 3
 #' @param outDir Output directory for results. Default: current working
 #'  directory
+#' @import tidyverse data.table ShortRead Biostrings stringdist pryr parallel
 #'
 #' @return
 #' @export
@@ -37,17 +38,6 @@ umiCollapse <- function(fastq,
                         UMIdistance = 1,
                         sequenceDistance = 3,
                         outDir = getwd()) {
-
-  # Packages required
-  suppressPackageStartupMessages({
-    library(tidyverse)
-    library(data.table)
-    library(ShortRead)
-    library(Biostrings)
-    library(stringdist)
-    library(pryr)
-    library(parallel)
-  })
 
   message("Loaded required libraries successfully!")
 
