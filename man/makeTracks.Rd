@@ -22,6 +22,8 @@ makeTracks(
 
 \item{bamFile}{path to a BAM file}
 
+\item{param}{parameters for bam file}
+
 \item{plotCoverage}{Logical. Wether to plot coverage or not.}
 }
 \value{

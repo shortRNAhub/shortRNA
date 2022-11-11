@@ -1,21 +1,12 @@
 #' Dealing with soft-clipping
 #'
 #' @param GA `GAlignment file`
-#'
+#' @import Rsamtools rtracklayer GenomicFeatures GenomicRanges GenomicAlignments plyr Biostrings
 #' @return `GRanges`
 #' @export
 #'
 #' @examples
 repSoftClip <- function(GA) {
-  suppressPackageStartupMessages({
-    library(Rsamtools)
-    library(rtracklayer)
-    library(GenomicFeatures)
-    library(GenomicRanges)
-    library(GenomicAlignments)
-    library(plyr)
-    library(Biostrings)
-  })
   res <- sapply(seq_along(GA), function(i) {
     # Convert GAlignment file to GRanges
     gr <- GRanges(GA[i])
@@ -73,7 +64,10 @@ repSoftClip <- function(GA) {
 #' @param counts a `dataframe` of samples by features counts
 #' @param features `GRanges` of features
 #' @param bamFile path to a BAM file
+#' @param param parameters for bam file
 #' @param plotCoverage Logical. Wether to plot coverage or not.
+#'
+#' @import Rsamtools ggplot2 ggbio rtracklayer GenomicFeatures GenomicRanges GenomicAlignments scales cowplot rcartocolor Biostrings RColorBrewer
 #'
 #' @return plot with tracks
 #' @export
@@ -85,19 +79,7 @@ makeTracks <- function(gr,
                        bamFile = NULL,
                        param = ScanBamParam(what = c("cigar", "pos", "seq")),
                        plotCoverage = TRUE) {
-  suppressPackageStartupMessages({
-    library(Rsamtools)
-    library(ggplot2)
-    library(ggbio)
-    library(rtracklayer)
-    library(GenomicFeatures)
-    library(GenomicRanges)
-    library(GenomicAlignments)
-    library(cowplot)
-    library(rcartocolor)
-    library(Biostrings)
-  })
-
+  
   if (class(bamFile) == "GAlignments") {
     seqlevelsStyle(ga) <- "Ensembl"
   } else {

@@ -25,8 +25,7 @@
 #' @return Produces a Rsubread index and returns a GRanglesList of features
 #' @export
 #'
-#' @import S4Vectors GenomicRanges Biostrings
-#' @importFrom Rsubread buildindex
+#' @import S4Vectors GenomicRanges Biostrings Rsubread dplyr ensembldb R.utils
 prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
                               extra.gr = list(), extra.seqs = NULL,
                               resolveSplicing = NULL,
@@ -34,13 +33,6 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
                               tRNAEnsembleRemove = TRUE,
                               clusterMiRNA = TRUE,
                               ...) {
-
-  # Loading libraries early in case they are not available,
-  # program will fail early
-  library(dplyr)
-  library(ensembldb)
-  library(R.utils)
-  library(Rsubread)
 
   if (!dir.exists(output_dir)) dir.create(output_dir)
 
@@ -249,16 +241,15 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
 #'
 #' @return a list of GRanges annotation of miRNAs, miRNAs DNAStringSet,
 #' and miRNA hairpins miRNAs DNAStringSet
+#' 
+#' @import rtracklayer dplyr plyr
+#' 
 #' @export
 #'
 #' @examples
 #' mir_mouse <- getmiRNA(sp = "mmu")
 #' mir_human <- getmiRNA(sp = "hsa")
 getmiRNA <- function(sp = "mmu") {
-  library(rtracklayer)
-  library(dplyr)
-  library(plyr)
-
   sp <- tolower(sp)
   link <- paste0("https://www.mirbase.org/ftp/CURRENT/genomes/", sp, ".gff3")
   gr <- rtracklayer::import(link)
@@ -337,6 +328,9 @@ getmiRNA <- function(sp = "mmu") {
 #' @param minGap minimum gap between the miRNAs for grouping
 #'
 #' @return A GRanges object
+#' 
+#' @import GenomicRanges
+#' 
 #' @export
 #'
 #' @examples
@@ -346,7 +340,6 @@ miRNAcluster <- function(gr, minGap = 10000) {
 
   if (length(gr_o) > 0) gr_o$miRNAcluster <- NA
 
-  library(GenomicRanges)
   rd <- reduce(gr_miRNA, min.gapwidth = minGap)
   hits <- findOverlaps(rd, gr_miRNA)
   idx1 <- subjectHits(hits)
@@ -371,13 +364,13 @@ miRNAcluster <- function(gr, minGap = 10000) {
 #' @param addCCA Whether to add CCA modifications to sequences or not.
 #' Default: TRUE
 #'
+#' @import tRNAdbImport plyr Biostrings
+#'
 #' @return
 #' @export
 #'
 #' @examples
 getMttRNA <- function(sp = "Mus musculus", addCCA = TRUE) {
-  library(tRNAdbImport)
-  library(plyr)
   tab <- data.frame(
     import.mttRNAdb(organism = sp)
   )[, c("tRNA_length", "tRNA_type", "tRNA_anticodon", "tRNA_seq")]
@@ -441,6 +434,8 @@ getMttRNA <- function(sp = "Mus musculus", addCCA = TRUE) {
 #' mitotRNA database. Please see also `getMttRNA`
 #' @param addCCA Whether to add CCA modifications to sequences or not.
 #'
+#' @import Biostrings
+#' 
 #' @return
 #' @export
 #'
@@ -448,7 +443,6 @@ getMttRNA <- function(sp = "Mus musculus", addCCA = TRUE) {
 gettRNA <- function(sp = "mm10", mt = TRUE, addCCA = TRUE) {
   match.arg(sp, c("hg19", "hg38", "mm10", "mm39"))
 
-  library(Biostrings)
   url <- "http://gtrnadb.ucsc.edu/genomes/eukaryota/"
   mt_sp <- NULL
 
@@ -503,15 +497,14 @@ gettRNA <- function(sp = "mm10", mt = TRUE, addCCA = TRUE) {
 #' @param sp Scientific names of the species
 #' @param release Which release should be used from 128, 132 and 138.1
 #'
+#' @import data.table Biostrings
+#'
 #' @return DNAStringSet of rRNAs
 #' @export
 #'
 #' @examples
 getrRNA <- function(sp = "Mus musculus", release = "138.1") {
   match.arg(release, c("128", "132", "138.1"))
-
-  library(data.table)
-  library(Biostrings)
 
   url_files <- paste0("https://ftp.arb-silva.de/release_", release, "/Exports/")
   files <- listFilesFTP(url_files)
@@ -622,6 +615,8 @@ getrRNA <- function(sp = "Mus musculus", release = "138.1") {
 #' @param tRNA_includeMt Whether to include mitochondrial tRNAs. Default: TRUE
 #' @param rRNA_release the version of rRNA database to be used. Default: "138.1"
 #'
+#' @import rtracklayer R.utils AnnotationHub
+#' 
 #' @return A list of databases (DNAstringSet or GRanges)
 #'
 #' @export
@@ -632,11 +627,8 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
                   tRNA_addCCA = TRUE, tRNA_includeMt = TRUE,
                   rRNA_release = "138.1") {
   if (species == "mmu") {
-    library(rtracklayer)
-    library(R.utils)
 
     # EnsDb
-    library(AnnotationHub)
     ah <- AnnotationHub()
     # ensdb <- rev(query(ah, genomeVersion, "Ensdb"))[[1]]
     ensdb <- query(ah, c(genomeVersion, "EnsDb", ensemblVer))[[1]]
@@ -683,11 +675,8 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
     )
     return(db)
   } else if (species == "hsa") {
-    library(rtracklayer)
-    library(R.utils)
 
     # EnsDb
-    library(AnnotationHub)
     ah <- AnnotationHub()
     # ensdb <- rev(query(ah, genomeVersion, "Ensdb"))[[1]]
     ensdb <- query(ah, c(genomeVersion, "EnsDb", ensemblVer))[[1]]

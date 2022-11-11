@@ -39,8 +39,6 @@ qcFastq <- function(file,
     If the adapter sequence is already known, it is better to specify it.\n\n"
     )
   }
-
-  library(Rfastp)
   res <- rfastp(
     read1 = file,
     outputFastq = paste(outDir, name, sep = "/"),
@@ -97,7 +95,6 @@ qcFastq <- function(file,
 #' df
 #' @export
 makeGeneralDF <- function(json) {
-  library(rjson)
   js <- fromJSON(file = json)
 
   pkg <- as.character(packageVersion("Rfastp"))
@@ -160,7 +157,6 @@ makeGeneralDF <- function(json) {
 #' df
 #' @export
 makeBeforeFiltDF <- function(json) {
-  library(rjson)
   js <- fromJSON(file = json)
   tot_reads <- js$read1_before_filtering$total_reads
   tot_bases <- js$read1_before_filtering$total_bases
@@ -216,7 +212,6 @@ makeBeforeFiltDF <- function(json) {
 #' df
 #' @export
 makeAfterFiltDF <- function(json) {
-  library(rjson)
   js <- fromJSON(file = json)
   tot_reads <- js$read1_after_filtering$total_reads
   tot_bases <- js$read1_after_filtering$total_bases
@@ -272,7 +267,6 @@ makeAfterFiltDF <- function(json) {
 #' df
 #' @export
 makeFiltDF <- function(json) {
-  library(rjson)
   js <- fromJSON(file = json)
 
   reads <- js$summary$before_filtering$total_reads
@@ -318,7 +312,7 @@ makeFiltDF <- function(json) {
 #' @param dupRate Column with duplication rate in df
 #' @param GCpercent Column with GC percentage in df
 #' @param dupLevel Column with duplication levels in df
-#'
+#' 
 #' @return An interactive plot
 #'
 #' @examples
@@ -362,9 +356,6 @@ readDuplicationPlot <- function(json = NULL,
                                 dupRate = "dupRate",
                                 GCpercent = NULL,
                                 dupLevel = "dupLevel") {
-  library(dplyr)
-  library(plotly)
-
   if (!is.null(json)) {
     df <- dupPlotDF(json)
     GCpercent <- "GCpercent"
@@ -445,7 +436,7 @@ p_GC <- readDuplicationPlot(
 #' Reads duplication data frame from JSON file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import Rfastp
+#' @import Rfastp rjson
 #'
 #' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #'
@@ -463,7 +454,6 @@ p_GC <- readDuplicationPlot(
 #' # Output
 #' df
 dupPlotDF <- function(json) {
-  library(rjson)
 
   js <- fromJSON(file = json)
 
@@ -518,9 +508,6 @@ readsQualityPlot <- function(json = NULL,
                              Gg = "Gg",
                              Cc = "Cc",
                              meanQual = NULL) {
-  library(plotly)
-  library(dplyr)
-  library(rcartocolor)
 
   if (!is.null(json)) {
     df <- readQualDF(json)
@@ -617,7 +604,6 @@ readsQualityPlot <- function(json = NULL,
 #' # Output
 #' df
 readQualDF <- function(json, which = "before") {
-  library(rjson)
   js <- fromJSON(file = json)
 
   qual <- NULL
@@ -681,9 +667,7 @@ baseRatioLinePlot <- function(json = NULL,
                               GC = NULL,
                               Nn = "Nn",
                               isRatio = FALSE) {
-  library(plotly)
-  library(dplyr)
-  library(rcartocolor)
+
 
   if (!is.null(json)) {
     df <- baseRatioDF(json)
@@ -775,7 +759,6 @@ baseRatioLinePlot <- function(json = NULL,
 #' # Output
 #' df
 baseRatioDF <- function(json, which = "before") {
-  library(rjson)
   js <- fromJSON(file = json)
 
   qual <- NULL
@@ -840,9 +823,7 @@ baseRatioProportionPlot <- function(json = NULL,
                                     GC = NULL,
                                     Nn = "Nn",
                                     isRatio = FALSE) {
-  library(plotly)
-  library(dplyr)
-  library(rcartocolor)
+
 
   if (!is.null(json)) {
     df <- baseRatioDF(json)
@@ -918,8 +899,6 @@ baseRatioProportionPlot <- function(json = NULL,
 #' # Output
 #' df
 readLengthFastq <- function(fq) {
-  library(seqTools)
-  library(qckitfastq)
 
   out <- list()
 
@@ -962,8 +941,7 @@ readLengthHist <- function(fq = NULL,
                            num_reads = "num_reads",
                            col = "red",
                            name = "Not trimmed") {
-  library(plotly)
-  library(dplyr)
+
 
   if (!is.null(fq)) {
     df <- readLengthFastq(fq)
