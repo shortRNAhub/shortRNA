@@ -55,7 +55,7 @@ Imports:
     stringdist,
     stringi,
     stringr,
-    tRNAdb,
+    tRNAdbImport,
     tidyverse
 LazyData: true
 Depends: 
