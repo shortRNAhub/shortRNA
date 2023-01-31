@@ -12,7 +12,51 @@ Description: Analysis of short RNA seq data
 License: GPL
 RoxygenNote: 7.2.3
 VignetteBuilder: rmarkdown, knitr
-Imports: Biostrings, BiocParallel, data.table, data.tree, tools, plyr, rtracklayer, GenomicRanges, GenomicAlignments, Rsamtools, edgeR, pheatmap, LSD, corrplot, R.utils, msa
+Imports:
+    AnnotationHub,
+    BiocParallel,
+    Biostrings,
+    ComplexHeatmap,
+    GenomicAlignments,
+    GenomicFeatures,
+    GenomicRanges,
+    IRanges,
+    R.utils,
+    RColorBrewer,
+    RCurl,
+    Rbowtie2,
+    Rfastp,
+    Rsamtools,
+    Rsubread,
+    S4Vectors,
+    ShortRead,
+    XML,
+    cowplot,
+    data.table,
+    data.tree,
+    doParallel,
+    dplyr,
+    ensembldb,
+    futile.logger,
+    future.apply,
+    ggbio,
+    ggplot2,
+    msa,
+    parallel,
+    plotly,
+    plyr,
+    pryr,
+    qckitfastq,
+    rcartocolor,
+    rjson,
+    rtracklayer,
+    scales,
+    seqTools,
+    stringdist,
+    stringi,
+    stringr,
+    tRNAdb,
+    tidyverse
 LazyData: true
 Depends: 
     R (>= 2.10)
