@@ -10,6 +10,8 @@
 #'
 #' @return The shortRNAexp object with updated norm.factors and lib.sizes slots.
 #'
+#' @import edgeR
+#'
 #' @export
 calcNormFactors.shortRNAexp <- function(object, method = "TMM", normalizeOnType = NULL, normalizeOnStatus = c(
                                           "unknown", "ambiguous",
@@ -18,7 +20,6 @@ calcNormFactors.shortRNAexp <- function(object, method = "TMM", normalizeOnType 
   if (!is(object, "shortRNAexp")) {
     stop("`object` should be an object of class `shortRNAexp`.")
   }
-  library(edgeR)
   ss <- getSeqsByType(object, normalizeOnType, normalizeOnStatus)
   if (length(ss) == 0) {
     stop("No sequence matched the request!")
@@ -36,7 +37,6 @@ calcNormFactors.shortRNAexp <- function(object, method = "TMM", normalizeOnType 
   if (tolower(method) == "cqn") {
     object <- .cqnNormWrapper(object, m)
   } else {
-    library(edgeR)
     dds <- calcNormFactors(DGEList(m), method = method, ...)
     object@norm$lib.sizes <- dds$samples$lib.size
     object@norm$norm.factors <- dds$samples$norm.factors
@@ -50,8 +50,19 @@ calcNormFactors.shortRNAexp <- function(object, method = "TMM", normalizeOnType 
   object
 }
 
+#' .cqnNormWrapper
+#'
+#' @param o 
+#' @param m 
+#' @param minc 
+#'
+#' @return
+#' @export
+#' 
+#' @import cqn
+#'
+#' @examples
 .cqnNormWrapper <- function(o, m, minc = 10) {
-  library(cqn)
   subs <- row.names(m)[which(rowMeans(m) > minc)]
   subs <- which(row.names(o@seqcounts) %in% subs)
   qn <- cqn(o@seqcounts,

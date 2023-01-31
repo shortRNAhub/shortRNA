@@ -1,4 +1,4 @@
-library(smallRNA)
+# library(smallRNA)
 load("object.RData")
 
 plPCA <- function(x, normalize.genes = F, plot.components = c(1, 2),

@@ -14,7 +14,7 @@
 #' @param ... Further arguments passed to the removeCorrelatedFeatures function.
 #'
 #' @return A list containing the DEA results on different sets of features.
-#'
+#' @import edgeR
 #' @export
 runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = NULL, normalizeByType = FALSE, replicates = NULL,
                    forceGLM = FALSE, coef = NULL, filterFun = function(x) {
@@ -28,7 +28,6 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
   }
   method <- match.arg(method, c("voom", "edgeR", "DESeq2"))
   if (method %in% c("voom", "edgeR")) {
-    library(edgeR)
   }
 
   if (!is.null(formula)) {
@@ -163,6 +162,21 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
   ))
 }
 
+#' .edgeRwrapper
+#'
+#' @param e 
+#' @param o 
+#' @param formula 
+#' @param groups 
+#' @param forceGLM 
+#' @param coef 
+#'
+#' @return
+#' @export
+#' 
+#' @import edgeR
+#'
+#' @examples
 .edgeRwrapper <- function(e, o, formula = NULL, groups = NULL, forceGLM = FALSE, coef = NULL) {
   if (!is(o, "shortRNAexp")) {
     stop("`o` should be an object of class `shortRNAexp`.")
@@ -192,7 +206,6 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
       mm <- model.matrix(~groups)
     }
   }
-  library(edgeR)
   dds <- DGEList(e, lib.size = o@norm$lib.sizes, norm.factors = o@norm$norm.factors, group = groups)
   if (o@norm$method == "cqn") {
     dds$offset <- .getOffsets(row.names(e), o)
@@ -214,6 +227,20 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
   }
 }
 
+#' .deseq2wrapper
+#'
+#' @param e 
+#' @param o 
+#' @param formula 
+#' @param groups 
+#' @param coef 
+#'
+#' @return
+#' @export
+#' 
+#' @import DESeq2
+#'
+#' @examples
 .deseq2wrapper <- function(e, o, formula = NULL, groups = NULL, coef = NULL) {
   if (!is(o, "shortRNAexp")) {
     stop("`o` should be an object of class `shortRNAexp`.")
@@ -241,7 +268,6 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
   if (o@norm$method == "cqn") {
     stop("cqn normalization is not currently supported with DESeq")
   }
-  library(DESeq2)
   dds <- DESeqDataSetFromMatrix(floor(as.matrix(e)), colData = pd, design = formula)
   sizeFactors(dds) <- 1 / (o@norm$norm.factors / o@norm$lib.sizes * mean(o@norm$lib.sizes))
   dds <- estimateDispersions(dds)
@@ -253,6 +279,21 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
 }
 
 
+#' Title
+#'
+#' @param e 
+#' @param o 
+#' @param formula 
+#' @param groups 
+#' @param coef 
+#' @param replicates 
+#'
+#' @return
+#' @export
+#' 
+#' @import limma
+#'
+#' @examples
 .voomWrapper <- function(e, o, formula = NULL, groups = NULL, coef = NULL, replicates = NULL) {
   if (!is(o, "shortRNAexp")) {
     stop("`o` should be an object of class `shortRNAexp`.")
@@ -279,7 +320,6 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
     }
     mm <- model.matrix(~groups)
   }
-  library(limma)
   dds <- DGEList(e, lib.size = o@norm$lib.sizes, norm.factors = o@norm$norm.factors, group = groups)
   if (o@norm$method == "cqn") {
     dds$offset <- .getOffsets(row.names(e), o)
@@ -331,7 +371,9 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
 #' @param res A list such as produced by the `runDEA` function.
 #' @param file Path to the file where to save the results. Defaults to DEA.xlsx in the working directory.
 #' @param fdr.threshold Either NULL (default) or a numeric value between 0 and 1 indicating the maximum FDR value for a feature to be included in the file.
-#'
+#' 
+#' @import xlsx
+#' 
 #' @export
 writeDEA <- function(res, file = "DEA.xlsx", fdr.threshold = NULL) {
   if (!all(c("info", "seqLevel", "aggregated") %in% names(res))) {
@@ -343,7 +385,6 @@ writeDEA <- function(res, file = "DEA.xlsx", fdr.threshold = NULL) {
       stop("Could not find FDR field!")
     }
   }
-  library(xlsx)
   write.xlsx(res$info$phenoData, file = file, sheetName = "design", row.names = TRUE)
   for (i in c("seqLevel", "aggregated")) {
     for (j in names(res[[i]])) {

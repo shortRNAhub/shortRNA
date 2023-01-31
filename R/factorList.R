@@ -177,7 +177,9 @@ fList2tree <- function(fL, addRoot = TRUE,
 #'  the tree. One can obtain unaligned reads using `getReadsFromBam` to obtain
 #'  reads from bam files.
 #' @param ... Other parameters to be passed to `fList2tree`
-#'
+#' 
+#' @import data.tree plyr future.apply IRanges parallel
+#' 
 #' @return
 #' @export
 #'
@@ -189,16 +191,7 @@ addReadsToTree <- function(fL,
                            unassigned = FALSE,
                            extraTreeBranch = NULL,
                            ...) {
-  suppressPackageStartupMessages({
-    library(data.tree)
-    library(plyr)
-    library(future.apply)
-    library(data.tree)
-    library(IRanges)
-    library(plyr)
-    library(parallel)
-  })
-
+  
   # Parallel processing of apply functions
   # plan(multisession)
 
@@ -302,15 +295,13 @@ addReadsToTree <- function(fL,
 #' @param bam A label to be given to reads
 #'
 #' @return A `FactorList` of reads with labels
+#' 
+#' @import Rsamtools IRanges
+#' 
 #' @export
 #'
 #' @examples
 getReadsFromBam <- function(bam, flag = 4, label = "unaligned") {
-  suppressPackageStartupMessages({
-    library(Rsamtools)
-    library(IRanges)
-  })
-
   bamFile <- BamFile(bam)
   aln <- scanBam(bamFile)[[1]]
   ua <- aln$qname[aln$flag == flag]

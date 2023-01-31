@@ -92,6 +92,9 @@ shortRNAexp_parseBam <- function(bam,
 #' @param ... Other options for \code{\link[Rsubread:buildindex]}.
 #'
 #' @return **index** for aligning fastq files with Rsubread.
+#' 
+#' @import Rsubread R.utils
+#' 
 #' \dontrun{
 #' @sexamples
 #' indexRsubread(
@@ -107,8 +110,6 @@ indexRsubread <- function(fastaGenome = NULL,
                           extraFasta = NULL,
                           gzExtra = FALSE,
                           ...) {
-  library(Rsubread)
-  library(R.utils)
 
   # If fasta file is provided
   if (!is.null(fastaGenome)) {
@@ -228,6 +229,8 @@ indexRsubread <- function(fastaGenome = NULL,
 #' @param ... other parameters specific to \code{\link[Rsubread:align]} or
 #' \code{\link[Rsubread:subjunc]}.
 #' @return Stores a `BAM` file.
+#' 
+#' @import Rsubread parallel
 #'
 #' @export
 alignShortRNA <- function(fastq,
@@ -254,9 +257,6 @@ alignShortRNA <- function(fastq,
     o <- gsub(pattern = ".f.*", replacement = "", x = basename(fastq))
     out <- paste0(outDir, "/", o, ".bam")
   }
-
-  library(Rsubread)
-  library(parallel)
 
   if (mode == "align") {
     align(

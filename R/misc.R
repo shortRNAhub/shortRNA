@@ -1,4 +1,15 @@
 ## Function to check for the no. of cores and for parallel processing
+#' .checkPara
+#'
+#' @param ncores 
+#' @param maxCores 
+#' 
+#' @import doParallel
+#'
+#' @return
+#' @export
+#'
+#' @examples
 .checkPara <- function(ncores = NULL, maxCores = 8) {
   if (!is.null(ncores)) {
     if (ncores == 1) {
@@ -8,7 +19,6 @@
   if (tryCatch(require("doParallel", character.only = TRUE),
     error = function(e) FALSE
   )) {
-    library(doParallel)
     if (is.null(ncores)) {
       ncores <- min(detectCores() - 1, maxCores)
     }

@@ -6,12 +6,13 @@
 #' @param destination The destination folder for the files (defaults to current working directory)
 #'
 #' @return A list.
+#' 
+#' @import Biostrings rtracklayer R.utils
 #'
 #' @export
 getAnnotationFiles <- function(org = "mm10", destination = getwd()) {
   if (!dir.exists(destination)) dir.create(destination)
-  suppressPackageStartupMessages(library(Biostrings))
-
+  
   # Mouse
   if (org == "mm10") {
     ## list of files to be doanloaded
@@ -64,7 +65,6 @@ getAnnotationFiles <- function(org = "mm10", destination = getwd()) {
 
   # Rat
   if (org == "rn6") {
-    library(rtracklayer)
     ff <- list(
       c(
         "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M17/gencode.vM17.tRNAs.gtf.gz",
@@ -97,7 +97,6 @@ getAnnotationFiles <- function(org = "mm10", destination = getwd()) {
       return(x[[1]])
     })
 
-    library(R.utils)
     untar(file.path(destination, "rn5.gtRNAdb.tar.gz"), exdir = destination)
     gunzip(file.path(destination, "rn5ToRn6.chain.gz"))
     chain <- import.chain(file.path(destination, "rn5ToRn6.chain"))
@@ -220,6 +219,8 @@ getAnnotationFiles <- function(org = "mm10", destination = getwd()) {
 #' within spliced transcripts.
 #'
 #' @return A GRangesList object, and produces modified fasta files.
+#' 
+#' @import Biostrings rtracklayer GenomicRanges tools data.table
 #'
 #' @export
 prepareAnnotation <- function(species = NULL,
@@ -248,14 +249,7 @@ prepareAnnotation <- function(species = NULL,
       paste(ff, collapse = ", ")
     ))
   }
-  suppressPackageStartupMessages({
-    library(Biostrings)
-    library(rtracklayer)
-    library(GenomicRanges)
-    library(tools)
-    library(data.table)
-  })
-
+  
   # miRNAs
   if (includeIsomirs) {
     mirs <- .buildIsomirs(filelist$mirbase.fa)
@@ -467,8 +461,17 @@ prepareAnnotation <- function(species = NULL,
 }
 
 # where mature.fa is either a RNAStringSet or a path to a fasta file of RNA sequences
+#' .buildIsomirs
+#'
+#' @param mature.fa 
+#'
+#' @return
+#' @export
+#' 
+#' @import Biostrings
+#'
+#' @examples
 .buildIsomirs <- function(mature.fa) {
-  library(Biostrings)
   if (is.character(mature.fa)) mature.fa <- readRNAStringSet(mature.fa)
   fa <- DNAStringSet(complement(mature.fa))
   a <- DNAStringSet(unlist(lapply(fa, FUN = function(x) {
@@ -482,8 +485,18 @@ prepareAnnotation <- function(species = NULL,
   c(fa, a)
 }
 
+#' .preparetRNAsequences
+#'
+#' @param cDNA 
+#' @param bed 
+#'
+#' @return
+#' @export
+#' 
+#' @import Biostrings
+#'
+#' @examples
 .preparetRNAsequences <- function(cDNA, bed = NULL) {
-  library(Biostrings)
   if (is.character(cDNA)) cDNA <- readDNAStringSet(cDNA)
   if (is.null(bed)) {
     warning(
@@ -570,9 +583,11 @@ bed2gtf <- function(b, fieldsToInclude = c("transcript_id")) {
 #' `transcript_id` or `gene_id` in `a` to clusters.
 #'
 #' @return a `data.`
+#' 
+#' @import data.tree
+#' 
 #' @export
 buildSrcTree <- function(a, metatypes = NULL, clusters = NULL) {
-  suppressPackageStartupMessages(library("data.tree"))
   a <- a@elementMetadata
   a <- a[, intersect(colnames(a), c(
     "transcript_id", "gene_id",

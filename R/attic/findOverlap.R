@@ -7,14 +7,11 @@
 #' @param ignoreStrand Logical; whether to ignore strand when searching for overlaps (default TRUE)
 #'
 #' @return A dataframe.
+#' 
+#' @import GenomicAlignments GenomicRanges Rsamtools
+#' 
 #' @export
 findoverlaps.bam.featureAnnotation <- function(bamFile, featureAnnotation, ignoreStrand = TRUE) {
-  suppressPackageStartupMessages({
-    library(GenomicAlignments)
-    library(GenomicRanges)
-    library(Rsamtools)
-  })
-
   # convert bam to GRanges
   param <- ScanBamParam(what = c("cigar", "pos", "seq"))
   bam <- readGAlignments(bamFile, param = param)

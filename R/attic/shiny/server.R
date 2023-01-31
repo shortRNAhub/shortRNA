@@ -1,5 +1,5 @@
-library(shiny)
-library(edgeR)
+# library(shiny)
+# library(edgeR)
 
 server <- shinyServer(function(input, output) {
   getCols <- function(x) {

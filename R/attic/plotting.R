@@ -459,11 +459,12 @@ plotSizeAbundance <- function(o, type = NULL, status = c("unknown", "ambiguous",
 #'
 #' @return A vector of colors
 #'
+#' @import colorspace
+#'
 #' @export
 getQualitativePalette <- function(nbcolors) {
   # based on Paul Tol's colors
   if (nbcolors > 22) {
-    library(colorspace)
     return(rainbow_hcl(nbcolors))
   }
   switch(as.character(nbcolors),
@@ -647,9 +648,10 @@ plotGC <- function(o, aggregateSamples = FALSE, ...) {
 #'
 #' @return A character vector of length=length(seqs), with each sequence offsetted so that they align
 #'
+#' @import msa
+#'
 #' @export
 msaWrapper <- function(seqs) {
-  library(msa)
   as.character(msa(toupper(seqs), type = "dna", order = "input")@unmasked)
 }
 

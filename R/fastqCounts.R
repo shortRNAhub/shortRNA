@@ -13,14 +13,14 @@
 #'
 #' @return a matrix, with unique sequences as rows and samples (i.e. file
 #' basenames) as column.
+#' 
+#' @import Biostrings plyr
 #'
 #' @export
 fastq2SeqCountMatrix <- function(files,
                                  minLength = 15,
                                  maxLength = Inf,
                                  discardBelowCount = 2) {
-  library(Biostrings)
-  library(plyr)
   fe <- sapply(files, FUN = file.exists)
   if (!all(fe)) {
     stop(paste(

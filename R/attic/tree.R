@@ -23,13 +23,19 @@
 }
 
 ## longRNAs to tree
+#' .longRNA2path
+#'
+#' @param file 
+#' @param root 
+#' @param cores 
+#'
+#' @return
+#' @export
+#' 
+#' @import rtracklayer dplyr tidyr data.tree parallel
+#'
+#' @examples
 .longRNA2path <- function(file, root, cores = detectCores()) {
-  library(rtracklayer)
-  library(dplyr)
-  library(tidyr)
-  library(data.tree)
-  library(parallel)
-
   gff <- readGFF(file)
   suppressWarnings(gff <- data.frame(gff) %>%
     mutate_all(funs(replace_na(., ""))))
@@ -93,10 +99,18 @@
 
 
 ## rRNAs
+#' .rRNA2path
+#'
+#' @param files 
+#' @param root 
+#'
+#' @return
+#' @export
+#' 
+#' @import Biostrings stringr data.tree
+#'
+#' @examples
 .rRNA2path <- function(files, root) {
-  library(Biostrings)
-  library(stringr)
-  library(data.tree)
   files <- list.files(path = files, pattern = ".fa", full.names = T)
   files.read <- lapply(files, readDNAStringSet)
 
@@ -121,14 +135,14 @@
 #' rRNA <- fastaToTree(file = "test/Mus_musculus/rRNAdb/", root = "rRNA")
 #' longRNA.gencode <- fastaToTree(file = "test/gencode.vM22.chr_patch_hapl_scaff.annotation.gff3.gz", root = "longRNA")
 #' @export
+#' 
+#' @import Biostrings data.tree
 fastaToTree <- function(file, root) {
   if (root == "longRNA") {
     return(.longRNA2path(file = file, root = root, cores = 4))
   } else if (root == "rRNA") {
     return(.rRNA2path(files = file, root = "rRNA"))
   } else {
-    library(Biostrings)
-    library(data.tree)
     fasta <- readDNAStringSet(file)
     features <- sapply(strsplit(names(fasta), " "), FUN = function(x) x[1])
     pathString <- .name2path(features = features, root = root)
@@ -174,12 +188,8 @@ fastaToTree <- function(file, root) {
 #' testTree <- FindNode(node = tRNA, name = "tRNA-Ala-AGC")
 #' testTreeUnassigned <- FindNode(node = mm10$tree, name = "Unassigned")
 #' @export
+#' @import data.tree plyr future.apply
 addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", readsCol = "Reads") {
-  # Libraries
-  library(data.tree)
-  library(plyr)
-  library(future.apply)
-
   # Parallel processing of apply functions
   plan(multisession)
 
@@ -228,8 +238,18 @@ addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", r
 
 
 # Finding nodes for all the sequences
+#' .find_parent
+#'
+#' @param featuresList 
+#' @param tree 
+#'
+#' @return
+#' @export
+#' 
+#' @import purrr
+#'
+#' @examples
 .find_parent <- function(featuresList, tree) {
-  library(purrr)
   imap(featuresList, function(feature, name) {
     f <- feature
     r <- name
@@ -291,11 +311,19 @@ addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", r
 
 
 
-# Save tree children as separate data objects ----
+# Save tree children as separate data objects
+#' .treeToData
+#'
+#' @param tree 
+#' @param cores 
+#'
+#' @return
+#' @export
+#' 
+#' @import parallel data.tree usethis
+#'
+#' @examples
 .treeToData <- function(tree, cores = detectCores() - 2) {
-  library(parallel)
-  library(data.tree)
-  library(usethis)
   n <- names(tree$children)
   tmp <- mclapply(n, function(x) {
     assign(x = x, value = tree[[x]])
@@ -315,12 +343,11 @@ addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", r
 #' @param dfList a list of data frames
 #' @param rootName name for the root
 #' @return A `list`: a `data.frame` and a `data.tree`
+#' @import plyr data.tree
 #' \dontrun{
 #' @examples
 #' mm10 <- combineFeaturesDF(dfList = list(tRNA$df, miRNA$df), rootName = "mm10")
 combineFeaturesDF <- function(dfList, rootName = "root", ...) {
-  library(plyr)
-  library(data.tree)
   df <- Reduce(function(df1, df2) rbind.fill(df1, df2), dfList)
   df$pathString <- paste(rootName, df$pathString, sep = "/")
   tree.df <- as.Node(df)
