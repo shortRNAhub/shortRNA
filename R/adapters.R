@@ -11,7 +11,7 @@
 #' the adapters (default TRUE).
 #' @param maxReads The maximum number of reads to use (default 500k)
 #'
-#' @import ShortRead stringi Biostrings seqTools Rbowtie2 msa
+#' @import ShortRead stringi Biostrings seqTools Rbowtie2
 #' 
 #' @return A list.
 #' @export
@@ -91,7 +91,7 @@ tryAdapters <- function(fq1, fq2 = NULL, adapters = NULL,
   }
   m <- tryCatch(
     {
-      m <- as.data.frame(msa(ad[w], type = "dna")@unmasked)
+      # m <- as.data.frame(msa(ad[w], type = "dna")@unmasked)
     },
     error = function(e) {
       m <- as.data.frame(ad[w])

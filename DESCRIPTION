@@ -41,7 +41,6 @@ Imports:
     future.apply,
     ggbio,
     ggplot2,
-    msa,
     parallel,
     plotly,
     plyr,
