@@ -339,7 +339,8 @@ getmiRNA <- function(sp = "mmu") {
 #'
 #' @return A GRanges object
 #' 
-#' @importFrom GenomicRanges reduce findOverlaps subjectHits queryHits GRanges
+#' @importFrom GenomicRanges reduce findOverlaps subjectHits GRanges
+#' @importFrom S4Vectors queryHits
 #' 
 #' @export
 #'
