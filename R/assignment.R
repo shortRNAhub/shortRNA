@@ -10,6 +10,11 @@
 #' that were resolved for each fragment.
 #'
 #' @return A \code{\link[S4Vectors]{DataFrame-class}}
+#' 
+#' @importFrom S4Vectors DataFrame splitAsList runLength
+#' @importFrom GenomicRanges GRanges
+#' @importFrom IRanges IRanges LogicalList FactorList
+#' 
 #' @export
 assignReads <- function(sources, rules = defaultAssignRules(),
                         reportResolved = FALSE) {

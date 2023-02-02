@@ -25,7 +25,15 @@
 #' @return Produces a Rsubread index and returns a GRanglesList of features
 #' @export
 #'
-#' @import S4Vectors GenomicRanges Biostrings Rsubread dplyr ensembldb R.utils
+#' @import S4Vectors
+#' @importFrom GenomicRanges GRanges IRanges overlapsAny
+#' @importFrom Biostrings DNAStringSet getSeq writeXStringSet
+#' @importFrom Rsubread buildindex
+#' @importFrom dplyr bind_rows
+#' @importFrom ensembldb genes exonsBy seqlevelsStyle getGenomeFaFile
+#' @importFrom R.utils gzip
+#' @importFrom rtracklayer import
+#' 
 prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
                               extra.gr = list(), extra.seqs = NULL,
                               resolveSplicing = NULL,
@@ -81,7 +89,7 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
 
     # If additional sequence files are provided as a list
     if (is.list(extra.seqs)) {
-      m <- dplyr::bind_rows(
+      m <- bind_rows(
         lapply(extra.seqs, FUN = function(x) {
           data.frame(
             row.names = names(x), tx_id = names(x),
@@ -179,7 +187,7 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
   message("Features saved in \n", anno.out)
 
   # If genome is not provided
-  if (is.null(genome)) genome <- getSeq(ensembldb::getGenomeTwoBitFile(ensdb))
+  if (is.null(genome)) genome <- getSeq(getGenomeTwoBitFile(ensdb))
   if (is.character(genome) && length(genome) != 1) {
     stop(
       "`genome` should be the path to a fasta(.gz) file, or a ",
@@ -201,7 +209,7 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
       writeXStringSet(genome, genome.out, compress = TRUE)
     } else { # if genome is a file
       file.copy(genome, genome.out)
-      if (!isCompressed) R.utils::gzip(genome.out)
+      if (!isCompressed) gzip(genome.out)
     }
   } else { # in case of extra seq
     if (!is.character(genome)) { # if genome is not a file
@@ -213,7 +221,7 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
         filepath = genome.out,
         append = TRUE
       )
-      if (!isCompressed) R.utils::gzip(genome.out)
+      if (!isCompressed) gzip(genome.out)
     }
   }
 
@@ -223,7 +231,7 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
     genome.out, "\nNow building the index..."
   )
 
-  Rsubread::buildindex(
+  buildindex(
     basename = paste0(output_dir, "/customGenome"),
     reference = ifelse(test = isCompressed,
       yes = genome.out,
@@ -242,7 +250,8 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
 #' @return a list of GRanges annotation of miRNAs, miRNAs DNAStringSet,
 #' and miRNA hairpins miRNAs DNAStringSet
 #' 
-#' @import rtracklayer dplyr plyr
+#' @importFrom rtracklayer import
+#' @importFrom plyr ldply
 #' 
 #' @export
 #'
@@ -300,7 +309,7 @@ getmiRNA <- function(sp = "mmu") {
 
   gtf <- gtf[, c("tx_id", "symbol", "tx_type")]
 
-  miRNA <- import("https://www.mirbase.org/ftp/CURRENT/mature.fa.gz",
+  miRNA <- rtracklayer::import("https://www.mirbase.org/ftp/CURRENT/mature.fa.gz",
     format = "fasta"
   )
   miRNA <- miRNA[grep(pattern = paste0("^", sp), x = names(miRNA))]
@@ -312,7 +321,7 @@ getmiRNA <- function(sp = "mmu") {
     )
   })
 
-  miRNA_h <- import("https://www.mirbase.org/ftp/CURRENT/hairpin.fa.gz",
+  miRNA_h <- rtracklayer::import("https://www.mirbase.org/ftp/CURRENT/hairpin.fa.gz",
     format = "fasta"
   )
   miRNA_h <- miRNA_h[grep(pattern = paste0("^", sp), x = names(miRNA_h))]
@@ -329,7 +338,7 @@ getmiRNA <- function(sp = "mmu") {
 #'
 #' @return A GRanges object
 #' 
-#' @import GenomicRanges
+#' @importFrom GenomicRanges reduce findOverlaps subjectHits queryHits GRanges
 #' 
 #' @export
 #'
@@ -364,7 +373,9 @@ miRNAcluster <- function(gr, minGap = 10000) {
 #' @param addCCA Whether to add CCA modifications to sequences or not.
 #' Default: TRUE
 #'
-#' @import tRNAdbImport plyr Biostrings
+#' @importFrom tRNAdbImport import.mttRNAdb
+#' @importFrom plyr ldply
+#' @importFrom Biostrings DNAStringSet
 #'
 #' @return
 #' @export
@@ -434,7 +445,7 @@ getMttRNA <- function(sp = "Mus musculus", addCCA = TRUE) {
 #' mitotRNA database. Please see also `getMttRNA`
 #' @param addCCA Whether to add CCA modifications to sequences or not.
 #'
-#' @import Biostrings
+#' @importFrom Biostrings readDNAStringSet DNAStringSet
 #' 
 #' @return
 #' @export
@@ -497,7 +508,8 @@ gettRNA <- function(sp = "mm10", mt = TRUE, addCCA = TRUE) {
 #' @param sp Scientific names of the species
 #' @param release Which release should be used from 128, 132 and 138.1
 #'
-#' @import data.table Biostrings
+#' @importFrom data.table fread
+#' @importFrom Biostrings readRNAStringSet DNAStringSet
 #'
 #' @return DNAStringSet of rRNAs
 #' @export
@@ -615,7 +627,9 @@ getrRNA <- function(sp = "Mus musculus", release = "138.1") {
 #' @param tRNA_includeMt Whether to include mitochondrial tRNAs. Default: TRUE
 #' @param rRNA_release the version of rRNA database to be used. Default: "138.1"
 #'
-#' @import rtracklayer R.utils AnnotationHub
+#' @importFrom AnnotationHub AnnotationHub query
+#' @importFrom R.utils gunzip downloadFile
+#' @importFrom rtracklayer import.chain liftOver
 #' 
 #' @return A list of databases (DNAstringSet or GRanges)
 #'
@@ -651,15 +665,15 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
     piRNA <- piRNA[, c("symbol", "tx_id", "tx_type")]
 
     if (genomeVersion == "GRCm39") {
-      gunzip(
-        downloadFile(paste0(
+      R.utils::gunzip(
+        R.utils::downloadFile(paste0(
           "http://hgdownload.soe.ucsc.edu/goldenPath/mm10/",
           "liftOver/mm10ToMm39.over.chain.gz"
         ))
       )
-      chain <- import.chain("mm10ToMm39.over.chain")
-      miRNA <- unlist(liftOver(miRNA, chain))
-      piRNA <- unlist(liftOver(piRNA, chain))
+      chain <- rtracklayer::import.chain("mm10ToMm39.over.chain")
+      miRNA <- unlist(rtracklayer::liftOver(miRNA, chain))
+      piRNA <- unlist(rtracklayer::liftOver(piRNA, chain))
       unlink("mm10ToMm39.over.chain")
     }
 

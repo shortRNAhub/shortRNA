@@ -11,7 +11,10 @@
 #' the adapters (default TRUE).
 #' @param maxReads The maximum number of reads to use (default 500k)
 #'
-#' @import ShortRead stringi Biostrings seqTools Rbowtie2
+#' @importFrom ShortRead readFastq
+#' @importFrom Rbowtie2 identify_adapters
+#' @importFrom stringi stri_locate
+#' @importFrom Biostrings reverseComplement DNAStringSet complement trimLRPatterns readDNAStringSet complement
 #' 
 #' @return A list.
 #' @export
@@ -121,7 +124,7 @@ tryAdapters <- function(fq1, fq2 = NULL, adapters = NULL,
 #' @param addSeq Logical; whether to add the adapter sequence to the row.names.
 #' @param row_names_width Width of the row names.
 #' 
-#' @import ComplexHeatmap
+#' @importFrom ComplexHeatmap Heatmap
 #'
 #' @export
 plotAdapterResults <- function(o, showCoocurrence = FALSE,
