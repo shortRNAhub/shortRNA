@@ -27,6 +27,7 @@
 #'
 #' @import S4Vectors
 #' @importFrom GenomicRanges GRanges IRanges overlapsAny
+#' @importFrom IRanges IRanges
 #' @importFrom Biostrings DNAStringSet getSeq writeXStringSet
 #' @importFrom Rsubread buildindex
 #' @importFrom dplyr bind_rows
