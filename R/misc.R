@@ -4,7 +4,8 @@
 #' @param ncores 
 #' @param maxCores 
 #' 
-#' @import doParallel
+#' @importFrom doParallel registerDoParallel
+#' @importFrom parallel detectCores makeForkCluster
 #' @export
 .checkPara <- function(ncores = NULL, maxCores = 8) {
   if (!is.null(ncores)) {
@@ -205,7 +206,7 @@ capitalizeRead <- function(read, cigar, indels = FALSE) {
 #' Run `lapply` function in parallel, if possible.
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import parallel
+#' @importFrom parallel mclapply detectCores
 #'
 #' @param any parameters for `lapply` or `mclapply`
 #' @return A `list`.
@@ -252,13 +253,12 @@ longestCommonString <- function(x, delim = "") {
 }
 
 #' List files on a FTP server
-#' @import RCurl stringr
+#' @importFrom RCurl getURL
+#' @importFrom XML getHTMLLinks
 #'
 #' @param url A url of FTP location
 #'
 #' @return A list of files
-#' 
-#' @import RCurl XML
 #'
 #' @examples
 #' # Input

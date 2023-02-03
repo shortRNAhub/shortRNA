@@ -10,8 +10,8 @@
 #' @return An `AtomicList` object of the same length as `x` and `y`
 #' @export
 #'
-#' @import IRanges
-#' @import S4Vectors
+#' @importFrom IRanges CharacterList
+#' @importFrom S4Vectors splitAsList
 #' @examples
 #' f1 <- FactorList(list(LETTERS[1:3], LETTERS[1:4]))
 #' f2 <- FactorList(list(LETTERS[4:6], LETTERS[7:9]))
@@ -63,7 +63,7 @@ mergeAtomicLists <- function(x, y) {
 #'
 #' @return An atomic vector
 #' @export
-#' @import IRanges
+#' @importFrom IRanges IntegerList
 #'
 #' @examples
 #' il <- IntegerList(list(1:4, 1:5, c(1:3, 6)))
@@ -71,7 +71,8 @@ mergeAtomicLists <- function(x, y) {
 longestOrderedOverlap <- function(x) {
   if (!is(x, "AtomicList")) {
     if (is(x, "list")) {
-      x <- AtomicList(x)
+      # x <- AtomicList(x)
+      x <- IntegerList(x)
     } else {
       stop("x should be an atomic list")
     }
@@ -178,7 +179,8 @@ fList2tree <- function(fL, addRoot = TRUE,
 #'  reads from bam files.
 #' @param ... Other parameters to be passed to `fList2tree`
 #' 
-#' @import data.tree plyr future.apply IRanges parallel
+#' @importFrom IRanges IntegerList FactorList
+#' @importFrom S4Vectors splitAsList
 #' 
 #' @export
 addReadsToTree <- function(fL,
@@ -293,7 +295,8 @@ addReadsToTree <- function(fL,
 #'
 #' @return A `FactorList` of reads with labels
 #' 
-#' @import Rsamtools IRanges
+#' @importFrom Rsamtools BamFile scanBam
+#' @importFrom IRanges FactorList
 #' 
 #' @export
 getReadsFromBam <- function(bam, flag = 4, label = "unaligned") {

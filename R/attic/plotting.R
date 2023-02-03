@@ -459,7 +459,7 @@ plotSizeAbundance <- function(o, type = NULL, status = c("unknown", "ambiguous",
 #'
 #' @return A vector of colors
 #'
-#' @import colorspace
+# @import colorspace
 #'
 #' @export
 getQualitativePalette <- function(nbcolors) {
@@ -648,7 +648,7 @@ plotGC <- function(o, aggregateSamples = FALSE, ...) {
 #'
 #' @return A character vector of length=length(seqs), with each sequence offsetted so that they align
 #'
-#' @import msa
+# @import msa
 #'
 #' @export
 msaWrapper <- function(seqs) {

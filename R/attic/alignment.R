@@ -79,7 +79,7 @@ shortRNAexp_parseBam <- function(bam,
 
 #' Build index for Rsubread
 #' @author Deepak Tanwar (tanward@ethz.ch)
-#' @import Rsubread R.utils
+# @import Rsubread R.utils
 #' @param fastaGenome path to a gzipped fasta file
 #' (optional if want to build genome other than mm9, mm10, hg19 or hg38).
 #' @param refGenome mm9/mm10/hg19/hg38.
@@ -93,7 +93,7 @@ shortRNAexp_parseBam <- function(bam,
 #'
 #' @return **index** for aligning fastq files with Rsubread.
 #' 
-#' @import Rsubread R.utils
+# @import Rsubread R.utils
 #' 
 #' \dontrun{
 #' @sexamples
@@ -213,7 +213,7 @@ indexRsubread <- function(fastaGenome = NULL,
 #' Alignment using Rsubread
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import Rsubread parallel
+# @import Rsubread parallel
 #'
 #' @param fastq character vector of file names.
 #' @param fastq2 in case the sequencing is paired-end.
@@ -230,7 +230,7 @@ indexRsubread <- function(fastaGenome = NULL,
 #' \code{\link[Rsubread:subjunc]}.
 #' @return Stores a `BAM` file.
 #' 
-#' @import Rsubread parallel
+# @import Rsubread parallel
 #'
 #' @export
 alignShortRNA <- function(fastq,

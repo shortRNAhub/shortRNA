@@ -7,7 +7,7 @@
 #'
 #' @return A list.
 #' 
-#' @import Biostrings rtracklayer R.utils
+# @import Biostrings rtracklayer R.utils
 #'
 #' @export
 getAnnotationFiles <- function(org = "mm10", destination = getwd()) {
@@ -220,7 +220,7 @@ getAnnotationFiles <- function(org = "mm10", destination = getwd()) {
 #'
 #' @return A GRangesList object, and produces modified fasta files.
 #' 
-#' @import Biostrings rtracklayer GenomicRanges tools data.table
+# @import Biostrings rtracklayer GenomicRanges tools data.table
 #'
 #' @export
 prepareAnnotation <- function(species = NULL,
@@ -468,7 +468,7 @@ prepareAnnotation <- function(species = NULL,
 #' @return
 #' @export
 #' 
-#' @import Biostrings
+# @import Biostrings
 #'
 #' @examples
 .buildIsomirs <- function(mature.fa) {
@@ -493,7 +493,7 @@ prepareAnnotation <- function(species = NULL,
 #' @return
 #' @export
 #' 
-#' @import Biostrings
+# @import Biostrings
 #'
 #' @examples
 .preparetRNAsequences <- function(cDNA, bed = NULL) {
@@ -584,7 +584,7 @@ bed2gtf <- function(b, fieldsToInclude = c("transcript_id")) {
 #'
 #' @return a `data.`
 #' 
-#' @import data.tree
+# @import data.tree
 #' 
 #' @export
 buildSrcTree <- function(a, metatypes = NULL, clusters = NULL) {

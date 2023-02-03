@@ -8,7 +8,7 @@
 #'
 #' @return A dataframe.
 #' 
-#' @import GenomicAlignments GenomicRanges Rsamtools
+# @import GenomicAlignments GenomicRanges Rsamtools
 #' 
 #' @export
 findoverlaps.bam.featureAnnotation <- function(bamFile, featureAnnotation, ignoreStrand = TRUE) {

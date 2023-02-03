@@ -14,7 +14,7 @@
 #' @param ... Further arguments passed to the removeCorrelatedFeatures function.
 #'
 #' @return A list containing the DEA results on different sets of features.
-#' @import edgeR
+# @import edgeR
 #' @export
 runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = NULL, normalizeByType = FALSE, replicates = NULL,
                    forceGLM = FALSE, coef = NULL, filterFun = function(x) {
@@ -174,7 +174,7 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
 #' @return
 #' @export
 #' 
-#' @import edgeR
+# @import edgeR
 #'
 #' @examples
 .edgeRwrapper <- function(e, o, formula = NULL, groups = NULL, forceGLM = FALSE, coef = NULL) {
@@ -238,7 +238,7 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
 #' @return
 #' @export
 #' 
-#' @import DESeq2
+# @import DESeq2
 #'
 #' @examples
 .deseq2wrapper <- function(e, o, formula = NULL, groups = NULL, coef = NULL) {
@@ -291,7 +291,7 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
 #' @return
 #' @export
 #' 
-#' @import limma
+# @import limma
 #'
 #' @examples
 .voomWrapper <- function(e, o, formula = NULL, groups = NULL, coef = NULL, replicates = NULL) {
@@ -372,7 +372,7 @@ runDEA <- function(o, formula = NULL, groups = NULL, method = "edgeR", types = N
 #' @param file Path to the file where to save the results. Defaults to DEA.xlsx in the working directory.
 #' @param fdr.threshold Either NULL (default) or a numeric value between 0 and 1 indicating the maximum FDR value for a feature to be included in the file.
 #' 
-#' @import xlsx
+# @import xlsx
 #' 
 #' @export
 writeDEA <- function(res, file = "DEA.xlsx", fdr.threshold = NULL) {

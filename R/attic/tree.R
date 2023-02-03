@@ -32,7 +32,7 @@
 #' @return
 #' @export
 #' 
-#' @import rtracklayer dplyr tidyr data.tree parallel
+# @import rtracklayer dplyr tidyr data.tree parallel
 #'
 #' @examples
 .longRNA2path <- function(file, root, cores = detectCores()) {
@@ -107,7 +107,7 @@
 #' @return
 #' @export
 #' 
-#' @import Biostrings stringr data.tree
+# @import Biostrings stringr data.tree
 #'
 #' @examples
 .rRNA2path <- function(files, root) {
@@ -123,7 +123,7 @@
 
 #' Convert the annotation fasta file into tree obtained from `prepareAnnotation` function
 #' @author Deepak Tanwar (tanward@ethz.ch)
-#' @import Biostrings data.tree plyr
+# @import Biostrings data.tree plyr
 #' @seealso Biostrings data.tree plyr
 #' @param fasta a link to the fasta file
 #' @param root root name: longRNA or miRNA or tRNA
@@ -136,7 +136,7 @@
 #' longRNA.gencode <- fastaToTree(file = "test/gencode.vM22.chr_patch_hapl_scaff.annotation.gff3.gz", root = "longRNA")
 #' @export
 #' 
-#' @import Biostrings data.tree
+# @import Biostrings data.tree
 fastaToTree <- function(file, root) {
   if (root == "longRNA") {
     return(.longRNA2path(file = file, root = root, cores = 4))
@@ -160,7 +160,7 @@ fastaToTree <- function(file, root) {
 
 #' Add reads to the features in the annotation `data.tree`. Also add a separate node with 'Unassigned' reads/features
 #' @author Deepak Tanwar (tanward@ethz.ch)
-#' @import data.tree
+# @import data.tree
 #' @seealso data.tree
 #' @param tree a `data.tree` object
 #' @param mappedFeaturesDF a `data.frame` with 'Reads' and mapped 'Features' columns.
@@ -188,7 +188,7 @@ fastaToTree <- function(file, root) {
 #' testTree <- FindNode(node = tRNA, name = "tRNA-Ala-AGC")
 #' testTreeUnassigned <- FindNode(node = mm10$tree, name = "Unassigned")
 #' @export
-#' @import data.tree plyr future.apply
+# @import data.tree plyr future.apply
 addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", readsCol = "Reads") {
   # Parallel processing of apply functions
   plan(multisession)
@@ -246,7 +246,7 @@ addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", r
 #' @return
 #' @export
 #' 
-#' @import purrr
+# @import purrr
 #'
 #' @examples
 .find_parent <- function(featuresList, tree) {
@@ -320,7 +320,7 @@ addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", r
 #' @return
 #' @export
 #' 
-#' @import parallel data.tree usethis
+# @import parallel data.tree usethis
 #'
 #' @examples
 .treeToData <- function(tree, cores = detectCores() - 2) {
@@ -338,12 +338,12 @@ addReadsFeatures <- function(tree, mappedFeaturesDF, featuresCol = "Features", r
 
 #' Combine a list of `data.frame` into one `data.tree`. `data.frame` should have a column 'pathString', or specify.
 #' @author Deepak Tanwar (tanward@ethz.ch)
-#' @import data.tree plyr
+# @import data.tree plyr
 #' @seealso data.tree plyr
 #' @param dfList a list of data frames
 #' @param rootName name for the root
 #' @return A `list`: a `data.frame` and a `data.tree`
-#' @import plyr data.tree
+# @import plyr data.tree
 #' \dontrun{
 #' @examples
 #' mm10 <- combineFeaturesDF(dfList = list(tRNA$df, miRNA$df), rootName = "mm10")

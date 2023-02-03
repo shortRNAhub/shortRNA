@@ -13,8 +13,16 @@
 #' @param nbthreads A positive integer indicating the number of threads to use.
 #' Defaults to `min(c(8, bpworkers()))`.
 #' 
-#' @import GenomicAlignments GenomicFeatures data.table BiocParallel futile.logger GenomicRanges
-#'
+#' @importFrom GenomicAlignments readGAlignments
+#' @importFrom GenomeInfoDb seqinfo
+#' @importFrom BiocParallel SerialParam MulticoreParam bpmapply
+#' @importFrom GenomicRanges setdiff intersect
+#' @importFrom Rsamtools ScanBamParam
+#' @importFrom ensembldb seqlevelsStyle
+#' @importFrom IRanges findOverlapPairs subsetByOverlaps
+#' @importFrom BiocGenerics strand start end width
+#' @importFrom S4Vectors elementNROWS
+#' 
 #' @return A data.table.
 #' @export
 overlapWithTx2 <- function(bamFile, annotation,

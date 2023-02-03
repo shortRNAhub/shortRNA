@@ -10,7 +10,7 @@
 #'
 #' @return The shortRNAexp object with updated norm.factors and lib.sizes slots.
 #'
-#' @import edgeR
+# @import edgeR
 #'
 #' @export
 calcNormFactors.shortRNAexp <- function(object, method = "TMM", normalizeOnType = NULL, normalizeOnStatus = c(
@@ -59,7 +59,7 @@ calcNormFactors.shortRNAexp <- function(object, method = "TMM", normalizeOnType 
 #' @return
 #' @export
 #' 
-#' @import cqn
+# @import cqn
 #'
 #' @examples
 .cqnNormWrapper <- function(o, m, minc = 10) {
@@ -172,7 +172,7 @@ normalizeCounts <- function(counts, normParams) {
 #'
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import cqn cqn
+# @import cqn cqn
 #'
 #' @seealso cqn cqn
 #'

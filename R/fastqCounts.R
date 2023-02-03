@@ -14,7 +14,8 @@
 #' @return a matrix, with unique sequences as rows and samples (i.e. file
 #' basenames) as column.
 #' 
-#' @import Biostrings plyr
+#' @importFrom Biostrings readDNAStringSet
+#' @importFrom BiocParallel bplapply MulticoreParam
 #'
 #' @export
 fastq2SeqCountMatrix <- function(files,
