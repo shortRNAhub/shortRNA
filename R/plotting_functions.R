@@ -1,7 +1,11 @@
 #' Dealing with soft-clipping
 #'
 #' @param GA `GAlignment file`
-#' @import Rsamtools rtracklayer GenomicFeatures GenomicRanges GenomicAlignments plyr Biostrings
+#' @importFrom GenomicRanges GRanges
+#' @importFrom GenomicAlignments sequenceLayer cigarToRleList
+#' @importFrom plyr ldply
+#' @importFrom Biostrings DNAStringSet reverseComplement
+#' @importFrom BiocGenerics strand start end
 #' @return `GRanges`
 #' @export
 #'
@@ -67,7 +71,19 @@ repSoftClip <- function(GA) {
 #' @param param parameters for bam file
 #' @param plotCoverage Logical. Wether to plot coverage or not.
 #'
-#' @import Rsamtools ggplot2 ggbio rtracklayer GenomicFeatures GenomicRanges GenomicAlignments scales cowplot rcartocolor Biostrings RColorBrewer
+#' @import ggplot2
+#' @importFrom Rsamtools BamFile
+#' @importFrom ggbio autoplot tracks
+#' @importFrom GenomicRanges GRanges
+#' @importFrom GenomicAlignments readGAlignments
+#' @importFrom rcartocolor carto_pal
+#' @importFrom Biostrings DNAStringSet reverseComplement
+#' @importFrom RColorBrewer brewer.pal
+#' @importFrom ensembldb seqlevelsStyle
+#' @importFrom IRanges subsetByOverlaps reduce disjointBins reduce
+#' @importFrom S4Vectors DataFrame
+#' @importFrom GenomeInfoDb seqinfo
+#' @importFrom BiocGenerics start end
 #'
 #' @return plot with tracks
 #' @export
