@@ -15,7 +15,16 @@
 #' Default: 3
 #' @param outDir Output directory for results. Default: current working
 #'  directory
-#' @import tidyverse data.table ShortRead Biostrings stringdist pryr parallel
+#' @importFrom dplyr select
+#' @importFrom data.table rbindlist
+#' @importFrom ShortRead readFastq sread ShortReadQ FastqQuality writeFastq
+#' @importFrom Biostrings quality DNAStringSet
+#' @importFrom stringdist stringdistmatrix
+#' @importFrom pryr mem_used
+#' @importFrom parallel mclapply detectCores
+#' @importFrom plyr ldply
+#' @importFrom data.table as.data.table data.table
+#' @importFrom stringr str_split str_detect
 #'
 #' @return
 #' @export
