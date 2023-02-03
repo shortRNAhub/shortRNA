@@ -1,7 +1,8 @@
 #' QC of fastq files
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import Rfastp
+#' @importFrom Rfastp rfastp
+#' @importFrom parallel detectCores
 #'
 #' @param file character vector of file names
 #' @param outDir output directory. Default: current working directory
@@ -76,7 +77,7 @@ qcFastq <- function(file,
 #' Make general information data frame from JSON file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import rjson
+#' @importFrom rjson fromJSON
 #'
 #' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #'
@@ -138,7 +139,7 @@ makeGeneralDF <- function(json) {
 #' Make before QC information data frame from JSON file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import rjson
+#' @importFrom rjson fromJSON
 #'
 #' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #'
@@ -193,7 +194,7 @@ makeBeforeFiltDF <- function(json) {
 #' Make after QC information data frame from JSON file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import rjson
+#' @importFrom rjson fromJSON
 #'
 #' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #'
@@ -248,7 +249,7 @@ makeAfterFiltDF <- function(json) {
 #' Make filtering information information data frame from JSON file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import rjson
+#' @importFrom rjson fromJSON
 #'
 #' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #'
@@ -305,7 +306,8 @@ makeFiltDF <- function(json) {
 #' Reads duplication plot
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import dplyr plotly
+#' @importFrom dplyr `%>%`
+#' @importFrom plotly plot_ly add_trace add_lines layout
 #'
 #' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #' @param df A data frame
@@ -411,32 +413,32 @@ readDuplicationPlot <- function(json = NULL,
   return(p)
 }
 
-df <- data.frame(
-  dupRate = rev(sort(c(70, 10, 1:5, rep(0, 13)))),
-  dupLevel = 1:20
-)
-df$GCpercent <- c(runif(n = 5, min = 51, max = 55), rep(0, 15))
-
-p <- readDuplicationPlot(
-  df = df,
-  dupRate = "dupRate",
-  GCpercent = NULL,
-  dupLevel = "dupLevel"
-)
-
-p_GC <- readDuplicationPlot(
-  df = df,
-  dupRate = "dupRate",
-  GCpercent = "GCpercent",
-  dupLevel = "dupLevel"
-)
-
+# df <- data.frame(
+#   dupRate = rev(sort(c(70, 10, 1:5, rep(0, 13)))),
+#   dupLevel = 1:20
+# )
+# df$GCpercent <- c(runif(n = 5, min = 51, max = 55), rep(0, 15))
+# 
+# p <- readDuplicationPlot(
+#   df = df,
+#   dupRate = "dupRate",
+#   GCpercent = NULL,
+#   dupLevel = "dupLevel"
+# )
+# 
+# p_GC <- readDuplicationPlot(
+#   df = df,
+#   dupRate = "dupRate",
+#   GCpercent = "GCpercent",
+#   dupLevel = "dupLevel"
+# )
+# 
 
 
 #' Reads duplication data frame from JSON file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import Rfastp rjson
+#' @importFrom rjson fromJSON
 #'
 #' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #'
@@ -475,7 +477,9 @@ dupPlotDF <- function(json) {
 #' Read quality score plot
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import plotly dplyr rcartocolor
+#' @importFrom dplyr `%>%`
+#' @importFrom plotly plot_ly add_trace add_lines layout
+#' @importFrom rcartocolor carto_pal
 #'
 #' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #' @param df A data frame
@@ -586,7 +590,7 @@ readsQualityPlot <- function(json = NULL,
 #' Reads qualoty data frame from JSON file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import rjson
+#' @importFrom rjson fromJSON
 #'
 #' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #'
@@ -630,7 +634,9 @@ readQualDF <- function(json, which = "before") {
 #' Base content line plot
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import plotly dplyr rcartocolor
+#' @importFrom dplyr `%>%`
+#' @importFrom plotly plot_ly add_trace add_lines layout
+#' @importFrom rcartocolor carto_pal
 #'
 #' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #' @param df A data frame
@@ -741,7 +747,7 @@ baseRatioLinePlot <- function(json = NULL,
 #' Base content data frame from JSON file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import rjson
+#' @importFrom rjson fromJSON
 #'
 #' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #'
@@ -786,7 +792,9 @@ baseRatioDF <- function(json, which = "before") {
 #' Base content ratio proportion plot
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import plotly dplyr rcartocolor
+#' @importFrom dplyr `%>%`
+#' @importFrom plotly plot_ly add_trace add_lines layout
+#' @importFrom rcartocolor carto_pal
 #'
 #' @param json A JSON file with QC information from \code{\link{qcFastq}}
 #' @param df A data frame
@@ -882,7 +890,8 @@ baseRatioProportionPlot <- function(json = NULL,
 #' Extract reads length information from a fastq file
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import seqTools qckitfastq
+#' @importFrom seqTools fastqq
+#' @importFrom qckitfastq read_length
 #'
 #' @param fq A fastq file
 #'
@@ -914,7 +923,8 @@ readLengthFastq <- function(fq) {
 #' Read length distribution (barplot)
 #' @author Deepak Tanwar (tanward@ethz.ch)
 #'
-#' @import dplyr plotly
+#' @importFrom dplyr `%>%`
+#' @importFrom plotly plot_ly add_trace add_lines layout
 #'
 #' @param fq A fastq file
 #' @param df A data frame with reads length and number of reads
