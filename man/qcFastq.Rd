@@ -27,7 +27,7 @@ qcFastq(
 
 \item{adaptersFa}{Adapter sequence fasta file}
 
-\item{...}{other parameters specific to \code{\link[Rfastp:rfastp]}}
+\item{...}{other parameters specific to \code{\link[Rfastp::rfastp]}}
 }
 \value{
 A list of results and location to the JSON results file

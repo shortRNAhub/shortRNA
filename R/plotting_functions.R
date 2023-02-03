@@ -8,8 +8,6 @@
 #' @importFrom BiocGenerics strand start end
 #' @return `GRanges`
 #' @export
-#'
-#' @examples
 repSoftClip <- function(GA) {
   res <- sapply(seq_along(GA), function(i) {
     # Convert GAlignment file to GRanges
@@ -87,8 +85,6 @@ repSoftClip <- function(GA) {
 #'
 #' @return plot with tracks
 #' @export
-#'
-#' @examples
 makeTracks <- function(gr,
                        counts,
                        features,

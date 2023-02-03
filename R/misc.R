@@ -5,11 +5,7 @@
 #' @param maxCores 
 #' 
 #' @import doParallel
-#'
-#' @return
 #' @export
-#'
-#' @examples
 .checkPara <- function(ncores = NULL, maxCores = 8) {
   if (!is.null(ncores)) {
     if (ncores == 1) {

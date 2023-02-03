@@ -25,8 +25,6 @@
 #' @importFrom plyr ldply
 #' @importFrom data.table as.data.table data.table
 #' @importFrom stringr str_split str_detect
-#'
-#' @return
 #' @export
 #'
 #' @examples

@@ -180,10 +180,7 @@ fList2tree <- function(fL, addRoot = TRUE,
 #' 
 #' @import data.tree plyr future.apply IRanges parallel
 #' 
-#' @return
 #' @export
-#'
-#' @examples
 addReadsToTree <- function(fL,
                            mappedFeaturesDF,
                            featuresCol = "transcript_id",
@@ -299,8 +296,6 @@ addReadsToTree <- function(fL,
 #' @import Rsamtools IRanges
 #' 
 #' @export
-#'
-#' @examples
 getReadsFromBam <- function(bam, flag = 4, label = "unaligned") {
   bamFile <- BamFile(bam)
   aln <- scanBam(bamFile)[[1]]

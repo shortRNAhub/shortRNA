@@ -18,8 +18,6 @@
 #' 
 #' @return A list.
 #' @export
-#'
-#' @examples
 tryAdapters <- function(fq1, fq2 = NULL, adapters = NULL,
                         addReverseComplement = TRUE,
                         maxReads = 500000) {

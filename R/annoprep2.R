@@ -343,8 +343,6 @@ getmiRNA <- function(sp = "mmu") {
 #' @importFrom S4Vectors queryHits subjectHits
 #' 
 #' @export
-#'
-#' @examples
 miRNAcluster <- function(gr, minGap = 10000) {
   gr_miRNA <- gr[grep("miRNA", gr$tx_biotype)]
   gr_o <- gr[grep("miRNA", gr$tx_biotype, invert = T)]
@@ -379,10 +377,7 @@ miRNAcluster <- function(gr, minGap = 10000) {
 #' @importFrom plyr ldply
 #' @importFrom Biostrings DNAStringSet
 #'
-#' @return
 #' @export
-#'
-#' @examples
 getMttRNA <- function(sp = "Mus musculus", addCCA = TRUE) {
   tab <- data.frame(
     import.mttRNAdb(organism = sp)
@@ -449,10 +444,7 @@ getMttRNA <- function(sp = "Mus musculus", addCCA = TRUE) {
 #'
 #' @importFrom Biostrings readDNAStringSet DNAStringSet
 #' 
-#' @return
 #' @export
-#'
-#' @examples
 gettRNA <- function(sp = "mm10", mt = TRUE, addCCA = TRUE) {
   match.arg(sp, c("hg19", "hg38", "mm10", "mm39"))
 
@@ -515,8 +507,6 @@ gettRNA <- function(sp = "mm10", mt = TRUE, addCCA = TRUE) {
 #'
 #' @return DNAStringSet of rRNAs
 #' @export
-#'
-#' @examples
 getrRNA <- function(sp = "Mus musculus", release = "138.1") {
   match.arg(release, c("128", "132", "138.1"))
 
@@ -636,8 +626,6 @@ getrRNA <- function(sp = "Mus musculus", release = "138.1") {
 #' @return A list of databases (DNAstringSet or GRanges)
 #'
 #' @export
-#'
-#' @examples
 getDB <- function(species = "mmu", genomeVersion = "GRCm38",
                   ensemblVer = "102",
                   tRNA_addCCA = TRUE, tRNA_includeMt = TRUE,

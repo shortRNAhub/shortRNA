@@ -3,10 +3,7 @@
 #' @param gr annotation GRanges with columns: tx_id, tx_biotype, and symbol
 #' @param sp name of the species
 #'
-#' @return
 #' @export
-#'
-#' @examples
 otherRNA2FL <- function(gr, sp = "mm10") {
   # gr <- unique(gr)
   if (all(gr$tx_id == gr$symbol)) {
@@ -26,10 +23,7 @@ otherRNA2FL <- function(gr, sp = "mm10") {
 #' @param gr annotation GRanges with columns: tx_id, tx_biotype, and symbol
 #' @param sp name of the species
 #'
-#' @return
 #' @export
-#'
-#' @examples
 tRNAtoFL <- function(gr, sp = "mm10") {
   gr$tx_biotype <- "tRNA"
   x <- gr$symbol
@@ -48,10 +42,7 @@ tRNAtoFL <- function(gr, sp = "mm10") {
 #' @param gr annotation GRanges with columns: tx_id, tx_biotype, and symbol
 #' @param sp name of the species
 #'
-#' @return
 #' @export
-#'
-#' @examples
 miRNAtoFL <- function(gr, spMore = TRUE, sp = "mm10", cluster = TRUE) {
   if (cluster) {
     if (!"miRNAcluster" %in% colnames(mcols(gr))) gr <- miRNAcluster(gr)

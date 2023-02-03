@@ -9,7 +9,7 @@
 #' @param name character vector of output file names.
 #' @param adapterSeq Adapter sequence for read1
 #' @param adaptersFa Adapter sequence fasta file
-#' @param ... other parameters specific to \code{\link[Rfastp:rfastp]}
+#' @param ... other parameters specific to \code{\link[Rfastp::rfastp]}
 #'
 #' @return A list of results and location to the JSON results file
 #'
