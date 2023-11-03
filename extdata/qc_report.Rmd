@@ -21,12 +21,12 @@ rmdformats::readthedown:
   documentclass: article
 # bibliography: references.bib
 link-citations: yes
-params:
-  fastQfiles: NAMESPACE
-  names: NAMESPACE
-  outDir: NAMESPACE
-  nTreads: NAMESAPCE
-  adapter: NAMESPACE
+#params:
+#  fastQfiles: NAMESPACE
+#  names: NAMESPACE
+#  outDir: NAMESPACE
+#  nTreads: NAMESAPCE
+#  adapter: NAMESPACE
 ---
 
 ```{r setup, include=FALSE, message=FALSE, warning=FALSE}
