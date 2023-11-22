@@ -7,8 +7,9 @@ This is a project for the development of short RNA analysis R package. It was in
 
 ### Package installation
 ```{r, eval = FALSE}
+install.packages("BiocManager")
 BiocManager::install("remotes")
-BiocManager::install("shortRNAhub/shortRNA")
+remotes::install_github("shortRNAhub/shortRNA")
 library(shortRNA)
 ```
 
