@@ -28,9 +28,6 @@
       }
     ]
   },
-  "Bioconductor": {
-    "Version": "3.18"
-  },
   "Packages": {
     "AnnotationDbi": {
       "Package": "AnnotationDbi",
