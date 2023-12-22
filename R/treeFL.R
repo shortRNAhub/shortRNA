@@ -154,6 +154,7 @@ featuresAnnoToFL <- function(anno, species = "mm10") {
   others <- lapply(others, function(x) otherRNA2FL(gr = x, sp = species))
   fl <- c(fl, Reduce(c, others))
 
+  names(fl) <- as.character(unlist(IRanges::tails(fl, n=1)))
   return(fl)
 }
 

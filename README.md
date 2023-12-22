@@ -66,7 +66,7 @@ alignShortRNA(
 ### Overlapping aligned data with annotations
 ```{r, eval = FALSE}
 o <- overlapWithTx2(
-  bamFile = align_file, annotation = a,
+  bamFile = align_file, annotation = a, uniqueFasta = "unique.fasta", 
   ignoreStrand = TRUE, nbthreads = 16
 )
 ```
@@ -81,16 +81,13 @@ ar <- assignReads(sources = o, rules = defaultAssignRules())
 ### Converting features to `FactorList`
 ```{r, eval = FALSE}
 fl <- featuresAnnoToFL(a)
-names(fl) <- lapply(fl, function(x) as.character(x[length(x)]))
 ```
 
 ### Assignment of reads to the features tree
 ```{r, eval=FALSE}
-mappedFeaturesDF <- ar
-mappedFeaturesDF$seq <- rownames(mappedFeaturesDF)
 ar_tree <- addReadsToTree(
   fL = fl,
-  mappedFeaturesDF = mappedFeaturesDF,
+  mappedFeaturesDF = ar,
   unassigned = FALSE,
   extraTreeBranch = NULL
 )
