@@ -17,11 +17,12 @@
 # @import Rsubread R.utils
 #' 
 #' \dontrun{
-#' @sexamples
+#' @examples
 #' indexRsubread(
 #'   fastaGenome = "../test/reference.fa.gz",
 #'   basename = "../test/reference"
 #' )
+#' }
 #' @export
 indexRsubread <- function(fastaGenome = NULL,
                           refGenome = "mm10",
