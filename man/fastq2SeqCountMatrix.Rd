@@ -6,9 +6,12 @@
 \usage{
 fastq2SeqCountMatrix(
   files,
-  minLength = 15,
-  maxLength = Inf,
-  discardBelowCount = 2
+  minLength = 15L,
+  maxLength = 200L,
+  discardBelowCount = 2L,
+  BPPARAM = BiocParallel::SerialParam(progress = TRUE),
+  format = NULL,
+  asSparse = FALSE
 )
 }
 \arguments{
@@ -22,10 +25,20 @@ Inf, i.e. no maximum)}
 \item{discardBelowCount}{Discard sequences that appear less than this number
 of times across all samples. The default value is 2, which means that
 sequences that appear only once are discarded.}
+
+\item{BPPARAM}{BiocParallel BPPARAM object for multithreading (default no
+multithreading). Note that multithreading will require more memory and is
+therefore not recommended for larger datasets.}
+
+\item{format}{File format, either 'fasta' or 'fastq'. If omitted will be
+automatically detected from the first file's name.}
+
+\item{asSparse}{Logical; whether to convert the matrix to sparse format (not
+yet entirely supported by downstream functions)}
 }
 \value{
 a matrix, with unique sequences as rows and samples (i.e. file
-basenames) as column.
+  basenames) as column.
 }
 \description{
 Collapses a set of `.fastq` (or `fastq.gz`) files to a matrix of counts per

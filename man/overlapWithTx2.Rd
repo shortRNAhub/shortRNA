@@ -4,13 +4,23 @@
 \alias{overlapWithTx2}
 \title{overlapWithTx2}
 \usage{
-overlapWithTx2(bamFile, annotation, ignoreStrand = TRUE, nbthreads = NULL)
+overlapWithTx2(
+  bamFile,
+  annotation,
+  uniqueFasta = NULL,
+  ignoreStrand = TRUE,
+  nbthreads = NULL
+)
 }
 \arguments{
 \item{bamFile}{A character vector of path to BAM file.}
 
 \item{annotation}{An object of class `GRangesList`, as produced by
 `prepareAnnotation()`.}
+
+\item{uniqueFasta}{The path to the fasta file of unique fragments (which was
+used for the alignment). This will is optional, but will be used to
+recover the original sequence (rather than having arbitrary fragment IDs).}
 
 \item{ignoreStrand}{Logical; whether to ignore strand when searching for
 overlaps. By default, strand is ignored and considered later on at the read
