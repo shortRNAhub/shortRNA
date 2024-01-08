@@ -39,11 +39,11 @@ overlapWithTx2 <- function(bamFile, annotation, uniqueFasta=NULL,
   }
 
   # load bam as GAlignments
-  param <- ScanBamParam(what = c("cigar", "qname"))
+  param <- ScanBamParam(what = c("cigar", "qname", "seq"))
   bam <- readGAlignments(bamFile, param = param)
   seqlevelsStyle(bam) <- "ensembl"
   bam <- as(bam, "GRangesList")
-  bam@elementMetadata$seq <- as.character(bam@elementMetadata$qname)
+  # bam@elementMetadata$seq <- as.character(bam@elementMetadata$qname)
 
   message(paste(length(bam), "alignments loaded, searching for overlaps..."))
 
@@ -128,6 +128,7 @@ overlapWithTx2 <- function(bamFile, annotation, uniqueFasta=NULL,
     ignore.strand = ignoreStrand
   ))
 
+  
   res2 <- data.frame(
     seq = as.character(nonOV@elementMetadata$seq),
     cigar = nonOV@elementMetadata$cigar,
@@ -136,10 +137,15 @@ overlapWithTx2 <- function(bamFile, annotation, uniqueFasta=NULL,
     read.end = max(end(nonOV)),
     read.strand = as.factor(unlist(strand(nonOV)))
   )
-  for (f in setdiff(names(res), names(res2))) {
-    res2[[f]] <- NA
+  
+  if(nrow(res2) > 0){
+    for (f in setdiff(names(res), names(res2))) {
+      res2[[f]] <- NA
+    }
+    res <- rbind(res, res2[, colnames(res)])
   }
-  res <- rbind(res, res2[, colnames(res)])
+  
+  
   res$seq <- as.factor(res$seq)
   if(!is.null(uniqueFasta)) res$seq <- .recoverFragSeqs(res$seq, uniqueFasta)
   res
