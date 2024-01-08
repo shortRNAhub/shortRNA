@@ -196,7 +196,7 @@ prepareAnnotation <- function(ensdb, genome = NULL, output_dir = "",
     )
   }
 
-  if (is(genome, "TwoBitFile") || grepl(pattern = "\\.2bit", x = genome)) {
+  if (is(genome, "TwoBitFile") || (length(genome) == 1 && grepl(pattern = "\\.2bit", x = genome))) {
     genome <- import(genome)
   }
 

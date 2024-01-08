@@ -192,7 +192,7 @@ assignReads <- function(sources, rules = defaultAssignRules(),
     sources$resolvedAmbiguities <- a
   }
 
-  if (!is.null(sources$reclassify) && any(!is.na(sources$reclassify))) {
+  if (!isEmpty(sources$reclassify) && any(!is.na(sources$reclassify))) {
     sources$reclassify <- FactorList(sources$reclassify)
   } else {
     sources$reclassify <- NULL
