@@ -172,31 +172,35 @@ fList2tree <- function(fL, addRoot = TRUE,
 #' @param fL factorList of the annotation
 #' @param mappedFeaturesDF `DFrame` with Sequences and transcript IDs
 #' @param featuresCol Feature name column
-#' @param readsCol Column with sequences
+#' @param readsCol Column with sequences, if omitted will use the row.names
 #' @param unassigned If unassigned reads to be included in the tree or not
 #' @param extraTreeBranch Additional sequences as `FactorList` to be added to
 #'  the tree. One can obtain unaligned reads using `getReadsFromBam` to obtain
 #'  reads from bam files.
 #' @param ... Other parameters to be passed to `fList2tree`
-#' 
+#'
 #' @importFrom IRanges IntegerList FactorList
 #' @importFrom S4Vectors splitAsList
-#' 
+#'
 #' @export
 addReadsToTree <- function(fL,
                            mappedFeaturesDF,
                            featuresCol = "transcript_id",
-                           readsCol = "seq",
+                           readsCol = NULL,
                            unassigned = FALSE,
                            extraTreeBranch = NULL,
                            ...) {
-  
+
   # Parallel processing of apply functions
   # plan(multisession)
 
   # Features per sequence
   features <- mappedFeaturesDF[, featuresCol]
-  names(features) <- mappedFeaturesDF[, readsCol]
+  if(is.null(readsCol)){
+    names(features) <- row.names(mappedFeaturesDF)
+  }else{
+    names(features) <- mappedFeaturesDF[, readsCol]
+  }
 
   # # Filtering out non-existing features
   # featuresPerRead <- lapply(features, function(x) intersect(x = as.character(x), y = names(fl)))
@@ -294,10 +298,10 @@ addReadsToTree <- function(fL,
 #' @param bam A label to be given to reads
 #'
 #' @return A `FactorList` of reads with labels
-#' 
+#'
 #' @importFrom Rsamtools BamFile scanBam
 #' @importFrom IRanges FactorList
-#' 
+#'
 #' @export
 getReadsFromBam <- function(bam, flag = 4, label = "unaligned") {
   bamFile <- BamFile(bam)

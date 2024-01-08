@@ -7,14 +7,17 @@
 #' @param bamFile A character vector of path to BAM file.
 #' @param annotation An object of class `GRangesList`, as produced by
 #' `prepareAnnotation()`.
+#' @param uniqueFasta The path to the fasta file of unique fragments (which was
+#'   used for the alignment). This will is optional, but will be used to
+#'   recover the original sequence (rather than having arbitrary fragment IDs).
 #' @param ignoreStrand Logical; whether to ignore strand when searching for
 #' overlaps. By default, strand is ignored and considered later on at the read
 #' assignment stage.
 #' @param nbthreads A positive integer indicating the number of threads to use.
 #' Defaults to `min(c(8, bpworkers()))`.
-#' 
+#'
 #' @importFrom GenomicAlignments readGAlignments
-#' @importFrom GenomeInfoDb seqinfo
+#' @importFrom GenomeInfoDb seqinfo seqlevelsInUse keepSeqlevels
 #' @importFrom BiocParallel SerialParam MulticoreParam bpmapply
 #' @importFrom GenomicRanges setdiff intersect
 #' @importFrom Rsamtools ScanBamParam
@@ -22,10 +25,10 @@
 #' @importFrom IRanges findOverlapPairs subsetByOverlaps
 #' @importFrom BiocGenerics strand start end width
 #' @importFrom S4Vectors elementNROWS
-#' 
+#'
 #' @return A data.table.
 #' @export
-overlapWithTx2 <- function(bamFile, annotation,
+overlapWithTx2 <- function(bamFile, annotation, uniqueFasta=NULL,
                            ignoreStrand = TRUE, nbthreads = NULL) {
   mcols(annotation)$tx_id <- as.factor(mcols(annotation)$tx_id)
 
@@ -43,6 +46,12 @@ overlapWithTx2 <- function(bamFile, annotation,
   # bam@elementMetadata$seq <- as.character(bam@elementMetadata$qname)
 
   message(paste(length(bam), "alignments loaded, searching for overlaps..."))
+
+  # restrict annotation to common seqlevels
+  slvls <- intersect(seqlevelsInUse(bam), seqlevelsInUse(annotation))
+  if(length(slvls)==0)
+    stop("The alignment and the annotation have no seqlevels in common!")
+  annotation <- keepSeqlevels(annotation, slvls, pruning.mode="coarse")
 
   if (is(annotation, "GRanges")) {
     annotation <- as(annotation, "GRangesList")
@@ -138,6 +147,7 @@ overlapWithTx2 <- function(bamFile, annotation,
   
   
   res$seq <- as.factor(res$seq)
+  if(!is.null(uniqueFasta)) res$seq <- .recoverFragSeqs(res$seq, uniqueFasta)
   res
 }
 
@@ -186,4 +196,12 @@ overlapWithTx2 <- function(bamFile, annotation,
   w <- rev(which(start(feature) <= rs))[1]
   return(as.integer(-1 * (sum(width(feature)[which(start(feature) > rs)]) +
     end(feature)[w] - rs)))
+}
+
+.recoverFragSeqs <- function(x, seqs){
+  if(length(seqs)==1 && file.exists(seqs)){
+    seqs <- as.character(readDNAStringSet("uniqueFragments.fasta"))
+  }
+  levels(x) <- as.character(seqs[levels(x)])
+  x
 }
