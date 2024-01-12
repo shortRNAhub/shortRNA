@@ -633,6 +633,8 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
                   rRNA_release = "138.1") {
   
   config <- httr::config(ssl_verifypeer = 0, ssl_verifyhost = 0)
+  tt <- options()$timeout
+  options(timeout = 6000)
   
   if (species == "mmu") {
 
@@ -710,6 +712,7 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
     )
     
     config <- httr::config(ssl_verifypeer = 1, ssl_verifyhost = 1)
+    options(timeout = tt)
     
     return(db)
   }
