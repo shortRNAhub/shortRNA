@@ -619,6 +619,7 @@ getrRNA <- function(sp = "Mus musculus", release = "138.1") {
 #' @param tRNA_includeMt Whether to include mitochondrial tRNAs. Default: TRUE
 #' @param rRNA_release the version of rRNA database to be used. Default: "138.1"
 #'
+#' @import httr
 #' @importFrom AnnotationHub AnnotationHub query
 #' @importFrom R.utils gunzip downloadFile
 #' @importFrom rtracklayer import.chain liftOver
@@ -630,6 +631,9 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
                   ensemblVer = "102",
                   tRNA_addCCA = TRUE, tRNA_includeMt = TRUE,
                   rRNA_release = "138.1") {
+  
+  config <- httr::config(ssl_verifypeer = 0, ssl_verifyhost = 0)
+  
   if (species == "mmu") {
 
     # EnsDb
@@ -704,6 +708,9 @@ getDB <- function(species = "mmu", genomeVersion = "GRCm38",
       tRNA_fa = tRNA,
       rRNA_fa = rRNA
     )
+    
+    config <- httr::config(ssl_verifypeer = 1, ssl_verifyhost = 1)
+    
     return(db)
   }
 }
